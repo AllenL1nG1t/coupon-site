@@ -456,6 +456,16 @@ h1 {
     padding: 8px;
     font-family: inherit;
 }
+.admin-grid label {
+    display: grid;
+    gap: 6px;
+    color: #395378;
+    font-weight: 600;
+}
+.admin-grid input[type="color"] {
+    padding: 4px;
+    height: 40px;
+}
 
 .admin-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .admin-subcard-grid {

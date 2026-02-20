@@ -18,6 +18,7 @@ const contentHeroEyebrow = document.getElementById("contentHeroEyebrow");
 const contentHeroTitle = document.getElementById("contentHeroTitle");
 const contentHeroSubtitle = document.getElementById("contentHeroSubtitle");
 const contentHeroBgColor = document.getElementById("contentHeroBgColor");
+const contentHeroBgColorPicker = document.getElementById("contentHeroBgColorPicker");
 const contentHeroBgImageUrl = document.getElementById("contentHeroBgImageUrl");
 const heroImageFile = document.getElementById("heroImageFile");
 const uploadHeroImageBtn = document.getElementById("uploadHeroImageBtn");
@@ -123,7 +124,8 @@ async function loadContent() {
   contentHeroEyebrow.value = data.heroEyebrow || "";
   contentHeroTitle.value = data.heroTitle || "";
   contentHeroSubtitle.value = data.heroSubtitle || "";
-  contentHeroBgColor.value = data.heroBgColor || "";
+  contentHeroBgColor.value = data.heroBgColor || "#f7f9fd";
+  contentHeroBgColorPicker.value = normalizeColor(contentHeroBgColor.value);
   contentHeroBgImageUrl.value = data.heroBgImageUrl || "";
 }
 
@@ -142,6 +144,13 @@ async function saveContent() {
     body: JSON.stringify(body)
   });
   contentStatus.textContent = response.ok ? "Saved" : "Save failed";
+}
+
+function normalizeColor(value) {
+  if (!value) return "#f7f9fd";
+  const hex = value.trim();
+  if (/^#[0-9a-fA-F]{6}$/.test(hex)) return hex;
+  return "#f7f9fd";
 }
 
 async function uploadHeroImage() {
@@ -420,6 +429,12 @@ clearBlogBtn.addEventListener("click", clearBlogForm);
 uploadImageBtn.addEventListener("click", uploadBlogImage);
 saveAdsBtn.addEventListener("click", saveAds);
 logoutBtn.addEventListener("click", event => { event.preventDefault(); logout(); });
+contentHeroBgColorPicker.addEventListener("input", () => {
+  contentHeroBgColor.value = contentHeroBgColorPicker.value;
+});
+contentHeroBgColor.addEventListener("input", () => {
+  contentHeroBgColorPicker.value = normalizeColor(contentHeroBgColor.value);
+});
 
 (async function init() {
   const ok = await checkAuth();

@@ -8,9 +8,12 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.HttpStatusException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -18,9 +21,9 @@ import org.springframework.stereotype.Service;
 public class SimplyCodesCrawlerService {
 
     private static final List<StoreSeed> STORE_SEEDS = List.of(
-        new StoreSeed("nike", "Nike", "fashion", LogoCatalog.forStore("Nike")),
-        new StoreSeed("samsung", "Samsung", "electronics", LogoCatalog.forStore("Samsung")),
-        new StoreSeed("best-buy", "Best Buy", "electronics", LogoCatalog.forStore("Best Buy"))
+        new StoreSeed("Nike", "fashion", LogoCatalog.forStore("Nike"), List.of("nike.com", "nike")),
+        new StoreSeed("Samsung", "electronics", LogoCatalog.forStore("Samsung"), List.of("samsung.com", "samsung")),
+        new StoreSeed("Best Buy", "electronics", LogoCatalog.forStore("Best Buy"), List.of("bestbuy.com", "best-buy", "bestbuy"))
     );
 
     private final CouponService couponService;
@@ -51,20 +54,14 @@ public class SimplyCodesCrawlerService {
         int duplicates = 0;
 
         for (StoreSeed seed : STORE_SEEDS) {
-            String url = "https://simplycodes.com/store/" + seed.path();
             try {
-                Document document = Jsoup.connect(url)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-                    .header("Accept-Language", "en-US,en;q=0.9")
-                    .header("Cache-Control", "no-cache")
-                    .referrer("https://www.google.com/")
-                    .timeout(10000)
-                    .get();
+                CrawlTarget crawlTarget = resolveTarget(seed);
+                Document document = crawlTarget.document();
 
                 List<Coupon> parsedCoupons = parseCoupons(document, seed);
                 if (parsedCoupons.isEmpty()) {
-                    crawlerLogService.warn("No coupons parsed from " + url + ", fallback applied.");
-                    upserts += applyFallbackCoupons(seed);
+                    crawlerLogService.warn("No coupons parsed from " + crawlTarget.url() + ", fallback applied.");
+                    upserts += applyFallbackCoupons(seed, crawlTarget.url());
                 } else {
                     for (Coupon coupon : parsedCoupons) {
                         if (couponService.upsert(coupon)) {
@@ -77,8 +74,9 @@ public class SimplyCodesCrawlerService {
                 }
             } catch (IOException ex) {
                 String reason = classifyError(ex);
-                crawlerLogService.warn("Crawler blocked for " + url + " (" + reason + "), fallback applied.");
-                upserts += applyFallbackCoupons(seed);
+                String fallbackUrl = "https://simplycodes.com/search?q=" + URLEncoder.encode(seed.storeName(), StandardCharsets.UTF_8);
+                crawlerLogService.warn("Crawler blocked for " + seed.storeName() + " (" + reason + "), fallback applied.");
+                upserts += applyFallbackCoupons(seed, fallbackUrl);
             }
         }
 
@@ -115,7 +113,7 @@ public class SimplyCodesCrawlerService {
 
             String href = firstHref(card, "a[href]");
             if (href.isBlank()) {
-                href = "https://simplycodes.com/store/" + seed.path();
+                href = "https://simplycodes.com/store/" + seed.paths().get(0);
             } else if (href.startsWith("/")) {
                 href = "https://simplycodes.com" + href;
             }
@@ -135,10 +133,10 @@ public class SimplyCodesCrawlerService {
         return parsed;
     }
 
-    private int applyFallbackCoupons(StoreSeed seed) {
+    private int applyFallbackCoupons(StoreSeed seed, String fallbackAffiliateUrl) {
         List<Coupon> fallback = List.of(
-            fallbackCoupon(seed, "SimplyCodes: trending deal at " + seed.storeName(), "SIMPLY10", "Limited time"),
-            fallbackCoupon(seed, "SimplyCodes: latest promo for " + seed.storeName(), "SCODE20", "Ends soon")
+            fallbackCoupon(seed, "SimplyCodes: trending deal at " + seed.storeName(), "SIMPLY10", "Limited time", fallbackAffiliateUrl),
+            fallbackCoupon(seed, "SimplyCodes: latest promo for " + seed.storeName(), "SCODE20", "Ends soon", fallbackAffiliateUrl)
         );
 
         int inserted = 0;
@@ -150,17 +148,51 @@ public class SimplyCodesCrawlerService {
         return inserted;
     }
 
-    private Coupon fallbackCoupon(StoreSeed seed, String title, String code, String expires) {
+    private Coupon fallbackCoupon(StoreSeed seed, String title, String code, String expires, String affiliateUrl) {
         Coupon coupon = new Coupon();
         coupon.setStore(seed.storeName());
         coupon.setTitle(title);
         coupon.setCategory(seed.category());
         coupon.setExpires(expires);
         coupon.setCouponCode(code);
-        coupon.setAffiliateUrl("https://simplycodes.com/store/" + seed.path());
+        coupon.setAffiliateUrl(affiliateUrl);
         coupon.setLogoUrl(seed.logoUrl());
         coupon.setSource("simplycodes-fallback");
         return coupon;
+    }
+
+    private CrawlTarget resolveTarget(StoreSeed seed) throws IOException {
+        IOException lastException = null;
+        for (String candidate : seed.paths()) {
+            String url = "https://simplycodes.com/store/" + candidate;
+            try {
+                Document document = connect(url);
+                return new CrawlTarget(url, document);
+            } catch (HttpStatusException ex) {
+                if (ex.getStatusCode() == 404) {
+                    lastException = ex;
+                    continue;
+                }
+                throw ex;
+            } catch (IOException ex) {
+                lastException = ex;
+                break;
+            }
+        }
+        if (lastException != null) {
+            throw lastException;
+        }
+        throw new IOException("No valid simplycodes path for " + seed.storeName());
+    }
+
+    private Document connect(String url) throws IOException {
+        return Jsoup.connect(url)
+            .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+            .header("Accept-Language", "en-US,en;q=0.9")
+            .header("Cache-Control", "no-cache")
+            .referrer("https://www.google.com/")
+            .timeout(10000)
+            .get();
     }
 
     private String classifyError(IOException ex) {
@@ -186,6 +218,9 @@ public class SimplyCodesCrawlerService {
         return el.absUrl("href").isBlank() ? el.attr("href") : el.absUrl("href");
     }
 
-    private record StoreSeed(String path, String storeName, String category, String logoUrl) {
+    private record StoreSeed(String storeName, String category, String logoUrl, List<String> paths) {
+    }
+
+    private record CrawlTarget(String url, Document document) {
     }
 }
