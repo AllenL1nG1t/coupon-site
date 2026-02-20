@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DealNest Admin Panel</title>
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<header class="topbar">
+    <div class="container topbar-inner">
+        <a class="brand" href="/">DealNest Admin</a>
+        <nav class="nav">
+            <a href="/">Site</a>
+            <a href="#" id="logoutBtn">Logout</a>
+        </nav>
+    </div>
+</header>
+
+<div class="admin-container">
+    <section class="admin-section">
+        <h3>Crawler</h3>
+        <div class="admin-row">
+            <label><input type="checkbox" id="crawlerEnabled"> Enable RetailMeNot crawler</label>
+            <button id="saveCrawlerBtn" class="primary-btn">Save</button>
+            <button id="runCrawlerBtn" class="primary-btn">Run Now</button>
+            <span id="crawlerStatus"></span>
+        </div>
+        <pre id="logPanel" class="logs-panel"></pre>
+    </section>
+
+    <section class="admin-section">
+        <h3>Coupon Management</h3>
+        <div class="admin-grid" style="margin-bottom: 10px;">
+            <input id="couponStore" placeholder="Store">
+            <input id="couponTitle" placeholder="Title">
+            <input id="couponCategory" placeholder="Category">
+            <input id="couponExpires" placeholder="Expires">
+            <input id="couponCode" placeholder="Coupon Code">
+            <input id="couponAffiliate" placeholder="Affiliate URL">
+            <input id="couponLogo" placeholder="Logo URL">
+            <input id="couponSource" placeholder="Source (admin)">
+        </div>
+        <div class="admin-row">
+            <button id="saveCouponBtn" class="primary-btn">Add Coupon</button>
+        </div>
+        <table class="admin-table" id="couponTable"></table>
+    </section>
+
+    <section class="admin-section">
+        <h3>Blog Management</h3>
+        <div class="admin-grid" style="margin-bottom: 10px;">
+            <input id="blogTitle" placeholder="Blog title">
+            <input id="blogSummary" placeholder="Blog summary">
+            <input id="blogCover" placeholder="Cover image URL">
+            <select id="blogPublished"><option value="true">Published</option><option value="false">Draft</option></select>
+            <textarea id="blogContent" rows="6" placeholder="Blog content"></textarea>
+        </div>
+        <div class="admin-row">
+            <input id="blogImageFile" type="file" accept="image/*">
+            <button id="uploadImageBtn" class="primary-btn">Upload Image</button>
+            <button id="saveBlogBtn" class="primary-btn">Add Blog</button>
+            <span id="blogStatus"></span>
+        </div>
+        <table class="admin-table" id="blogTable"></table>
+    </section>
+</div>
+
+<script src="./admin-panel.js"></script>
+</body>
+</html>

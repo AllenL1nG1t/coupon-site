@@ -17,7 +17,7 @@
             <a href="#">Categories</a>
             <a href="#">Stores</a>
             <a href="#">Cash Back</a>
-            <a href="/admin.html">Admin</a>
+            <a href="/admin-login.html">Login</a>
         </nav>
     </div>
 </header>
@@ -37,7 +37,7 @@
             <div>
                 <p class="eyebrow">TODAY'S BEST DEALS</p>
                 <h1>Save money with verified promo codes from top brands</h1>
-                <p class="subtitle">Coupon code ????,???????????????????</p>
+                <p class="subtitle">Coupon code stays hidden until click. Affiliate URL is triggered quietly while you remain on this page.</p>
                 <div class="chips" id="filterChips">
                     <button data-filter="all" class="active">All</button>
                     <button data-filter="fashion">Fashion</button>
@@ -50,9 +50,9 @@
                 <p class="hero-card-title">Members saved today</p>
                 <p class="hero-card-amount">$48,219</p>
                 <ul>
-                    <li>Coupon code and affiliate links stored in DB</li>
-                    <li>RetailMeNot crawler switch in Admin panel</li>
-                    <li>Crawler logs visible in Admin panel</li>
+                    <li>Coupon + affiliate URL managed from Admin</li>
+                    <li>RetailMeNot crawler toggle in Admin</li>
+                    <li>Blog posts and image upload from Admin</li>
                 </ul>
             </div>
         </div>
@@ -73,6 +73,14 @@
         </div>
         <div class="coupon-list" id="couponList"></div>
     </section>
+
+    <section class="container section">
+        <div class="section-head">
+            <h2>Latest Blog</h2>
+            <a href="/admin-login.html">Write from Admin</a>
+        </div>
+        <div class="blog-grid" id="blogList"></div>
+    </section>
 </main>
 
 <footer class="footer">
@@ -86,8 +94,8 @@
     <div class="modal-card">
         <h3>Coupon Code</h3>
         <p class="modal-code" id="modalCode">-</p>
-        <p class="modal-text">Affiliate link has been opened in a new tab.</p>
-        <a id="modalAffiliate" href="#" target="_blank" rel="noopener noreferrer">Open affiliate link again</a>
+        <p class="modal-text">Affiliate request has been triggered in the background.</p>
+        <a id="modalAffiliate" href="#" target="_blank" rel="noopener noreferrer">Open affiliate link manually</a>
         <div class="modal-actions">
             <button id="copyModalCode">Copy Code</button>
             <button id="closeModal" class="light">Close</button>
@@ -115,7 +123,17 @@
     </article>
 </template>
 
+<template id="blogCardTemplate">
+    <article class="blog-card">
+        <img class="blog-cover" alt="">
+        <div class="blog-content">
+            <h3 class="blog-title"></h3>
+            <p class="blog-summary"></p>
+            <article class="blog-body"></article>
+        </div>
+    </article>
+</template>
+
 <script src="./app.js"></script>
 </body>
 </html>
-

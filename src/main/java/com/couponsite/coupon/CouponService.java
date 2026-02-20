@@ -1,6 +1,8 @@
 package com.couponsite.coupon;
 
 import com.couponsite.admin.CrawlerLogService;
+import com.couponsite.admin.AdminCouponDto;
+import com.couponsite.admin.AdminCouponUpsertRequest;
 import java.util.List;
 import java.util.Locale;
 import org.springframework.stereotype.Service;
@@ -78,6 +80,62 @@ public class CouponService {
                 couponRepository.save(coupon);
             }
         });
+    }
+
+    public List<AdminCouponDto> listAdminCoupons() {
+        return couponRepository.findAllByOrderByCreatedAtDesc().stream()
+            .map(coupon -> new AdminCouponDto(
+                coupon.getId(),
+                coupon.getStore(),
+                coupon.getTitle(),
+                coupon.getCategory(),
+                coupon.getExpires(),
+                coupon.getCouponCode(),
+                coupon.getAffiliateUrl(),
+                coupon.getLogoUrl(),
+                coupon.getSource()
+            )).toList();
+    }
+
+    @Transactional
+    public AdminCouponDto upsertFromAdmin(AdminCouponUpsertRequest request) {
+        Coupon coupon = request.id() == null
+            ? new Coupon()
+            : couponRepository.findById(request.id()).orElseThrow(() -> new IllegalArgumentException("Coupon not found"));
+
+        coupon.setStore(nonBlankOrDefault(request.store(), "Unknown Store"));
+        coupon.setTitle(nonBlankOrDefault(request.title(), "Untitled Offer"));
+        coupon.setCategory(nonBlankOrDefault(request.category(), "other"));
+        coupon.setExpires(nonBlankOrDefault(request.expires(), "Limited time"));
+        coupon.setCouponCode(nonBlankOrDefault(request.couponCode(), "SEEDEAL"));
+        coupon.setAffiliateUrl(nonBlankOrDefault(request.affiliateUrl(), "https://example-affiliate.com"));
+        coupon.setLogoUrl(nonBlankOrDefault(request.logoUrl(), LogoCatalog.forStore(coupon.getStore())));
+        coupon.setSource(nonBlankOrDefault(request.source(), "admin"));
+        Coupon saved = couponRepository.save(coupon);
+
+        return new AdminCouponDto(
+            saved.getId(),
+            saved.getStore(),
+            saved.getTitle(),
+            saved.getCategory(),
+            saved.getExpires(),
+            saved.getCouponCode(),
+            saved.getAffiliateUrl(),
+            saved.getLogoUrl(),
+            saved.getSource()
+        );
+    }
+
+    @Transactional
+    public void deleteById(Long id) {
+        couponRepository.deleteById(id);
+    }
+
+    private String nonBlankOrDefault(String value, String fallback) {
+        if (value == null || value.isBlank()) {
+            return fallback;
+        }
+        return value.trim();
     }
 }
 

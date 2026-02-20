@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DealNest Admin Login</title>
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<header class="topbar">
+    <div class="container topbar-inner">
+        <a class="brand" href="/">DealNest</a>
+        <nav class="nav"><a href="/">Back to Site</a></nav>
+    </div>
+</header>
+
+<main class="login-wrap">
+    <section class="login-card">
+        <h2>Admin Login</h2>
+        <label for="username">Username</label>
+        <input id="username" type="text" value="admin">
+
+        <label for="password">Password</label>
+        <input id="password" type="password" value="admin123">
+
+        <div class="admin-row" style="margin-top: 12px;">
+            <button id="loginBtn" class="primary-btn">Login</button>
+            <a href="/" class="admin-mini-btn" style="text-decoration: none;">Cancel</a>
+        </div>
+        <p class="login-status" id="status"></p>
+    </section>
+</main>
+
+<script src="./admin-login.js"></script>
+</body>
+</html>

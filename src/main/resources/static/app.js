@@ -2,6 +2,8 @@ const couponList = document.getElementById("couponList");
 const couponTemplate = document.getElementById("couponCardTemplate");
 const storeGrid = document.getElementById("storeGrid");
 const storeTemplate = document.getElementById("storeTileTemplate");
+const blogList = document.getElementById("blogList");
+const blogTemplate = document.getElementById("blogCardTemplate");
 const searchInput = document.getElementById("searchInput");
 const searchForm = document.getElementById("searchForm");
 const filterChips = document.getElementById("filterChips");
@@ -13,13 +15,20 @@ const closeModal = document.getElementById("closeModal");
 
 let activeFilter = "all";
 let searchTerm = "";
-let latestCoupons = [];
 
 async function fetchCoupons() {
   const params = new URLSearchParams({ category: activeFilter, q: searchTerm });
   const response = await fetch(`/api/coupons?${params.toString()}`);
   if (!response.ok) {
     throw new Error("Failed to fetch coupons");
+  }
+  return response.json();
+}
+
+async function fetchBlogs() {
+  const response = await fetch("/api/blogs");
+  if (!response.ok) {
+    throw new Error("Failed to fetch blogs");
   }
   return response.json();
 }
@@ -50,6 +59,28 @@ function renderStores(coupons) {
   });
 }
 
+function renderBlogs(blogs) {
+  blogList.innerHTML = "";
+  if (!blogs.length) {
+    blogList.innerHTML = `<article class="blog-card"><div class="blog-content"><h3>No blog posts yet</h3></div></article>`;
+    return;
+  }
+
+  blogs.slice(0, 4).forEach(blog => {
+    const node = blogTemplate.content.cloneNode(true);
+    const cover = node.querySelector(".blog-cover");
+    cover.src = blog.coverImageUrl || "/logos/default.svg";
+    cover.alt = blog.title;
+    cover.addEventListener("error", () => {
+      cover.src = "/logos/default.svg";
+    }, { once: true });
+    node.querySelector(".blog-title").textContent = blog.title;
+    node.querySelector(".blog-summary").textContent = blog.summary;
+    node.querySelector(".blog-body").textContent = blog.content;
+    blogList.appendChild(node);
+  });
+}
+
 async function revealCoupon(id) {
   const response = await fetch(`/api/coupons/${id}/reveal`, { method: "POST" });
   if (!response.ok) {
@@ -58,15 +89,24 @@ async function revealCoupon(id) {
   return response.json();
 }
 
+function triggerAffiliateBackground(url) {
+  if (!url) {
+    return;
+  }
+
+  const iframe = document.createElement("iframe");
+  iframe.style.display = "none";
+  iframe.referrerPolicy = "no-referrer";
+  iframe.src = url;
+  document.body.appendChild(iframe);
+  setTimeout(() => iframe.remove(), 12000);
+}
+
 function showModal(code, affiliateUrl) {
   modalCode.textContent = code;
   modalAffiliate.href = affiliateUrl;
   modal.classList.remove("hidden");
-
-  const newTab = window.open(affiliateUrl, "_blank", "noopener,noreferrer");
-  if (newTab) {
-    window.focus();
-  }
+  triggerAffiliateBackground(affiliateUrl);
 }
 
 function renderCoupons(coupons) {
@@ -104,11 +144,20 @@ function renderCoupons(coupons) {
 
 async function refreshCoupons() {
   try {
-    latestCoupons = await fetchCoupons();
-    renderCoupons(latestCoupons);
-    renderStores(latestCoupons);
+    const coupons = await fetchCoupons();
+    renderCoupons(coupons);
+    renderStores(coupons);
   } catch (_) {
     couponList.innerHTML = `<article class="coupon-card"><p>Unable to load coupons right now.</p></article>`;
+  }
+}
+
+async function refreshBlogs() {
+  try {
+    const blogs = await fetchBlogs();
+    renderBlogs(blogs);
+  } catch (_) {
+    blogList.innerHTML = `<article class="blog-card"><div class="blog-content"><h3>Unable to load blogs right now.</h3></div></article>`;
   }
 }
 
@@ -153,5 +202,4 @@ modal.addEventListener("click", event => {
 });
 
 refreshCoupons();
-
-
+refreshBlogs();
