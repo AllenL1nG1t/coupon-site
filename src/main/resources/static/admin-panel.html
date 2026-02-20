@@ -18,20 +18,30 @@
 </header>
 
 <div class="admin-container">
-    <section class="admin-section">
-        <h3>Crawler</h3>
-        <div class="admin-row">
-            <label><input type="checkbox" id="crawlerEnabled"> Enable RetailMeNot crawler</label>
-            <button id="saveCrawlerBtn" class="primary-btn">Save</button>
-            <button id="runCrawlerBtn" class="primary-btn">Run Now</button>
-            <span id="crawlerStatus"></span>
+    <section class="admin-nav-card">
+        <div class="admin-tabs" id="adminTabs">
+            <button class="admin-tab active" data-tab="dashboard">Dashboard</button>
+            <button class="admin-tab" data-tab="coupons">Coupons</button>
+            <button class="admin-tab" data-tab="blogs">Blogs</button>
+            <button class="admin-tab" data-tab="crawler">Crawler</button>
         </div>
-        <pre id="logPanel" class="logs-panel"></pre>
     </section>
 
-    <section class="admin-section">
-        <h3>Coupon Management</h3>
-        <div class="admin-grid" style="margin-bottom: 10px;">
+    <section class="admin-section" data-section="dashboard">
+        <h3>Dashboard</h3>
+        <div class="stat-grid" id="statGrid">
+            <article class="stat-card"><p>Total Coupons</p><h4 id="statCoupons">-</h4></article>
+            <article class="stat-card"><p>Published Blogs</p><h4 id="statBlogs">-</h4></article>
+            <article class="stat-card"><p>Crawler Status</p><h4 id="statCrawler">-</h4></article>
+        </div>
+    </section>
+
+    <section class="admin-section hidden" data-section="coupons">
+        <div class="section-head-admin">
+            <h3>Coupon Management</h3>
+            <span>Manage coupon info and affiliate URL</span>
+        </div>
+        <div class="admin-grid coupon-form-grid">
             <input id="couponStore" placeholder="Store">
             <input id="couponTitle" placeholder="Title">
             <input id="couponCategory" placeholder="Category">
@@ -43,26 +53,49 @@
         </div>
         <div class="admin-row">
             <button id="saveCouponBtn" class="primary-btn">Add Coupon</button>
+            <button id="clearCouponBtn" class="admin-mini-btn">Clear Form</button>
         </div>
-        <table class="admin-table" id="couponTable"></table>
+        <div class="table-wrap">
+            <table class="admin-table" id="couponTable"></table>
+        </div>
     </section>
 
-    <section class="admin-section">
-        <h3>Blog Management</h3>
-        <div class="admin-grid" style="margin-bottom: 10px;">
+    <section class="admin-section hidden" data-section="blogs">
+        <div class="section-head-admin">
+            <h3>Blog Management</h3>
+            <span>Create/edit homepage blog content</span>
+        </div>
+        <div class="admin-grid blog-form-grid">
             <input id="blogTitle" placeholder="Blog title">
             <input id="blogSummary" placeholder="Blog summary">
             <input id="blogCover" placeholder="Cover image URL">
             <select id="blogPublished"><option value="true">Published</option><option value="false">Draft</option></select>
-            <textarea id="blogContent" rows="6" placeholder="Blog content"></textarea>
+            <textarea id="blogContent" rows="8" placeholder="Blog content"></textarea>
         </div>
         <div class="admin-row">
             <input id="blogImageFile" type="file" accept="image/*">
             <button id="uploadImageBtn" class="primary-btn">Upload Image</button>
             <button id="saveBlogBtn" class="primary-btn">Add Blog</button>
+            <button id="clearBlogBtn" class="admin-mini-btn">Clear Form</button>
             <span id="blogStatus"></span>
         </div>
-        <table class="admin-table" id="blogTable"></table>
+        <div class="table-wrap">
+            <table class="admin-table" id="blogTable"></table>
+        </div>
+    </section>
+
+    <section class="admin-section hidden" data-section="crawler">
+        <div class="section-head-admin">
+            <h3>Crawler</h3>
+            <span>RetailMeNot + automatic fallback mode</span>
+        </div>
+        <div class="admin-row">
+            <label><input type="checkbox" id="crawlerEnabled"> Enable scheduled crawler</label>
+            <button id="saveCrawlerBtn" class="primary-btn">Save</button>
+            <button id="runCrawlerBtn" class="primary-btn">Run Now</button>
+            <span id="crawlerStatus"></span>
+        </div>
+        <pre id="logPanel" class="logs-panel"></pre>
     </section>
 </div>
 

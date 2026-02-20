@@ -6,6 +6,11 @@ const logPanel = document.getElementById("logPanel");
 const couponTable = document.getElementById("couponTable");
 const blogTable = document.getElementById("blogTable");
 const logoutBtn = document.getElementById("logoutBtn");
+const tabsRoot = document.getElementById("adminTabs");
+
+const statCoupons = document.getElementById("statCoupons");
+const statBlogs = document.getElementById("statBlogs");
+const statCrawler = document.getElementById("statCrawler");
 
 const couponStore = document.getElementById("couponStore");
 const couponTitle = document.getElementById("couponTitle");
@@ -16,6 +21,7 @@ const couponAffiliate = document.getElementById("couponAffiliate");
 const couponLogo = document.getElementById("couponLogo");
 const couponSource = document.getElementById("couponSource");
 const saveCouponBtn = document.getElementById("saveCouponBtn");
+const clearCouponBtn = document.getElementById("clearCouponBtn");
 
 const blogTitle = document.getElementById("blogTitle");
 const blogSummary = document.getElementById("blogSummary");
@@ -23,9 +29,28 @@ const blogCover = document.getElementById("blogCover");
 const blogPublished = document.getElementById("blogPublished");
 const blogContent = document.getElementById("blogContent");
 const saveBlogBtn = document.getElementById("saveBlogBtn");
+const clearBlogBtn = document.getElementById("clearBlogBtn");
 const blogImageFile = document.getElementById("blogImageFile");
 const uploadImageBtn = document.getElementById("uploadImageBtn");
 const blogStatus = document.getElementById("blogStatus");
+
+let cachedCoupons = [];
+let cachedBlogs = [];
+
+function showTab(tab) {
+  document.querySelectorAll(".admin-tab").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.tab === tab);
+  });
+  document.querySelectorAll("[data-section]").forEach(section => {
+    section.classList.toggle("hidden", section.dataset.section !== tab);
+  });
+}
+
+tabsRoot.addEventListener("click", event => {
+  const btn = event.target.closest(".admin-tab");
+  if (!btn) return;
+  showTab(btn.dataset.tab);
+});
 
 async function adminFetch(url, options = {}) {
   const response = await fetch(url, options);
@@ -58,6 +83,7 @@ async function loadCrawler() {
   const logsRes = await adminFetch("/api/admin/logs");
   const logs = await logsRes.json();
   logPanel.textContent = (logs || []).map(log => `[${log.createdAt}] [${log.level}] ${log.message}`).join("\n") || "No logs yet";
+  statCrawler.textContent = settings.crawlerEnabled ? "Enabled" : "Disabled";
 }
 
 async function saveCrawler() {
@@ -68,13 +94,21 @@ async function saveCrawler() {
     body: JSON.stringify({ crawlerEnabled: crawlerEnabled.checked })
   });
   crawlerStatus.textContent = response.ok ? "Saved" : "Save failed";
+  await loadCrawler();
 }
 
 async function runCrawler() {
   crawlerStatus.textContent = "Running...";
   const response = await adminFetch("/api/admin/crawler/run", { method: "POST" });
   crawlerStatus.textContent = await response.text();
-  await loadCrawler();
+  await Promise.all([loadCrawler(), loadCoupons()]);
+}
+
+function clearCouponForm() {
+  saveCouponBtn.dataset.editId = "";
+  saveCouponBtn.textContent = "Add Coupon";
+  [couponStore, couponTitle, couponCategory, couponExpires, couponCode, couponAffiliate, couponLogo, couponSource]
+    .forEach(el => el.value = "");
 }
 
 function renderCouponRows(coupons) {
@@ -90,7 +124,7 @@ function renderCouponRows(coupons) {
           <td>${c.title}</td>
           <td>${c.category}</td>
           <td>${c.couponCode}</td>
-          <td style="max-width:260px;word-break:break-all;">${c.affiliateUrl}</td>
+          <td class="cut-cell">${c.affiliateUrl}</td>
           <td>
             <button class="admin-mini-btn" data-edit-coupon="${c.id}">Edit</button>
             <button class="admin-mini-btn" data-del-coupon="${c.id}">Delete</button>
@@ -104,15 +138,14 @@ function renderCouponRows(coupons) {
     btn.addEventListener("click", async () => {
       await adminFetch(`/api/admin/coupons?id=${btn.dataset.delCoupon}`, { method: "DELETE" });
       await loadCoupons();
+      clearCouponForm();
     });
   });
 
   couponTable.querySelectorAll("[data-edit-coupon]").forEach(btn => {
-    btn.addEventListener("click", async () => {
+    btn.addEventListener("click", () => {
       const id = Number(btn.dataset.editCoupon);
-      const response = await adminFetch("/api/admin/coupons");
-      const couponsData = await response.json();
-      const item = couponsData.find(x => x.id === id);
+      const item = cachedCoupons.find(x => x.id === id);
       if (!item) return;
       couponStore.value = item.store;
       couponTitle.value = item.title;
@@ -124,13 +157,17 @@ function renderCouponRows(coupons) {
       couponSource.value = item.source;
       saveCouponBtn.dataset.editId = String(item.id);
       saveCouponBtn.textContent = "Update Coupon";
+      showTab("coupons");
+      window.scrollTo({ top: 0, behavior: "smooth" });
     });
   });
 }
 
 async function loadCoupons() {
   const response = await adminFetch("/api/admin/coupons");
-  renderCouponRows(await response.json());
+  cachedCoupons = await response.json();
+  renderCouponRows(cachedCoupons);
+  statCoupons.textContent = String(cachedCoupons.length);
 }
 
 async function saveCoupon() {
@@ -150,11 +187,15 @@ async function saveCoupon() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body)
   });
-
-  saveCouponBtn.dataset.editId = "";
-  saveCouponBtn.textContent = "Add Coupon";
-  [couponStore, couponTitle, couponCategory, couponExpires, couponCode, couponAffiliate, couponLogo, couponSource].forEach(el => el.value = "");
+  clearCouponForm();
   await loadCoupons();
+}
+
+function clearBlogForm() {
+  saveBlogBtn.dataset.editId = "";
+  saveBlogBtn.textContent = "Add Blog";
+  [blogTitle, blogSummary, blogCover, blogContent].forEach(el => el.value = "");
+  blogPublished.value = "true";
 }
 
 function renderBlogRows(blogs) {
@@ -168,7 +209,7 @@ function renderBlogRows(blogs) {
           <td>${b.id}</td>
           <td>${b.title}</td>
           <td>${b.published}</td>
-          <td style="max-width:220px;word-break:break-all;">${b.coverImageUrl}</td>
+          <td class="cut-cell">${b.coverImageUrl}</td>
           <td>
             <button class="admin-mini-btn" data-edit-blog="${b.id}">Edit</button>
             <button class="admin-mini-btn" data-del-blog="${b.id}">Delete</button>
@@ -182,15 +223,14 @@ function renderBlogRows(blogs) {
     btn.addEventListener("click", async () => {
       await adminFetch(`/api/admin/blogs?id=${btn.dataset.delBlog}`, { method: "DELETE" });
       await loadBlogs();
+      clearBlogForm();
     });
   });
 
   blogTable.querySelectorAll("[data-edit-blog]").forEach(btn => {
-    btn.addEventListener("click", async () => {
+    btn.addEventListener("click", () => {
       const id = Number(btn.dataset.editBlog);
-      const response = await adminFetch("/api/admin/blogs");
-      const blogsData = await response.json();
-      const item = blogsData.find(x => x.id === id);
+      const item = cachedBlogs.find(x => x.id === id);
       if (!item) return;
       blogTitle.value = item.title;
       blogSummary.value = item.summary;
@@ -199,13 +239,17 @@ function renderBlogRows(blogs) {
       blogPublished.value = String(item.published);
       saveBlogBtn.dataset.editId = String(item.id);
       saveBlogBtn.textContent = "Update Blog";
+      showTab("blogs");
+      window.scrollTo({ top: 0, behavior: "smooth" });
     });
   });
 }
 
 async function loadBlogs() {
   const response = await adminFetch("/api/admin/blogs");
-  renderBlogRows(await response.json());
+  cachedBlogs = await response.json();
+  renderBlogRows(cachedBlogs);
+  statBlogs.textContent = String(cachedBlogs.filter(x => x.published).length);
 }
 
 async function saveBlog() {
@@ -222,11 +266,7 @@ async function saveBlog() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body)
   });
-
-  saveBlogBtn.dataset.editId = "";
-  saveBlogBtn.textContent = "Add Blog";
-  [blogTitle, blogSummary, blogCover, blogContent].forEach(el => el.value = "");
-  blogPublished.value = "true";
+  clearBlogForm();
   await loadBlogs();
 }
 
@@ -258,14 +298,14 @@ async function logout() {
 saveCrawlerBtn.addEventListener("click", saveCrawler);
 runCrawlerBtn.addEventListener("click", runCrawler);
 saveCouponBtn.addEventListener("click", saveCoupon);
+clearCouponBtn.addEventListener("click", clearCouponForm);
 saveBlogBtn.addEventListener("click", saveBlog);
+clearBlogBtn.addEventListener("click", clearBlogForm);
 uploadImageBtn.addEventListener("click", uploadBlogImage);
 logoutBtn.addEventListener("click", event => { event.preventDefault(); logout(); });
 
 (async function init() {
   const ok = await checkAuth();
   if (!ok) return;
-  await loadCrawler();
-  await loadCoupons();
-  await loadBlogs();
+  await Promise.all([loadCrawler(), loadCoupons(), loadBlogs()]);
 })();

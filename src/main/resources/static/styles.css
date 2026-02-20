@@ -261,6 +261,52 @@ h1 {
     margin-bottom: 14px;
 }
 
+.admin-nav-card {
+    background: linear-gradient(120deg, #f6fbff, #eef7ff);
+    border: 1px solid #d8e8fb;
+    border-radius: 14px;
+    padding: 10px;
+    margin-bottom: 14px;
+}
+
+.admin-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.admin-tab {
+    border: 1px solid #c5d9f4;
+    background: #fff;
+    color: #204b81;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.admin-tab.active {
+    background: #0f7dff;
+    border-color: #0f7dff;
+    color: #fff;
+}
+
+.section-head-admin {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+}
+
+.section-head-admin h3 {
+    margin: 0;
+}
+
+.section-head-admin span {
+    color: #5678a5;
+    font-size: 13px;
+}
+
 .admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
 .admin-grid input, .admin-grid textarea, .admin-grid select {
     width: 100%;
@@ -293,6 +339,50 @@ h1 {
     padding: 6px 10px;
     font-weight: 600;
     cursor: pointer;
+}
+
+.table-wrap {
+    overflow: auto;
+    border: 1px solid #e4edf8;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+
+.cut-cell {
+    max-width: 280px;
+    word-break: break-all;
+}
+
+.coupon-form-grid input:nth-child(6),
+.coupon-form-grid input:nth-child(7),
+.blog-form-grid textarea {
+    grid-column: 1 / -1;
+}
+
+.stat-grid {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.stat-card {
+    background: #f8fbff;
+    border: 1px solid #deebfb;
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.stat-card p {
+    margin: 0;
+    color: #4f6990;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.stat-card h4 {
+    margin: 8px 0 0;
+    font-size: 28px;
+    color: #0f4f9d;
 }
 
 .logs-panel {
