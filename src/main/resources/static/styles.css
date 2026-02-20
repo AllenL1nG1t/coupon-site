@@ -218,6 +218,16 @@ h1 {
 }
 
 .coupon-list { display: grid; gap: 12px; }
+.coupon-main-layout {
+    display: grid;
+    grid-template-columns: minmax(150px, 220px) 1fr minmax(150px, 220px);
+    gap: 12px;
+    align-items: start;
+}
+.home-side-ad {
+    position: sticky;
+    top: 92px;
+}
 
 .coupon-card {
     border: 1px solid var(--line);
@@ -553,6 +563,19 @@ h1 {
     padding: 8px;
     vertical-align: top;
 }
+.admin-table td.editable-cell {
+    cursor: text;
+}
+.admin-table td.editable-cell:hover {
+    background: #f8fbff;
+}
+.admin-table td.editable-cell.is-editing {
+    outline: 2px solid #8ec2ff;
+    background: #fff;
+}
+.admin-table tr.is-dirty {
+    background: #fffcee;
+}
 
 .admin-mini-btn {
     border: 1px solid #c4d6ec;
@@ -627,6 +650,8 @@ h1 {
     .topbar-layout { grid-template-columns: 1fr; height: auto; padding: 10px 0; }
     .nav { display: none; }
     .coupon-card { grid-template-columns: 1fr; }
+    .coupon-main-layout { grid-template-columns: 1fr; }
+    .home-side-ad { position: static; }
     .coupon-actions { justify-items: start; }
     .footer-inner { flex-direction: column; gap: 6px; }
 }

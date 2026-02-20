@@ -93,6 +93,9 @@ function renderCoupons(coupons) {
 async function fetchCouponsByCandidates(candidates) {
   const seen = new Set();
   const merged = [];
+  const normalizedCandidates = candidates
+    .filter(Boolean)
+    .map(value => value.toLowerCase().replace(/[^a-z0-9]/g, ""));
 
   for (const candidate of candidates) {
     if (!candidate) continue;
@@ -104,6 +107,20 @@ async function fetchCouponsByCandidates(candidates) {
       seen.add(coupon.id);
       merged.push(coupon);
     });
+  }
+
+  if (!merged.length && normalizedCandidates.length) {
+    const allResponse = await fetch("/api/coupons?category=all&q=");
+    if (allResponse.ok) {
+      const allCoupons = await allResponse.json();
+      allCoupons.forEach(coupon => {
+        const key = (coupon.store || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+        const matched = normalizedCandidates.some(candidate => key.includes(candidate) || candidate.includes(key));
+        if (!matched || seen.has(coupon.id)) return;
+        seen.add(coupon.id);
+        merged.push(coupon);
+      });
+    }
   }
 
   return merged;

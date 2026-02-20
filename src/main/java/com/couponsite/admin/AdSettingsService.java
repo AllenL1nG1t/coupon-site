@@ -12,6 +12,8 @@ public class AdSettingsService {
 
     private static final String HOME_TOP_ENABLED = "ads.home.top.enabled";
     private static final String HOME_MID_ENABLED = "ads.home.mid.enabled";
+    private static final String HOME_SIDE_LEFT_ENABLED = "ads.home.side.left.enabled";
+    private static final String HOME_SIDE_RIGHT_ENABLED = "ads.home.side.right.enabled";
     private static final String HOME_BOTTOM_ENABLED = "ads.home.bottom.enabled";
 
     private static final String BLOG_TOP_ENABLED = "ads.blog.top.enabled";
@@ -35,6 +37,8 @@ public class AdSettingsService {
             appSettingService.getString(STRIP_LINK, "https://example-affiliate.com/flash"),
             appSettingService.getBoolean(HOME_TOP_ENABLED, true),
             appSettingService.getBoolean(HOME_MID_ENABLED, true),
+            appSettingService.getBoolean(HOME_SIDE_LEFT_ENABLED, false),
+            appSettingService.getBoolean(HOME_SIDE_RIGHT_ENABLED, false),
             appSettingService.getBoolean(HOME_BOTTOM_ENABLED, false),
             appSettingService.getBoolean(BLOG_TOP_ENABLED, false),
             appSettingService.getBoolean(BLOG_INLINE_ENABLED, true),
@@ -53,6 +57,8 @@ public class AdSettingsService {
 
         appSettingService.setBoolean(HOME_TOP_ENABLED, request.homeTopEnabled());
         appSettingService.setBoolean(HOME_MID_ENABLED, request.homeMidEnabled());
+        appSettingService.setBoolean(HOME_SIDE_LEFT_ENABLED, request.homeSideLeftEnabled());
+        appSettingService.setBoolean(HOME_SIDE_RIGHT_ENABLED, request.homeSideRightEnabled());
         appSettingService.setBoolean(HOME_BOTTOM_ENABLED, request.homeBottomEnabled());
 
         appSettingService.setBoolean(BLOG_TOP_ENABLED, request.blogTopEnabled());

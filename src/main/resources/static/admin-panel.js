@@ -1,4 +1,4 @@
-const crawlerEnabled = document.getElementById("crawlerEnabled");
+﻿const crawlerEnabled = document.getElementById("crawlerEnabled");
 const saveCrawlerBtn = document.getElementById("saveCrawlerBtn");
 const runCrawlerBtn = document.getElementById("runCrawlerBtn");
 const crawlerStatus = document.getElementById("crawlerStatus");
@@ -35,6 +35,7 @@ const couponLogo = document.getElementById("couponLogo");
 const couponSource = document.getElementById("couponSource");
 const saveCouponBtn = document.getElementById("saveCouponBtn");
 const clearCouponBtn = document.getElementById("clearCouponBtn");
+const saveAllCouponsBtn = document.getElementById("saveAllCouponsBtn");
 
 const brandStoreName = document.getElementById("brandStoreName");
 const brandSlug = document.getElementById("brandSlug");
@@ -46,6 +47,7 @@ const brandHeroImageUrl = document.getElementById("brandHeroImageUrl");
 const brandDescription = document.getElementById("brandDescription");
 const saveBrandBtn = document.getElementById("saveBrandBtn");
 const clearBrandBtn = document.getElementById("clearBrandBtn");
+const saveAllBrandsBtn = document.getElementById("saveAllBrandsBtn");
 
 const blogTitle = document.getElementById("blogTitle");
 const blogSummary = document.getElementById("blogSummary");
@@ -54,6 +56,7 @@ const blogPublished = document.getElementById("blogPublished");
 const blogContent = document.getElementById("blogContent");
 const saveBlogBtn = document.getElementById("saveBlogBtn");
 const clearBlogBtn = document.getElementById("clearBlogBtn");
+const saveAllBlogsBtn = document.getElementById("saveAllBlogsBtn");
 const blogImageFile = document.getElementById("blogImageFile");
 const uploadImageBtn = document.getElementById("uploadImageBtn");
 const blogStatus = document.getElementById("blogStatus");
@@ -63,6 +66,8 @@ const adsStripText = document.getElementById("adsStripText");
 const adsStripLink = document.getElementById("adsStripLink");
 const adsHomeTopEnabled = document.getElementById("adsHomeTopEnabled");
 const adsHomeMidEnabled = document.getElementById("adsHomeMidEnabled");
+const adsHomeSideLeftEnabled = document.getElementById("adsHomeSideLeftEnabled");
+const adsHomeSideRightEnabled = document.getElementById("adsHomeSideRightEnabled");
 const adsHomeBottomEnabled = document.getElementById("adsHomeBottomEnabled");
 const adsBlogTopEnabled = document.getElementById("adsBlogTopEnabled");
 const adsBlogInlineEnabled = document.getElementById("adsBlogInlineEnabled");
@@ -76,6 +81,10 @@ const adsStatus = document.getElementById("adsStatus");
 let cachedCoupons = [];
 let cachedBlogs = [];
 let cachedBrands = [];
+
+const dirtyCouponIds = new Set();
+const dirtyBrandIds = new Set();
+const dirtyBlogIds = new Set();
 
 function showTab(tab) {
   document.querySelectorAll(".admin-tab").forEach(btn => btn.classList.toggle("active", btn.dataset.tab === tab));
@@ -111,6 +120,57 @@ async function checkAuth() {
   return true;
 }
 
+function normalizeColor(value) {
+  if (!value) return "#f7f9fd";
+  const hex = value.trim();
+  if (/^#[0-9a-fA-F]{6}$/.test(hex)) return hex;
+  return "#f7f9fd";
+}
+
+function activateInlineEditing(table, dirtySet) {
+  table.addEventListener("dblclick", event => {
+    const cell = event.target.closest("td.editable-cell");
+    if (!cell) return;
+    cell.contentEditable = "true";
+    cell.classList.add("is-editing");
+    cell.focus();
+    document.execCommand("selectAll", false, null);
+  });
+
+  table.addEventListener("keydown", event => {
+    const cell = event.target.closest("td.editable-cell");
+    if (!cell) return;
+    if (event.key === "Enter") {
+      event.preventDefault();
+      cell.blur();
+    }
+  });
+
+  table.addEventListener("blur", event => {
+    const cell = event.target.closest("td.editable-cell");
+    if (!cell) return;
+    cell.contentEditable = "false";
+    cell.classList.remove("is-editing");
+    const row = cell.closest("tr[data-id]");
+    if (!row) return;
+    row.classList.add("is-dirty");
+    dirtySet.add(Number(row.dataset.id));
+  }, true);
+}
+
+function readRowData(row, fields) {
+  const data = {};
+  fields.forEach(field => {
+    const cell = row.querySelector(`[data-field='${field.name}']`);
+    let raw = (cell?.textContent || "").trim();
+    if (field.type === "boolean") {
+      raw = raw.toLowerCase() === "true";
+    }
+    data[field.name] = raw;
+  });
+  return data;
+}
+
 async function loadCrawler() {
   const settings = await (await adminFetch("/api/admin/settings")).json();
   crawlerEnabled.checked = settings.crawlerEnabled;
@@ -135,7 +195,7 @@ async function saveContent() {
     heroEyebrow: contentHeroEyebrow.value,
     heroTitle: contentHeroTitle.value,
     heroSubtitle: contentHeroSubtitle.value,
-    heroBgColor: contentHeroBgColor.value,
+    heroBgColor: normalizeColor(contentHeroBgColor.value),
     heroBgImageUrl: contentHeroBgImageUrl.value
   };
   const response = await adminFetch("/api/admin/content", {
@@ -144,13 +204,6 @@ async function saveContent() {
     body: JSON.stringify(body)
   });
   contentStatus.textContent = response.ok ? "Saved" : "Save failed";
-}
-
-function normalizeColor(value) {
-  if (!value) return "#f7f9fd";
-  const hex = value.trim();
-  if (/^#[0-9a-fA-F]{6}$/.test(hex)) return hex;
-  return "#f7f9fd";
 }
 
 async function uploadHeroImage() {
@@ -194,32 +247,39 @@ function clearCouponForm() {
   [couponStore, couponTitle, couponCategory, couponExpires, couponCode, couponAffiliate, couponLogo, couponSource].forEach(el => el.value = "");
 }
 
+async function saveCouponRowById(id) {
+  const row = couponTable.querySelector(`tr[data-id='${id}']`);
+  if (!row) return;
+  const fields = [
+    { name: "store" }, { name: "title" }, { name: "category" }, { name: "expires" },
+    { name: "couponCode" }, { name: "affiliateUrl" }, { name: "logoUrl" }, { name: "source" }
+  ];
+  const payload = { id, ...readRowData(row, fields) };
+  await adminFetch("/api/admin/coupons", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  row.classList.remove("is-dirty");
+  dirtyCouponIds.delete(id);
+}
+
 function renderCouponRows(coupons) {
-  couponTable.innerHTML = `<thead><tr><th>ID</th><th>Store</th><th>Title</th><th>Code</th><th>Affiliate URL</th><th>Actions</th></tr></thead><tbody>${coupons.map(c => `
-    <tr><td>${c.id}</td><td>${c.store}</td><td>${c.title}</td><td>${c.couponCode}</td><td class="cut-cell">${c.affiliateUrl}</td>
-    <td><button class="admin-mini-btn" data-edit-coupon="${c.id}">Edit</button> <button class="admin-mini-btn" data-del-coupon="${c.id}">Delete</button></td></tr>`).join("")}</tbody>`;
-
-  couponTable.querySelectorAll("[data-del-coupon]").forEach(btn => btn.addEventListener("click", async () => {
-    await adminFetch(`/api/admin/coupons?id=${btn.dataset.delCoupon}`, { method: "DELETE" });
-    await loadCoupons();
-    clearCouponForm();
-  }));
-
-  couponTable.querySelectorAll("[data-edit-coupon]").forEach(btn => btn.addEventListener("click", () => {
-    const item = cachedCoupons.find(x => x.id === Number(btn.dataset.editCoupon));
-    if (!item) return;
-    couponStore.value = item.store;
-    couponTitle.value = item.title;
-    couponCategory.value = item.category;
-    couponExpires.value = item.expires;
-    couponCode.value = item.couponCode;
-    couponAffiliate.value = item.affiliateUrl;
-    couponLogo.value = item.logoUrl;
-    couponSource.value = item.source;
-    saveCouponBtn.dataset.editId = String(item.id);
-    saveCouponBtn.textContent = "Update Coupon";
-    showTab("coupons");
-  }));
+  couponTable.innerHTML = `<thead><tr>
+    <th>ID</th><th>Store</th><th>Title</th><th>Category</th><th>Expires</th><th>Code</th><th>Affiliate URL</th><th>Logo</th><th>Source</th><th>Actions</th>
+  </tr></thead><tbody>${coupons.map(c => `
+    <tr data-id='${c.id}'>
+      <td>${c.id}</td>
+      <td class='editable-cell' data-field='store'>${c.store || ""}</td>
+      <td class='editable-cell' data-field='title'>${c.title || ""}</td>
+      <td class='editable-cell' data-field='category'>${c.category || ""}</td>
+      <td class='editable-cell' data-field='expires'>${c.expires || ""}</td>
+      <td class='editable-cell' data-field='couponCode'>${c.couponCode || ""}</td>
+      <td class='editable-cell cut-cell' data-field='affiliateUrl'>${c.affiliateUrl || ""}</td>
+      <td class='editable-cell cut-cell' data-field='logoUrl'>${c.logoUrl || ""}</td>
+      <td class='editable-cell' data-field='source'>${c.source || ""}</td>
+      <td><button class='admin-mini-btn' data-save-coupon='${c.id}'>Save</button> <button class='admin-mini-btn' data-del-coupon='${c.id}'>Delete</button></td>
+    </tr>`).join("")}</tbody>`;
 }
 
 async function loadCoupons() {
@@ -251,32 +311,39 @@ function clearBrandForm() {
   [brandStoreName, brandSlug, brandTitle, brandSummary, brandOfficialUrl, brandLogoUrl, brandHeroImageUrl, brandDescription].forEach(el => el.value = "");
 }
 
+async function saveBrandRowById(id) {
+  const row = brandTable.querySelector(`tr[data-id='${id}']`);
+  if (!row) return;
+  const fields = [
+    { name: "storeName" }, { name: "slug" }, { name: "title" }, { name: "summary" },
+    { name: "officialUrl" }, { name: "logoUrl" }, { name: "heroImageUrl" }, { name: "description" }
+  ];
+  const payload = { id, ...readRowData(row, fields) };
+  await adminFetch("/api/admin/brands", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  row.classList.remove("is-dirty");
+  dirtyBrandIds.delete(id);
+}
+
 function renderBrandRows(brands) {
-  brandTable.innerHTML = `<thead><tr><th>ID</th><th>Store</th><th>Slug</th><th>Official URL</th><th>Actions</th></tr></thead><tbody>${brands.map(b => `
-    <tr><td>${b.id}</td><td>${b.storeName}</td><td>${b.slug}</td><td class="cut-cell">${b.officialUrl}</td>
-    <td><button class="admin-mini-btn" data-edit-brand="${b.id}">Edit</button> <button class="admin-mini-btn" data-del-brand="${b.id}">Delete</button></td></tr>`).join("")}</tbody>`;
-
-  brandTable.querySelectorAll("[data-del-brand]").forEach(btn => btn.addEventListener("click", async () => {
-    await adminFetch(`/api/admin/brands?id=${btn.dataset.delBrand}`, { method: "DELETE" });
-    await loadBrands();
-    clearBrandForm();
-  }));
-
-  brandTable.querySelectorAll("[data-edit-brand]").forEach(btn => btn.addEventListener("click", () => {
-    const item = cachedBrands.find(x => x.id === Number(btn.dataset.editBrand));
-    if (!item) return;
-    brandStoreName.value = item.storeName;
-    brandSlug.value = item.slug;
-    brandTitle.value = item.title;
-    brandSummary.value = item.summary;
-    brandOfficialUrl.value = item.officialUrl;
-    brandLogoUrl.value = item.logoUrl;
-    brandHeroImageUrl.value = item.heroImageUrl;
-    brandDescription.value = item.description;
-    saveBrandBtn.dataset.editId = String(item.id);
-    saveBrandBtn.textContent = "Update Brand";
-    showTab("brands");
-  }));
+  brandTable.innerHTML = `<thead><tr>
+    <th>ID</th><th>Store</th><th>Slug</th><th>Title</th><th>Summary</th><th>Official URL</th><th>Logo</th><th>Hero Image</th><th>Description</th><th>Actions</th>
+  </tr></thead><tbody>${brands.map(b => `
+    <tr data-id='${b.id}'>
+      <td>${b.id}</td>
+      <td class='editable-cell' data-field='storeName'>${b.storeName || ""}</td>
+      <td class='editable-cell' data-field='slug'>${b.slug || ""}</td>
+      <td class='editable-cell' data-field='title'>${b.title || ""}</td>
+      <td class='editable-cell' data-field='summary'>${b.summary || ""}</td>
+      <td class='editable-cell cut-cell' data-field='officialUrl'>${b.officialUrl || ""}</td>
+      <td class='editable-cell cut-cell' data-field='logoUrl'>${b.logoUrl || ""}</td>
+      <td class='editable-cell cut-cell' data-field='heroImageUrl'>${b.heroImageUrl || ""}</td>
+      <td class='editable-cell cut-cell' data-field='description'>${b.description || ""}</td>
+      <td><button class='admin-mini-btn' data-save-brand='${b.id}'>Save</button> <button class='admin-mini-btn' data-del-brand='${b.id}'>Delete</button></td>
+    </tr>`).join("")}</tbody>`;
 }
 
 async function loadBrands() {
@@ -309,29 +376,35 @@ function clearBlogForm() {
   blogPublished.value = "true";
 }
 
+async function saveBlogRowById(id) {
+  const row = blogTable.querySelector(`tr[data-id='${id}']`);
+  if (!row) return;
+  const fields = [
+    { name: "title" }, { name: "summary" }, { name: "content" }, { name: "coverImageUrl" }, { name: "published", type: "boolean" }
+  ];
+  const payload = { id, ...readRowData(row, fields) };
+  await adminFetch("/api/admin/blogs", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  row.classList.remove("is-dirty");
+  dirtyBlogIds.delete(id);
+}
+
 function renderBlogRows(blogs) {
-  blogTable.innerHTML = `<thead><tr><th>ID</th><th>Title</th><th>Published</th><th>Cover</th><th>Actions</th></tr></thead><tbody>${blogs.map(b => `
-    <tr><td>${b.id}</td><td>${b.title}</td><td>${b.published}</td><td class="cut-cell">${b.coverImageUrl}</td>
-    <td><button class="admin-mini-btn" data-edit-blog="${b.id}">Edit</button> <button class="admin-mini-btn" data-del-blog="${b.id}">Delete</button></td></tr>`).join("")}</tbody>`;
-
-  blogTable.querySelectorAll("[data-del-blog]").forEach(btn => btn.addEventListener("click", async () => {
-    await adminFetch(`/api/admin/blogs?id=${btn.dataset.delBlog}`, { method: "DELETE" });
-    await loadBlogs();
-    clearBlogForm();
-  }));
-
-  blogTable.querySelectorAll("[data-edit-blog]").forEach(btn => btn.addEventListener("click", () => {
-    const item = cachedBlogs.find(x => x.id === Number(btn.dataset.editBlog));
-    if (!item) return;
-    blogTitle.value = item.title;
-    blogSummary.value = item.summary;
-    blogCover.value = item.coverImageUrl;
-    blogContent.value = item.content;
-    blogPublished.value = String(item.published);
-    saveBlogBtn.dataset.editId = String(item.id);
-    saveBlogBtn.textContent = "Update Blog";
-    showTab("blogs");
-  }));
+  blogTable.innerHTML = `<thead><tr>
+    <th>ID</th><th>Title</th><th>Summary</th><th>Content</th><th>Cover</th><th>Published</th><th>Actions</th>
+  </tr></thead><tbody>${blogs.map(b => `
+    <tr data-id='${b.id}'>
+      <td>${b.id}</td>
+      <td class='editable-cell' data-field='title'>${b.title || ""}</td>
+      <td class='editable-cell' data-field='summary'>${b.summary || ""}</td>
+      <td class='editable-cell cut-cell' data-field='content'>${b.content || ""}</td>
+      <td class='editable-cell cut-cell' data-field='coverImageUrl'>${b.coverImageUrl || ""}</td>
+      <td class='editable-cell' data-field='published'>${b.published}</td>
+      <td><button class='admin-mini-btn' data-save-blog='${b.id}'>Save</button> <button class='admin-mini-btn' data-del-blog='${b.id}'>Delete</button></td>
+    </tr>`).join("")}</tbody>`;
 }
 
 async function loadBlogs() {
@@ -378,6 +451,8 @@ async function loadAds() {
   adsStripLink.value = data.stripLink || "";
   adsHomeTopEnabled.checked = data.homeTopEnabled;
   adsHomeMidEnabled.checked = data.homeMidEnabled;
+  adsHomeSideLeftEnabled.checked = data.homeSideLeftEnabled;
+  adsHomeSideRightEnabled.checked = data.homeSideRightEnabled;
   adsHomeBottomEnabled.checked = data.homeBottomEnabled;
   adsBlogTopEnabled.checked = data.blogTopEnabled;
   adsBlogInlineEnabled.checked = data.blogInlineEnabled;
@@ -395,6 +470,8 @@ async function saveAds() {
     stripLink: adsStripLink.value,
     homeTopEnabled: adsHomeTopEnabled.checked,
     homeMidEnabled: adsHomeMidEnabled.checked,
+    homeSideLeftEnabled: adsHomeSideLeftEnabled.checked,
+    homeSideRightEnabled: adsHomeSideRightEnabled.checked,
     homeBottomEnabled: adsHomeBottomEnabled.checked,
     blogTopEnabled: adsBlogTopEnabled.checked,
     blogInlineEnabled: adsBlogInlineEnabled.checked,
@@ -416,25 +493,96 @@ async function logout() {
   window.location.href = "/admin-login.html";
 }
 
+couponTable.addEventListener("click", async event => {
+  const saveBtn = event.target.closest("[data-save-coupon]");
+  if (saveBtn) {
+    await saveCouponRowById(Number(saveBtn.dataset.saveCoupon));
+    await loadCoupons();
+    return;
+  }
+  const delBtn = event.target.closest("[data-del-coupon]");
+  if (delBtn) {
+    await adminFetch(`/api/admin/coupons?id=${delBtn.dataset.delCoupon}`, { method: "DELETE" });
+    await loadCoupons();
+  }
+});
+
+brandTable.addEventListener("click", async event => {
+  const saveBtn = event.target.closest("[data-save-brand]");
+  if (saveBtn) {
+    await saveBrandRowById(Number(saveBtn.dataset.saveBrand));
+    await loadBrands();
+    return;
+  }
+  const delBtn = event.target.closest("[data-del-brand]");
+  if (delBtn) {
+    await adminFetch(`/api/admin/brands?id=${delBtn.dataset.delBrand}`, { method: "DELETE" });
+    await loadBrands();
+  }
+});
+
+blogTable.addEventListener("click", async event => {
+  const saveBtn = event.target.closest("[data-save-blog]");
+  if (saveBtn) {
+    await saveBlogRowById(Number(saveBtn.dataset.saveBlog));
+    await loadBlogs();
+    return;
+  }
+  const delBtn = event.target.closest("[data-del-blog]");
+  if (delBtn) {
+    await adminFetch(`/api/admin/blogs?id=${delBtn.dataset.delBlog}`, { method: "DELETE" });
+    await loadBlogs();
+  }
+});
+
+async function saveAllCoupons() {
+  for (const id of Array.from(dirtyCouponIds)) {
+    await saveCouponRowById(id);
+  }
+  await loadCoupons();
+}
+
+async function saveAllBrands() {
+  for (const id of Array.from(dirtyBrandIds)) {
+    await saveBrandRowById(id);
+  }
+  await loadBrands();
+}
+
+async function saveAllBlogs() {
+  for (const id of Array.from(dirtyBlogIds)) {
+    await saveBlogRowById(id);
+  }
+  await loadBlogs();
+}
+
 saveCrawlerBtn.addEventListener("click", saveCrawler);
 runCrawlerBtn.addEventListener("click", runCrawler);
 saveContentBtn.addEventListener("click", saveContent);
 uploadHeroImageBtn.addEventListener("click", uploadHeroImage);
 saveCouponBtn.addEventListener("click", saveCoupon);
 clearCouponBtn.addEventListener("click", clearCouponForm);
+saveAllCouponsBtn.addEventListener("click", saveAllCoupons);
 saveBrandBtn.addEventListener("click", saveBrand);
 clearBrandBtn.addEventListener("click", clearBrandForm);
+saveAllBrandsBtn.addEventListener("click", saveAllBrands);
 saveBlogBtn.addEventListener("click", saveBlog);
 clearBlogBtn.addEventListener("click", clearBlogForm);
+saveAllBlogsBtn.addEventListener("click", saveAllBlogs);
 uploadImageBtn.addEventListener("click", uploadBlogImage);
 saveAdsBtn.addEventListener("click", saveAds);
 logoutBtn.addEventListener("click", event => { event.preventDefault(); logout(); });
+
 contentHeroBgColorPicker.addEventListener("input", () => {
   contentHeroBgColor.value = contentHeroBgColorPicker.value;
 });
 contentHeroBgColor.addEventListener("input", () => {
   contentHeroBgColorPicker.value = normalizeColor(contentHeroBgColor.value);
 });
+
+activateInlineEditing(couponTable, dirtyCouponIds);
+activateInlineEditing(brandTable, dirtyBrandIds);
+activateInlineEditing(blogTable, dirtyBlogIds);
 
 (async function init() {
   const ok = await checkAuth();

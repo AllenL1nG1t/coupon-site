@@ -18,6 +18,8 @@ const adStripText = document.getElementById("adStripText");
 
 const homeAdTop = document.getElementById("homeAdTop");
 const homeAdMid = document.getElementById("homeAdMid");
+const homeAdSideLeft = document.getElementById("homeAdSideLeft");
+const homeAdSideRight = document.getElementById("homeAdSideRight");
 const homeAdBottom = document.getElementById("homeAdBottom");
 const blogAdTop = document.getElementById("blogAdTop");
 const blogAdBottom = document.getElementById("blogAdBottom");
@@ -124,10 +126,10 @@ function applyHeroContent(content) {
   heroSubtitle.textContent = content.heroSubtitle || heroSubtitle.textContent;
 
   const bgColor = content.heroBgColor || "#f7f9fd";
-  heroSection.style.backgroundColor = bgColor;
+  heroSection.style.setProperty("background-color", bgColor, "important");
 
   if (content.heroBgImageUrl) {
-    heroSection.style.backgroundImage = `linear-gradient(rgba(255,255,255,0.82), rgba(255,255,255,0.9)), url('${content.heroBgImageUrl}')`;
+    heroSection.style.backgroundImage = `linear-gradient(rgba(255,255,255,0.72), rgba(255,255,255,0.85)), url('${content.heroBgImageUrl}')`;
     heroSection.style.backgroundSize = "cover";
     heroSection.style.backgroundPosition = "center";
   } else {
@@ -171,6 +173,8 @@ function applyHomeAds() {
   if (!adSettings) return;
   renderPlacement(homeAdTop, adSettings.homeTopEnabled, adSettings.adsenseClientId, adSettings.homeAdsenseSlot, "Home Top Ad");
   renderPlacement(homeAdMid, adSettings.homeMidEnabled, adSettings.adsenseClientId, adSettings.homeAdsenseSlot, "Home Mid Ad");
+  renderPlacement(homeAdSideLeft, adSettings.homeSideLeftEnabled, adSettings.adsenseClientId, adSettings.homeAdsenseSlot, "Home Left Ad");
+  renderPlacement(homeAdSideRight, adSettings.homeSideRightEnabled, adSettings.adsenseClientId, adSettings.homeAdsenseSlot, "Home Right Ad");
   renderPlacement(homeAdBottom, adSettings.homeBottomEnabled, adSettings.adsenseClientId, adSettings.homeAdsenseSlot, "Home Bottom Ad");
   renderPlacement(blogAdTop, adSettings.blogTopEnabled, adSettings.adsenseClientId, adSettings.blogAdsenseSlot, "Blog Top Ad");
   renderPlacement(blogAdBottom, adSettings.blogBottomEnabled, adSettings.adsenseClientId, adSettings.blogAdsenseSlot, "Blog Bottom Ad");

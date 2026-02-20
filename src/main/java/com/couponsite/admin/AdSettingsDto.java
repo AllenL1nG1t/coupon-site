@@ -6,6 +6,8 @@ public record AdSettingsDto(
     String stripLink,
     boolean homeTopEnabled,
     boolean homeMidEnabled,
+    boolean homeSideLeftEnabled,
+    boolean homeSideRightEnabled,
     boolean homeBottomEnabled,
     boolean blogTopEnabled,
     boolean blogInlineEnabled,
