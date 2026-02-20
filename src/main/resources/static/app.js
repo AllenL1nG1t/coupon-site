@@ -58,6 +58,12 @@ async function revealCoupon(id) {
   return response.json();
 }
 
+function openCodePageAndRedirectCurrent(data, coupon) {
+  const codePage = `/coupon-code.html?store=${encodeURIComponent(coupon.store)}&title=${encodeURIComponent(coupon.title)}&code=${encodeURIComponent(data.couponCode)}`;
+  window.open(codePage, "_blank", "noopener");
+  window.location.assign(data.affiliateUrl);
+}
+
 function renderStores(coupons) {
   const stores = [];
   const seen = new Set();
@@ -224,7 +230,7 @@ function renderCoupons(coupons) {
       try {
         const data = await revealCoupon(coupon.id);
         btn.textContent = "Redirecting...";
-        window.location.assign(data.affiliateUrl);
+        openCodePageAndRedirectCurrent(data, coupon);
       } catch (_) {
         btn.textContent = "Try again";
         btn.disabled = false;

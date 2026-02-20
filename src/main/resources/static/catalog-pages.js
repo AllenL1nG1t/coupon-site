@@ -18,6 +18,12 @@ async function revealCoupon(id) {
   return response.json();
 }
 
+function openCodePageAndRedirectCurrent(data, store, title) {
+  const codePage = `/coupon-code.html?store=${encodeURIComponent(store)}&title=${encodeURIComponent(title)}&code=${encodeURIComponent(data.couponCode)}`;
+  window.open(codePage, "_blank", "noopener");
+  window.location.assign(data.affiliateUrl);
+}
+
 function uniqueStores(coupons) {
   const seen = new Set();
   return coupons.filter(c => {
@@ -40,7 +46,7 @@ function couponCard(coupon) {
         <p class="coupon-meta">${coupon.expires} · ${coupon.category} · source: ${coupon.source}</p>
       </div>
       <div class="coupon-actions">
-        <button class="reveal-btn" data-reveal-id="${coupon.id}">Show Coupon Code</button>
+        <button class="reveal-btn" data-reveal-id="${coupon.id}" data-store="${coupon.store}" data-title="${coupon.title}">Show Coupon Code</button>
       </div>
     </article>
   `;
@@ -52,9 +58,11 @@ async function bindRevealButtons() {
       btn.disabled = true;
       btn.textContent = "Loading...";
       try {
+        const store = btn.dataset.store || "";
+        const title = btn.dataset.title || "";
         const data = await revealCoupon(Number(btn.dataset.revealId));
         btn.textContent = "Redirecting...";
-        window.location.assign(data.affiliateUrl);
+        openCodePageAndRedirectCurrent(data, store, title);
       } catch (_) {
         btn.textContent = "Try again";
         btn.disabled = false;
