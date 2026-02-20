@@ -32,15 +32,16 @@ public class CouponService {
                 String merged = (coupon.getStore() + " " + coupon.getTitle() + " " + coupon.getCategory()).toLowerCase(Locale.ROOT);
                 return merged.contains(normalizedQuery);
             })
-            .map(coupon -> new CouponSummaryDto(
-                coupon.getId(),
-                coupon.getStore(),
-                coupon.getTitle(),
-                coupon.getCategory(),
-                coupon.getExpires(),
-                coupon.getLogoUrl(),
-                coupon.getSource()
-            ))
+            .map(this::toSummary)
+            .toList();
+    }
+
+    public List<CouponSummaryDto> listCouponsByStore(String store) {
+        if (store == null || store.isBlank()) {
+            return List.of();
+        }
+        return couponRepository.findAllByStoreIgnoreCaseOrderByCreatedAtDesc(store.trim()).stream()
+            .map(this::toSummary)
             .toList();
     }
 
@@ -147,6 +148,18 @@ public class CouponService {
             return fallback;
         }
         return value.trim();
+    }
+
+    private CouponSummaryDto toSummary(Coupon coupon) {
+        return new CouponSummaryDto(
+            coupon.getId(),
+            coupon.getStore(),
+            coupon.getTitle(),
+            coupon.getCategory(),
+            coupon.getExpires(),
+            coupon.getLogoUrl(),
+            coupon.getSource()
+        );
     }
 }
 

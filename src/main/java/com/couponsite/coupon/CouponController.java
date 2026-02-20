@@ -27,6 +27,11 @@ public class CouponController {
         return couponService.listCoupons(category, q);
     }
 
+    @GetMapping("/by-store")
+    public List<CouponSummaryDto> couponsByStore(@RequestParam String store) {
+        return couponService.listCouponsByStore(store);
+    }
+
     @PostMapping("/{id}/reveal")
     public ResponseEntity<CouponRevealDto> reveal(@PathVariable Long id) {
         try {

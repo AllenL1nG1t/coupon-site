@@ -8,5 +8,6 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
     Optional<Coupon> findFirstByStoreIgnoreCaseAndTitleIgnoreCase(String store, String title);
     Optional<Coupon> findFirstByStoreIgnoreCaseAndCouponCodeIgnoreCase(String store, String couponCode);
     List<Coupon> findAllByOrderByCreatedAtDesc();
+    List<Coupon> findAllByStoreIgnoreCaseOrderByCreatedAtDesc(String store);
 }
 
