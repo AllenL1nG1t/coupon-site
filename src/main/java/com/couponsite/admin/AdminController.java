@@ -32,6 +32,8 @@ public class AdminController {
     private final AppSettingService appSettingService;
     private final CrawlerLogService crawlerLogService;
     private final RetailMeNotCrawlerService retailMeNotCrawlerService;
+    private final SimplyCodesCrawlerService simplyCodesCrawlerService;
+    private final AdSettingsService adSettingsService;
     private final CouponService couponService;
     private final BlogService blogService;
     private final BrandProfileService brandProfileService;
@@ -40,6 +42,8 @@ public class AdminController {
         AppSettingService appSettingService,
         CrawlerLogService crawlerLogService,
         RetailMeNotCrawlerService retailMeNotCrawlerService,
+        SimplyCodesCrawlerService simplyCodesCrawlerService,
+        AdSettingsService adSettingsService,
         CouponService couponService,
         BlogService blogService,
         BrandProfileService brandProfileService
@@ -47,6 +51,8 @@ public class AdminController {
         this.appSettingService = appSettingService;
         this.crawlerLogService = crawlerLogService;
         this.retailMeNotCrawlerService = retailMeNotCrawlerService;
+        this.simplyCodesCrawlerService = simplyCodesCrawlerService;
+        this.adSettingsService = adSettingsService;
         this.couponService = couponService;
         this.blogService = blogService;
         this.brandProfileService = brandProfileService;
@@ -74,8 +80,10 @@ public class AdminController {
 
     @PostMapping("/crawler/run")
     public ResponseEntity<String> runCrawler() {
-        int count = retailMeNotCrawlerService.crawlLatest();
-        return ResponseEntity.ok("Crawler done, upserts=" + count);
+        int retailCount = retailMeNotCrawlerService.crawlLatest();
+        int simplyCodesCount = simplyCodesCrawlerService.crawlLatest();
+        int total = retailCount + simplyCodesCount;
+        return ResponseEntity.ok("Crawler done, retailmenot=" + retailCount + ", simplycodes=" + simplyCodesCount + ", total=" + total);
     }
 
     @GetMapping("/coupons")
@@ -124,6 +132,16 @@ public class AdminController {
     public ResponseEntity<Void> deleteBrand(@RequestParam Long id) {
         brandProfileService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/ads")
+    public AdSettingsDto ads() {
+        return adSettingsService.get();
+    }
+
+    @PutMapping("/ads")
+    public AdSettingsDto updateAds(@RequestBody AdSettingsDto request) {
+        return adSettingsService.save(request);
     }
 
     @PostMapping("/uploads/images")

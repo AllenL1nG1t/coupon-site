@@ -24,6 +24,7 @@
             <button class="admin-tab" data-tab="coupons">Coupons</button>
             <button class="admin-tab" data-tab="brands">Brands</button>
             <button class="admin-tab" data-tab="blogs">Blogs</button>
+            <button class="admin-tab" data-tab="ads">Ads</button>
             <button class="admin-tab" data-tab="crawler">Crawler</button>
         </div>
     </section>
@@ -102,6 +103,35 @@
             <span id="blogStatus"></span>
         </div>
         <div class="table-wrap"><table class="admin-table" id="blogTable"></table></div>
+    </section>
+
+    <section class="admin-section hidden" data-section="ads">
+        <div class="section-head-admin">
+            <h3>Ads Management</h3>
+            <span>Configure strip ad + homepage/blog placements + AdSense</span>
+        </div>
+        <div class="admin-grid">
+            <label><input type="checkbox" id="adsStripEnabled"> Enable scrolling strip ad</label>
+            <input id="adsStripText" placeholder="Strip ad text">
+            <input id="adsStripLink" placeholder="Strip ad link">
+        </div>
+        <div class="admin-grid">
+            <label><input type="checkbox" id="adsHomeTopEnabled"> Home top ad</label>
+            <label><input type="checkbox" id="adsHomeMidEnabled"> Home mid ad</label>
+            <label><input type="checkbox" id="adsHomeBottomEnabled"> Home bottom ad</label>
+            <label><input type="checkbox" id="adsBlogTopEnabled"> Blog top ad</label>
+            <label><input type="checkbox" id="adsBlogInlineEnabled"> Blog inline ad</label>
+            <label><input type="checkbox" id="adsBlogBottomEnabled"> Blog bottom ad</label>
+        </div>
+        <div class="admin-grid">
+            <input id="adsenseClientId" placeholder="Google AdSense Client ID (ca-pub-xxxx)">
+            <input id="adsenseHomeSlot" placeholder="Home AdSense Slot ID">
+            <input id="adsenseBlogSlot" placeholder="Blog AdSense Slot ID">
+        </div>
+        <div class="admin-row">
+            <button id="saveAdsBtn" class="primary-btn">Save Ads Config</button>
+            <span id="adsStatus"></span>
+        </div>
     </section>
 
     <section class="admin-section hidden" data-section="crawler">

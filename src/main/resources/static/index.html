@@ -11,8 +11,14 @@
 </head>
 <body>
 <header class="topbar">
-    <div class="container topbar-inner">
+    <div class="container topbar-inner topbar-layout">
         <a class="brand" href="#">DealNest</a>
+
+        <form class="top-search" id="searchForm">
+            <input id="searchInput" type="text" placeholder="Search stores, categories, or brands">
+            <button type="submit">Search</button>
+        </form>
+
         <nav class="nav">
             <span class="nav-muted">Categories</span>
             <span class="nav-muted">Stores</span>
@@ -22,15 +28,14 @@
     </div>
 </header>
 
+<section id="adStrip" class="ad-strip hidden">
+    <a id="adStripLink" href="#" target="_blank" rel="noopener noreferrer">
+        <div class="ad-strip-track" id="adStripText"></div>
+    </a>
+</section>
+
 <main>
-    <section class="search-top">
-        <div class="container">
-            <form class="search-box centered" id="searchForm">
-                <input id="searchInput" type="text" placeholder="Search stores, categories, or brands">
-                <button type="submit">Search</button>
-            </form>
-        </div>
-    </section>
+    <section class="container section ad-section hidden" id="homeAdTop"></section>
 
     <section class="hero">
         <div class="container hero-grid">
@@ -66,6 +71,8 @@
         <div class="store-grid" id="storeGrid"></div>
     </section>
 
+    <section class="container section ad-section hidden" id="homeAdMid"></section>
+
     <section class="container section">
         <div class="section-head">
             <h2>Top Coupons Right Now</h2>
@@ -74,12 +81,16 @@
         <div class="coupon-list" id="couponList"></div>
     </section>
 
+    <section class="container section ad-section hidden" id="homeAdBottom"></section>
+
     <section class="container section">
         <div class="section-head">
             <h2>Latest Blog</h2>
             <a href="/admin-login.html">Write from Admin</a>
         </div>
+        <section class="ad-section hidden" id="blogAdTop"></section>
         <div class="blog-grid" id="blogList"></div>
+        <section class="ad-section hidden" id="blogAdBottom"></section>
     </section>
 </main>
 

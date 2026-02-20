@@ -8,8 +8,20 @@ const searchInput = document.getElementById("searchInput");
 const searchForm = document.getElementById("searchForm");
 const filterChips = document.getElementById("filterChips");
 
+const adStrip = document.getElementById("adStrip");
+const adStripLink = document.getElementById("adStripLink");
+const adStripText = document.getElementById("adStripText");
+
+const homeAdTop = document.getElementById("homeAdTop");
+const homeAdMid = document.getElementById("homeAdMid");
+const homeAdBottom = document.getElementById("homeAdBottom");
+const blogAdTop = document.getElementById("blogAdTop");
+const blogAdBottom = document.getElementById("blogAdBottom");
+
 let activeFilter = "all";
 let searchTerm = "";
+let adSettings = null;
+let adsenseLoaded = false;
 
 async function fetchCoupons() {
   const params = new URLSearchParams({ category: activeFilter, q: searchTerm });
@@ -21,6 +33,12 @@ async function fetchCoupons() {
 async function fetchBlogs() {
   const response = await fetch("/api/blogs");
   if (!response.ok) throw new Error("Failed to fetch blogs");
+  return response.json();
+}
+
+async function fetchAds() {
+  const response = await fetch("/api/ads/public");
+  if (!response.ok) throw new Error("Failed to fetch ads");
   return response.json();
 }
 
@@ -54,6 +72,77 @@ function renderStores(coupons) {
   });
 }
 
+function ensureAdsenseScript(clientId) {
+  if (!clientId || adsenseLoaded) return;
+  const script = document.createElement("script");
+  script.async = true;
+  script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(clientId)}`;
+  script.crossOrigin = "anonymous";
+  document.head.appendChild(script);
+  adsenseLoaded = true;
+}
+
+function renderAdsenseBlock(container, clientId, slotId) {
+  const block = document.createElement("div");
+  block.className = "ad-box";
+  block.innerHTML = `
+    <ins class="adsbygoogle"
+      style="display:block"
+      data-ad-client="${clientId}"
+      data-ad-slot="${slotId}"
+      data-ad-format="auto"
+      data-full-width-responsive="true"></ins>
+  `;
+  container.appendChild(block);
+  try {
+    (window.adsbygoogle = window.adsbygoogle || []).push({});
+  } catch (_) {
+    // ignore runtime adsense push errors
+  }
+}
+
+function renderFallbackAdBlock(container, label) {
+  const block = document.createElement("div");
+  block.className = "ad-box ad-box-fallback";
+  block.textContent = label;
+  container.appendChild(block);
+}
+
+function configureStrip(settings) {
+  if (!settings.stripEnabled || !settings.stripText || !settings.stripLink) {
+    adStrip.classList.add("hidden");
+    return;
+  }
+
+  const repeated = Array(8).fill(settings.stripText).join("    •    ");
+  adStripText.textContent = repeated;
+  adStripLink.href = settings.stripLink;
+  adStrip.classList.remove("hidden");
+}
+
+function renderPlacement(container, enabled, adsenseClientId, slotId, fallbackLabel) {
+  container.innerHTML = "";
+  container.classList.toggle("hidden", !enabled);
+  if (!enabled) return;
+
+  if (adsenseClientId && slotId) {
+    ensureAdsenseScript(adsenseClientId);
+    renderAdsenseBlock(container, adsenseClientId, slotId);
+  } else {
+    renderFallbackAdBlock(container, fallbackLabel);
+  }
+}
+
+function applyHomeAds() {
+  if (!adSettings) return;
+  renderPlacement(homeAdTop, adSettings.homeTopEnabled, adSettings.adsenseClientId, adSettings.homeAdsenseSlot, "Home Top Ad");
+  renderPlacement(homeAdMid, adSettings.homeMidEnabled, adSettings.adsenseClientId, adSettings.homeAdsenseSlot, "Home Mid Ad");
+  renderPlacement(homeAdBottom, adSettings.homeBottomEnabled, adSettings.adsenseClientId, adSettings.homeAdsenseSlot, "Home Bottom Ad");
+  renderPlacement(blogAdTop, adSettings.blogTopEnabled, adSettings.adsenseClientId, adSettings.blogAdsenseSlot, "Blog Top Ad");
+  renderPlacement(blogAdBottom, adSettings.blogBottomEnabled, adSettings.adsenseClientId, adSettings.blogAdsenseSlot, "Blog Bottom Ad");
+  configureStrip(adSettings);
+}
+
 function renderBlogs(blogs) {
   blogList.innerHTML = "";
   if (!blogs.length) {
@@ -61,7 +150,7 @@ function renderBlogs(blogs) {
     return;
   }
 
-  blogs.slice(0, 4).forEach(blog => {
+  blogs.slice(0, 6).forEach((blog, index) => {
     const node = blogTemplate.content.cloneNode(true);
     const cover = node.querySelector(".blog-cover");
     cover.src = blog.coverImageUrl || "/logos/default.svg";
@@ -71,6 +160,18 @@ function renderBlogs(blogs) {
     node.querySelector(".blog-summary").textContent = blog.summary;
     node.querySelector(".blog-body").textContent = blog.content;
     blogList.appendChild(node);
+
+    if (adSettings?.blogInlineEnabled && index === 1) {
+      const inlineAd = document.createElement("section");
+      inlineAd.className = "ad-section inline-blog-ad";
+      if (adSettings.adsenseClientId && adSettings.blogAdsenseSlot) {
+        ensureAdsenseScript(adSettings.adsenseClientId);
+        renderAdsenseBlock(inlineAd, adSettings.adsenseClientId, adSettings.blogAdsenseSlot);
+      } else {
+        renderFallbackAdBlock(inlineAd, "Blog Inline Ad");
+      }
+      blogList.appendChild(inlineAd);
+    }
   });
 }
 
@@ -149,5 +250,12 @@ searchForm.addEventListener("submit", event => {
   refreshCoupons();
 });
 
-refreshCoupons();
-refreshBlogs();
+(async function init() {
+  try {
+    adSettings = await fetchAds();
+  } catch (_) {
+    adSettings = null;
+  }
+  applyHomeAds();
+  await Promise.all([refreshCoupons(), refreshBlogs()]);
+})();

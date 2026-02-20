@@ -15,19 +15,39 @@ public class AppSettingService {
     }
 
     public boolean isCrawlerEnabled() {
-        return appSettingRepository.findById(CRAWLER_ENABLED_KEY)
-            .map(AppSetting::getSettingValue)
-            .map(Boolean::parseBoolean)
-            .orElse(false);
+        return getBoolean(CRAWLER_ENABLED_KEY, false);
     }
 
     @Transactional
     public boolean setCrawlerEnabled(boolean enabled) {
-        AppSetting setting = appSettingRepository.findById(CRAWLER_ENABLED_KEY).orElseGet(AppSetting::new);
-        setting.setSettingKey(CRAWLER_ENABLED_KEY);
-        setting.setSettingValue(Boolean.toString(enabled));
-        appSettingRepository.save(setting);
+        setBoolean(CRAWLER_ENABLED_KEY, enabled);
         return enabled;
+    }
+
+    public boolean getBoolean(String key, boolean defaultValue) {
+        return appSettingRepository.findById(key)
+            .map(AppSetting::getSettingValue)
+            .map(Boolean::parseBoolean)
+            .orElse(defaultValue);
+    }
+
+    public String getString(String key, String defaultValue) {
+        return appSettingRepository.findById(key)
+            .map(AppSetting::getSettingValue)
+            .orElse(defaultValue);
+    }
+
+    @Transactional
+    public void setBoolean(String key, boolean value) {
+        setString(key, Boolean.toString(value));
+    }
+
+    @Transactional
+    public void setString(String key, String value) {
+        AppSetting setting = appSettingRepository.findById(key).orElseGet(AppSetting::new);
+        setting.setSettingKey(key);
+        setting.setSettingValue(value == null ? "" : value);
+        appSettingRepository.save(setting);
     }
 }
 

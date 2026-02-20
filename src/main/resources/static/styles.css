@@ -36,6 +36,12 @@ body {
     justify-content: space-between;
 }
 
+.topbar-layout {
+    display: grid;
+    grid-template-columns: auto minmax(280px, 520px) auto;
+    gap: 14px;
+}
+
 .brand {
     font-family: "Space Grotesk", sans-serif;
     font-size: 26px;
@@ -48,32 +54,50 @@ body {
 .nav a { color: var(--muted); text-decoration: none; font-weight: 600; }
 .nav-muted { color: #8aa0bf; font-weight: 600; cursor: default; user-select: none; }
 
-.search-top { padding: 18px 0 10px; }
-
-.search-box {
-    margin-top: 16px;
+.top-search {
+    margin: 0;
     display: grid;
     grid-template-columns: 1fr auto;
     gap: 10px;
 }
-
-.search-box.centered { max-width: 760px; margin: 0 auto; }
-
-.search-box input {
+.top-search input {
     border: 1px solid var(--line);
     border-radius: 12px;
-    padding: 14px 16px;
-    font-size: 16px;
+    padding: 11px 13px;
+    font-size: 14px;
 }
-
-.search-box button {
+.top-search button {
     border: 0;
     border-radius: 12px;
-    padding: 14px 18px;
+    padding: 11px 14px;
     background: linear-gradient(120deg, var(--brand), var(--brand-2));
     color: #fff;
     font-weight: 700;
     cursor: pointer;
+}
+
+.ad-strip {
+    border-bottom: 1px solid #d6e7fb;
+    background: linear-gradient(90deg, #f3f9ff, #e9f4ff, #f3f9ff);
+    overflow: hidden;
+}
+
+.ad-strip a {
+    color: #1455a0;
+    text-decoration: none;
+    display: block;
+}
+
+.ad-strip-track {
+    white-space: nowrap;
+    padding: 10px 0;
+    font-weight: 700;
+    animation: strip-move 26s linear infinite;
+}
+
+@keyframes strip-move {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
 }
 
 .hero { padding: 24px 0 26px; }
@@ -193,6 +217,33 @@ h1 {
 .blog-title { margin: 0 0 8px; font-size: 20px; }
 .blog-summary { margin: 0 0 8px; color: #355079; font-weight: 600; }
 .blog-body { margin: 0; color: var(--muted); line-height: 1.45; }
+
+.ad-section {
+    border: 1px dashed #b9d4f7;
+    border-radius: 12px;
+    background: #f7fbff;
+    padding: 10px;
+}
+
+.ad-box {
+    width: 100%;
+    min-height: 88px;
+}
+
+.ad-box-fallback {
+    border: 1px solid #c6def9;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    color: #355f96;
+    font-weight: 700;
+    min-height: 88px;
+    background: #fff;
+}
+
+.inline-blog-ad {
+    grid-column: 1 / -1;
+}
 
 .brand-wrap { width: min(1120px, 94vw); margin: 20px auto 40px; }
 .brand-hero {
@@ -449,6 +500,7 @@ h1 {
 @media (max-width: 920px) {
     .hero-grid { grid-template-columns: 1fr; }
     .brand-hero { grid-template-columns: 1fr; }
+    .topbar-layout { grid-template-columns: 1fr; height: auto; padding: 10px 0; }
     .nav { display: none; }
     .coupon-card { grid-template-columns: 1fr; }
     .coupon-actions { justify-items: start; }

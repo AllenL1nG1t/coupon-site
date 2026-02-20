@@ -47,6 +47,21 @@ const blogImageFile = document.getElementById("blogImageFile");
 const uploadImageBtn = document.getElementById("uploadImageBtn");
 const blogStatus = document.getElementById("blogStatus");
 
+const adsStripEnabled = document.getElementById("adsStripEnabled");
+const adsStripText = document.getElementById("adsStripText");
+const adsStripLink = document.getElementById("adsStripLink");
+const adsHomeTopEnabled = document.getElementById("adsHomeTopEnabled");
+const adsHomeMidEnabled = document.getElementById("adsHomeMidEnabled");
+const adsHomeBottomEnabled = document.getElementById("adsHomeBottomEnabled");
+const adsBlogTopEnabled = document.getElementById("adsBlogTopEnabled");
+const adsBlogInlineEnabled = document.getElementById("adsBlogInlineEnabled");
+const adsBlogBottomEnabled = document.getElementById("adsBlogBottomEnabled");
+const adsenseClientId = document.getElementById("adsenseClientId");
+const adsenseHomeSlot = document.getElementById("adsenseHomeSlot");
+const adsenseBlogSlot = document.getElementById("adsenseBlogSlot");
+const saveAdsBtn = document.getElementById("saveAdsBtn");
+const adsStatus = document.getElementById("adsStatus");
+
 let cachedCoupons = [];
 let cachedBlogs = [];
 let cachedBrands = [];
@@ -119,10 +134,8 @@ function clearCouponForm() {
 
 function renderCouponRows(coupons) {
   couponTable.innerHTML = `<thead><tr><th>ID</th><th>Store</th><th>Title</th><th>Code</th><th>Affiliate URL</th><th>Actions</th></tr></thead><tbody>${coupons.map(c => `
-    <tr>
-      <td>${c.id}</td><td>${c.store}</td><td>${c.title}</td><td>${c.couponCode}</td><td class="cut-cell">${c.affiliateUrl}</td>
-      <td><button class="admin-mini-btn" data-edit-coupon="${c.id}">Edit</button> <button class="admin-mini-btn" data-del-coupon="${c.id}">Delete</button></td>
-    </tr>`).join("")}</tbody>`;
+    <tr><td>${c.id}</td><td>${c.store}</td><td>${c.title}</td><td>${c.couponCode}</td><td class="cut-cell">${c.affiliateUrl}</td>
+    <td><button class="admin-mini-btn" data-edit-coupon="${c.id}">Edit</button> <button class="admin-mini-btn" data-del-coupon="${c.id}">Delete</button></td></tr>`).join("")}</tbody>`;
 
   couponTable.querySelectorAll("[data-del-coupon]").forEach(btn => btn.addEventListener("click", async () => {
     await adminFetch(`/api/admin/coupons?id=${btn.dataset.delCoupon}`, { method: "DELETE" });
@@ -133,10 +146,16 @@ function renderCouponRows(coupons) {
   couponTable.querySelectorAll("[data-edit-coupon]").forEach(btn => btn.addEventListener("click", () => {
     const item = cachedCoupons.find(x => x.id === Number(btn.dataset.editCoupon));
     if (!item) return;
-    couponStore.value = item.store; couponTitle.value = item.title; couponCategory.value = item.category;
-    couponExpires.value = item.expires; couponCode.value = item.couponCode; couponAffiliate.value = item.affiliateUrl;
-    couponLogo.value = item.logoUrl; couponSource.value = item.source;
-    saveCouponBtn.dataset.editId = String(item.id); saveCouponBtn.textContent = "Update Coupon";
+    couponStore.value = item.store;
+    couponTitle.value = item.title;
+    couponCategory.value = item.category;
+    couponExpires.value = item.expires;
+    couponCode.value = item.couponCode;
+    couponAffiliate.value = item.affiliateUrl;
+    couponLogo.value = item.logoUrl;
+    couponSource.value = item.source;
+    saveCouponBtn.dataset.editId = String(item.id);
+    saveCouponBtn.textContent = "Update Coupon";
     showTab("coupons");
   }));
 }
@@ -150,11 +169,18 @@ async function loadCoupons() {
 async function saveCoupon() {
   const body = {
     id: saveCouponBtn.dataset.editId ? Number(saveCouponBtn.dataset.editId) : null,
-    store: couponStore.value, title: couponTitle.value, category: couponCategory.value, expires: couponExpires.value,
-    couponCode: couponCode.value, affiliateUrl: couponAffiliate.value, logoUrl: couponLogo.value, source: couponSource.value || "admin"
+    store: couponStore.value,
+    title: couponTitle.value,
+    category: couponCategory.value,
+    expires: couponExpires.value,
+    couponCode: couponCode.value,
+    affiliateUrl: couponAffiliate.value,
+    logoUrl: couponLogo.value,
+    source: couponSource.value || "admin"
   };
   await adminFetch("/api/admin/coupons", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  clearCouponForm(); await loadCoupons();
+  clearCouponForm();
+  await loadCoupons();
 }
 
 function clearBrandForm() {
@@ -165,10 +191,8 @@ function clearBrandForm() {
 
 function renderBrandRows(brands) {
   brandTable.innerHTML = `<thead><tr><th>ID</th><th>Store</th><th>Slug</th><th>Official URL</th><th>Actions</th></tr></thead><tbody>${brands.map(b => `
-    <tr>
-      <td>${b.id}</td><td>${b.storeName}</td><td>${b.slug}</td><td class="cut-cell">${b.officialUrl}</td>
-      <td><button class="admin-mini-btn" data-edit-brand="${b.id}">Edit</button> <button class="admin-mini-btn" data-del-brand="${b.id}">Delete</button></td>
-    </tr>`).join("")}</tbody>`;
+    <tr><td>${b.id}</td><td>${b.storeName}</td><td>${b.slug}</td><td class="cut-cell">${b.officialUrl}</td>
+    <td><button class="admin-mini-btn" data-edit-brand="${b.id}">Edit</button> <button class="admin-mini-btn" data-del-brand="${b.id}">Delete</button></td></tr>`).join("")}</tbody>`;
 
   brandTable.querySelectorAll("[data-del-brand]").forEach(btn => btn.addEventListener("click", async () => {
     await adminFetch(`/api/admin/brands?id=${btn.dataset.delBrand}`, { method: "DELETE" });
@@ -179,10 +203,16 @@ function renderBrandRows(brands) {
   brandTable.querySelectorAll("[data-edit-brand]").forEach(btn => btn.addEventListener("click", () => {
     const item = cachedBrands.find(x => x.id === Number(btn.dataset.editBrand));
     if (!item) return;
-    brandStoreName.value = item.storeName; brandSlug.value = item.slug; brandTitle.value = item.title;
-    brandSummary.value = item.summary; brandOfficialUrl.value = item.officialUrl; brandLogoUrl.value = item.logoUrl;
-    brandHeroImageUrl.value = item.heroImageUrl; brandDescription.value = item.description;
-    saveBrandBtn.dataset.editId = String(item.id); saveBrandBtn.textContent = "Update Brand";
+    brandStoreName.value = item.storeName;
+    brandSlug.value = item.slug;
+    brandTitle.value = item.title;
+    brandSummary.value = item.summary;
+    brandOfficialUrl.value = item.officialUrl;
+    brandLogoUrl.value = item.logoUrl;
+    brandHeroImageUrl.value = item.heroImageUrl;
+    brandDescription.value = item.description;
+    saveBrandBtn.dataset.editId = String(item.id);
+    saveBrandBtn.textContent = "Update Brand";
     showTab("brands");
   }));
 }
@@ -206,7 +236,8 @@ async function saveBrand() {
     officialUrl: brandOfficialUrl.value
   };
   await adminFetch("/api/admin/brands", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  clearBrandForm(); await loadBrands();
+  clearBrandForm();
+  await loadBrands();
 }
 
 function clearBlogForm() {
@@ -218,10 +249,8 @@ function clearBlogForm() {
 
 function renderBlogRows(blogs) {
   blogTable.innerHTML = `<thead><tr><th>ID</th><th>Title</th><th>Published</th><th>Cover</th><th>Actions</th></tr></thead><tbody>${blogs.map(b => `
-    <tr>
-      <td>${b.id}</td><td>${b.title}</td><td>${b.published}</td><td class="cut-cell">${b.coverImageUrl}</td>
-      <td><button class="admin-mini-btn" data-edit-blog="${b.id}">Edit</button> <button class="admin-mini-btn" data-del-blog="${b.id}">Delete</button></td>
-    </tr>`).join("")}</tbody>`;
+    <tr><td>${b.id}</td><td>${b.title}</td><td>${b.published}</td><td class="cut-cell">${b.coverImageUrl}</td>
+    <td><button class="admin-mini-btn" data-edit-blog="${b.id}">Edit</button> <button class="admin-mini-btn" data-del-blog="${b.id}">Delete</button></td></tr>`).join("")}</tbody>`;
 
   blogTable.querySelectorAll("[data-del-blog]").forEach(btn => btn.addEventListener("click", async () => {
     await adminFetch(`/api/admin/blogs?id=${btn.dataset.delBlog}`, { method: "DELETE" });
@@ -232,9 +261,13 @@ function renderBlogRows(blogs) {
   blogTable.querySelectorAll("[data-edit-blog]").forEach(btn => btn.addEventListener("click", () => {
     const item = cachedBlogs.find(x => x.id === Number(btn.dataset.editBlog));
     if (!item) return;
-    blogTitle.value = item.title; blogSummary.value = item.summary; blogCover.value = item.coverImageUrl;
-    blogContent.value = item.content; blogPublished.value = String(item.published);
-    saveBlogBtn.dataset.editId = String(item.id); saveBlogBtn.textContent = "Update Blog";
+    blogTitle.value = item.title;
+    blogSummary.value = item.summary;
+    blogCover.value = item.coverImageUrl;
+    blogContent.value = item.content;
+    blogPublished.value = String(item.published);
+    saveBlogBtn.dataset.editId = String(item.id);
+    saveBlogBtn.textContent = "Update Blog";
     showTab("blogs");
   }));
 }
@@ -248,11 +281,15 @@ async function loadBlogs() {
 async function saveBlog() {
   const body = {
     id: saveBlogBtn.dataset.editId ? Number(saveBlogBtn.dataset.editId) : null,
-    title: blogTitle.value, summary: blogSummary.value, content: blogContent.value,
-    coverImageUrl: blogCover.value, published: blogPublished.value === "true"
+    title: blogTitle.value,
+    summary: blogSummary.value,
+    content: blogContent.value,
+    coverImageUrl: blogCover.value,
+    published: blogPublished.value === "true"
   };
   await adminFetch("/api/admin/blogs", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  clearBlogForm(); await loadBlogs();
+  clearBlogForm();
+  await loadBlogs();
 }
 
 async function uploadBlogImage() {
@@ -263,10 +300,53 @@ async function uploadBlogImage() {
   const formData = new FormData();
   formData.append("file", blogImageFile.files[0]);
   const response = await adminFetch("/api/admin/uploads/images", { method: "POST", body: formData });
-  if (!response.ok) { blogStatus.textContent = "Upload failed"; return; }
+  if (!response.ok) {
+    blogStatus.textContent = "Upload failed";
+    return;
+  }
   const data = await response.json();
   blogCover.value = data.url;
   blogStatus.textContent = `Uploaded: ${data.url}`;
+}
+
+async function loadAds() {
+  const data = await (await adminFetch("/api/admin/ads")).json();
+  adsStripEnabled.checked = data.stripEnabled;
+  adsStripText.value = data.stripText || "";
+  adsStripLink.value = data.stripLink || "";
+  adsHomeTopEnabled.checked = data.homeTopEnabled;
+  adsHomeMidEnabled.checked = data.homeMidEnabled;
+  adsHomeBottomEnabled.checked = data.homeBottomEnabled;
+  adsBlogTopEnabled.checked = data.blogTopEnabled;
+  adsBlogInlineEnabled.checked = data.blogInlineEnabled;
+  adsBlogBottomEnabled.checked = data.blogBottomEnabled;
+  adsenseClientId.value = data.adsenseClientId || "";
+  adsenseHomeSlot.value = data.homeAdsenseSlot || "";
+  adsenseBlogSlot.value = data.blogAdsenseSlot || "";
+}
+
+async function saveAds() {
+  adsStatus.textContent = "Saving...";
+  const body = {
+    stripEnabled: adsStripEnabled.checked,
+    stripText: adsStripText.value,
+    stripLink: adsStripLink.value,
+    homeTopEnabled: adsHomeTopEnabled.checked,
+    homeMidEnabled: adsHomeMidEnabled.checked,
+    homeBottomEnabled: adsHomeBottomEnabled.checked,
+    blogTopEnabled: adsBlogTopEnabled.checked,
+    blogInlineEnabled: adsBlogInlineEnabled.checked,
+    blogBottomEnabled: adsBlogBottomEnabled.checked,
+    adsenseClientId: adsenseClientId.value,
+    homeAdsenseSlot: adsenseHomeSlot.value,
+    blogAdsenseSlot: adsenseBlogSlot.value
+  };
+  const response = await adminFetch("/api/admin/ads", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  adsStatus.textContent = response.ok ? "Saved" : "Save failed";
 }
 
 async function logout() {
@@ -283,10 +363,11 @@ clearBrandBtn.addEventListener("click", clearBrandForm);
 saveBlogBtn.addEventListener("click", saveBlog);
 clearBlogBtn.addEventListener("click", clearBlogForm);
 uploadImageBtn.addEventListener("click", uploadBlogImage);
+saveAdsBtn.addEventListener("click", saveAds);
 logoutBtn.addEventListener("click", event => { event.preventDefault(); logout(); });
 
 (async function init() {
   const ok = await checkAuth();
   if (!ok) return;
-  await Promise.all([loadCrawler(), loadCoupons(), loadBrands(), loadBlogs()]);
+  await Promise.all([loadCrawler(), loadCoupons(), loadBrands(), loadBlogs(), loadAds()]);
 })();
