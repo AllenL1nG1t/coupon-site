@@ -1,4 +1,4 @@
-﻿:root {
+:root {
     --ink: #1e1f2b;
     --muted: #5f6478;
     --surface: #ffffff;
@@ -60,18 +60,41 @@ body {
     font-weight: 600;
 }
 
-.signin-btn {
-    border: 1px solid #bad0ef;
-    background: #f2f8ff;
-    color: #0c4f96;
+.search-top {
+    padding: 18px 0 10px;
+}
+
+.search-box {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+}
+
+.search-box.centered {
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+.search-box input {
+    border: 1px solid var(--line);
     border-radius: 12px;
-    padding: 10px 16px;
-    font-weight: 600;
+    padding: 14px 16px;
+    font-size: 16px;
+}
+
+.search-box button {
+    border: 0;
+    border-radius: 12px;
+    padding: 14px 18px;
+    background: linear-gradient(120deg, var(--brand), var(--brand-2));
+    color: #fff;
+    font-weight: 700;
     cursor: pointer;
 }
 
 .hero {
-    padding: 56px 0 40px;
+    padding: 24px 0 26px;
 }
 
 .hero-grid {
@@ -98,30 +121,6 @@ h1 {
     color: var(--muted);
     max-width: 640px;
     font-size: 18px;
-}
-
-.search-box {
-    margin-top: 22px;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 10px;
-}
-
-.search-box input {
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 14px 16px;
-    font-size: 16px;
-}
-
-.search-box button {
-    border: 0;
-    border-radius: 12px;
-    padding: 14px 18px;
-    background: linear-gradient(120deg, var(--brand), var(--brand-2));
-    color: #fff;
-    font-weight: 700;
-    cursor: pointer;
 }
 
 .chips {
@@ -206,8 +205,18 @@ h1 {
     background: #fff;
     border-radius: 14px;
     text-align: center;
-    padding: 16px 10px;
+    padding: 14px 10px;
     font-weight: 700;
+}
+
+.store-logo {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+}
+
+.store-name {
+    margin: 6px 0 0;
 }
 
 .coupon-list {
@@ -248,23 +257,67 @@ h1 {
     gap: 8px;
 }
 
-.coupon-code {
-    border: 1px dashed #7badf5;
-    color: #1d5fb8;
-    border-radius: 10px;
-    padding: 6px 10px;
-    font-weight: 700;
-    letter-spacing: .06em;
-}
-
-.copy-btn {
+.reveal-btn {
     border: 0;
     border-radius: 10px;
     background: #0f7dff;
     color: #fff;
-    padding: 8px 12px;
+    padding: 8px 14px;
     font-weight: 700;
     cursor: pointer;
+}
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 23, 43, 0.48);
+    display: grid;
+    place-items: center;
+    z-index: 200;
+}
+
+.hidden {
+    display: none;
+}
+
+.modal-card {
+    width: min(460px, 92vw);
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+}
+
+.modal-code {
+    font-family: "Space Grotesk", sans-serif;
+    color: #0d5fc4;
+    font-size: 32px;
+    margin: 10px 0;
+}
+
+.modal-text {
+    color: var(--muted);
+}
+
+.modal-actions {
+    margin-top: 12px;
+    display: flex;
+    gap: 10px;
+}
+
+.modal-actions button {
+    border: 0;
+    border-radius: 10px;
+    background: #0f7dff;
+    color: #fff;
+    padding: 9px 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.modal-actions .light {
+    border: 1px solid #c4d6ec;
+    color: #214b83;
+    background: #fff;
 }
 
 .footer {
@@ -298,3 +351,4 @@ h1 {
         gap: 6px;
     }
 }
+

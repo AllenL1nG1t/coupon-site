@@ -1,56 +1,100 @@
-﻿const coupons = [
-  { store: "Nike", title: "20% Off New Season Sneakers", code: "RUN20", expires: "Ends tonight", category: "fashion" },
-  { store: "Expedia", title: "Save $50 on Hotels $300+", code: "TRIP50", expires: "2 days left", category: "travel" },
-  { store: "Best Buy", title: "Extra 15% Off Headphones", code: "SOUND15", expires: "This week", category: "electronics" },
-  { store: "DoorDash", title: "$10 Off First 2 Orders", code: "FAST10", expires: "No expiration date", category: "food" },
-  { store: "Macy's", title: "30% Off Clearance + Free Shipping", code: "GLOW30", expires: "Ends Sunday", category: "fashion" },
-  { store: "Samsung", title: "$100 Off Select Monitors", code: "VIEW100", expires: "Limited stock", category: "electronics" }
-];
-
 const couponList = document.getElementById("couponList");
-const template = document.getElementById("couponCardTemplate");
+const couponTemplate = document.getElementById("couponCardTemplate");
+const storeGrid = document.getElementById("storeGrid");
+const storeTemplate = document.getElementById("storeTileTemplate");
 const searchInput = document.getElementById("searchInput");
 const searchForm = document.getElementById("searchForm");
 const filterChips = document.getElementById("filterChips");
+const modal = document.getElementById("couponModal");
+const modalCode = document.getElementById("modalCode");
+const modalAffiliate = document.getElementById("modalAffiliate");
+const copyModalCode = document.getElementById("copyModalCode");
+const closeModal = document.getElementById("closeModal");
 
 let activeFilter = "all";
 let searchTerm = "";
+let latestCoupons = [];
 
-function filteredCoupons() {
-  return coupons.filter(coupon => {
-    const byCategory = activeFilter === "all" || coupon.category === activeFilter;
-    const joined = `${coupon.store} ${coupon.title} ${coupon.category}`.toLowerCase();
-    const byText = joined.includes(searchTerm);
-    return byCategory && byText;
+async function fetchCoupons() {
+  const params = new URLSearchParams({ category: activeFilter, q: searchTerm });
+  const response = await fetch(`/api/coupons?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch coupons");
+  }
+  return response.json();
+}
+
+function renderStores(coupons) {
+  const stores = [];
+  const seen = new Set();
+
+  coupons.forEach(coupon => {
+    if (seen.has(coupon.store)) {
+      return;
+    }
+    seen.add(coupon.store);
+    stores.push(coupon);
+  });
+
+  storeGrid.innerHTML = "";
+  stores.slice(0, 8).forEach(store => {
+    const node = storeTemplate.content.cloneNode(true);
+    const logo = node.querySelector(".store-logo");
+    logo.src = store.logoUrl;
+    logo.alt = `${store.store} logo`;
+    logo.addEventListener("error", () => {
+      logo.src = "/logos/default.svg";
+    }, { once: true });
+    node.querySelector(".store-name").textContent = store.store;
+    storeGrid.appendChild(node);
   });
 }
 
-function renderCoupons() {
-  couponList.innerHTML = "";
-  const data = filteredCoupons();
+async function revealCoupon(id) {
+  const response = await fetch(`/api/coupons/${id}/reveal`, { method: "POST" });
+  if (!response.ok) {
+    throw new Error("Failed to reveal coupon");
+  }
+  return response.json();
+}
 
-  if (!data.length) {
+function showModal(code, affiliateUrl) {
+  modalCode.textContent = code;
+  modalAffiliate.href = affiliateUrl;
+  modal.classList.remove("hidden");
+
+  const newTab = window.open(affiliateUrl, "_blank", "noopener,noreferrer");
+  if (newTab) {
+    window.focus();
+  }
+}
+
+function renderCoupons(coupons) {
+  couponList.innerHTML = "";
+
+  if (!coupons.length) {
     couponList.innerHTML = `<article class="coupon-card"><p>No coupons match your search.</p></article>`;
     return;
   }
 
-  data.forEach(coupon => {
-    const node = template.content.cloneNode(true);
+  coupons.forEach(coupon => {
+    const node = couponTemplate.content.cloneNode(true);
     node.querySelector(".coupon-store").textContent = coupon.store;
     node.querySelector(".coupon-title").textContent = coupon.title;
-    node.querySelector(".coupon-meta").textContent = `${coupon.expires} · ${coupon.category}`;
-    node.querySelector(".coupon-code").textContent = coupon.code;
+    node.querySelector(".coupon-meta").textContent = `${coupon.expires} · ${coupon.category} · source: ${coupon.source}`;
 
-    const btn = node.querySelector(".copy-btn");
+    const btn = node.querySelector(".reveal-btn");
     btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      btn.textContent = "Loading...";
       try {
-        await navigator.clipboard.writeText(coupon.code);
-        btn.textContent = "Copied!";
-        setTimeout(() => {
-          btn.textContent = "Copy Code";
-        }, 1200);
-      } catch (e) {
-        btn.textContent = "Copy failed";
+        const data = await revealCoupon(coupon.id);
+        showModal(data.couponCode, data.affiliateUrl);
+        btn.textContent = "Show Coupon Code";
+      } catch (_) {
+        btn.textContent = "Try again";
+      } finally {
+        btn.disabled = false;
       }
     });
 
@@ -58,20 +102,56 @@ function renderCoupons() {
   });
 }
 
+async function refreshCoupons() {
+  try {
+    latestCoupons = await fetchCoupons();
+    renderCoupons(latestCoupons);
+    renderStores(latestCoupons);
+  } catch (_) {
+    couponList.innerHTML = `<article class="coupon-card"><p>Unable to load coupons right now.</p></article>`;
+  }
+}
+
 filterChips.addEventListener("click", event => {
   const chip = event.target.closest("button[data-filter]");
   if (!chip) return;
+
   activeFilter = chip.dataset.filter;
   filterChips.querySelectorAll("button").forEach(button => {
     button.classList.toggle("active", button === chip);
   });
-  renderCoupons();
+
+  refreshCoupons();
 });
 
 searchForm.addEventListener("submit", event => {
   event.preventDefault();
   searchTerm = searchInput.value.trim().toLowerCase();
-  renderCoupons();
+  refreshCoupons();
 });
 
-renderCoupons();
+closeModal.addEventListener("click", () => {
+  modal.classList.add("hidden");
+});
+
+copyModalCode.addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(modalCode.textContent || "");
+    copyModalCode.textContent = "Copied";
+    setTimeout(() => {
+      copyModalCode.textContent = "Copy Code";
+    }, 1200);
+  } catch (_) {
+    copyModalCode.textContent = "Copy Failed";
+  }
+});
+
+modal.addEventListener("click", event => {
+  if (event.target === modal) {
+    modal.classList.add("hidden");
+  }
+});
+
+refreshCoupons();
+
+
