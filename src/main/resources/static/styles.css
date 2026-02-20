@@ -102,6 +102,7 @@ body {
 
 .hero { padding: 24px 0 26px; }
 .hero-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 22px; }
+.hero-single { max-width: 900px; }
 
 .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .12em; color: #4b6fa3; }
 
@@ -175,6 +176,29 @@ h1 {
 .store-logo { width: 42px; height: 42px; object-fit: contain; }
 .store-name { margin: 6px 0 0; }
 .store-link { text-decoration: none; color: inherit; }
+
+.cashback-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.cashback-card {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: #fff;
+    padding: 14px;
+}
+
+.cashback-card h3 {
+    margin: 0 0 6px;
+    color: #204b81;
+}
+
+.cashback-card p {
+    margin: 0;
+    color: var(--muted);
+}
 
 .coupon-list { display: grid; gap: 12px; }
 

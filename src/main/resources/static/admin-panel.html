@@ -21,6 +21,7 @@
     <section class="admin-nav-card">
         <div class="admin-tabs" id="adminTabs">
             <button class="admin-tab active" data-tab="dashboard">Dashboard</button>
+            <button class="admin-tab" data-tab="content">Content</button>
             <button class="admin-tab" data-tab="coupons">Coupons</button>
             <button class="admin-tab" data-tab="brands">Brands</button>
             <button class="admin-tab" data-tab="blogs">Blogs</button>
@@ -36,6 +37,22 @@
             <article class="stat-card"><p>Published Blogs</p><h4 id="statBlogs">-</h4></article>
             <article class="stat-card"><p>Total Brands</p><h4 id="statBrands">-</h4></article>
             <article class="stat-card"><p>Crawler Status</p><h4 id="statCrawler">-</h4></article>
+        </div>
+    </section>
+
+    <section class="admin-section hidden" data-section="content">
+        <div class="section-head-admin">
+            <h3>Homepage Hero Content</h3>
+            <span>Edit simplycodes-style hero copy on homepage</span>
+        </div>
+        <div class="admin-grid">
+            <input id="contentHeroEyebrow" placeholder="Hero eyebrow">
+            <input id="contentHeroTitle" placeholder="Hero title">
+            <textarea id="contentHeroSubtitle" rows="4" placeholder="Hero subtitle"></textarea>
+        </div>
+        <div class="admin-row">
+            <button id="saveContentBtn" class="primary-btn">Save Hero Content</button>
+            <span id="contentStatus"></span>
         </div>
     </section>
 

@@ -34,6 +34,7 @@ public class AdminController {
     private final RetailMeNotCrawlerService retailMeNotCrawlerService;
     private final SimplyCodesCrawlerService simplyCodesCrawlerService;
     private final AdSettingsService adSettingsService;
+    private final ContentSettingsService contentSettingsService;
     private final CouponService couponService;
     private final BlogService blogService;
     private final BrandProfileService brandProfileService;
@@ -44,6 +45,7 @@ public class AdminController {
         RetailMeNotCrawlerService retailMeNotCrawlerService,
         SimplyCodesCrawlerService simplyCodesCrawlerService,
         AdSettingsService adSettingsService,
+        ContentSettingsService contentSettingsService,
         CouponService couponService,
         BlogService blogService,
         BrandProfileService brandProfileService
@@ -53,6 +55,7 @@ public class AdminController {
         this.retailMeNotCrawlerService = retailMeNotCrawlerService;
         this.simplyCodesCrawlerService = simplyCodesCrawlerService;
         this.adSettingsService = adSettingsService;
+        this.contentSettingsService = contentSettingsService;
         this.couponService = couponService;
         this.blogService = blogService;
         this.brandProfileService = brandProfileService;
@@ -142,6 +145,16 @@ public class AdminController {
     @PutMapping("/ads")
     public AdSettingsDto updateAds(@RequestBody AdSettingsDto request) {
         return adSettingsService.save(request);
+    }
+
+    @GetMapping("/content")
+    public ContentSettingsDto content() {
+        return contentSettingsService.get();
+    }
+
+    @PutMapping("/content")
+    public ContentSettingsDto updateContent(@RequestBody ContentSettingsDto request) {
+        return contentSettingsService.save(request);
     }
 
     @PostMapping("/uploads/images")

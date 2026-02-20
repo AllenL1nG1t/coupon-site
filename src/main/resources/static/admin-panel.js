@@ -14,6 +14,12 @@ const statBlogs = document.getElementById("statBlogs");
 const statBrands = document.getElementById("statBrands");
 const statCrawler = document.getElementById("statCrawler");
 
+const contentHeroEyebrow = document.getElementById("contentHeroEyebrow");
+const contentHeroTitle = document.getElementById("contentHeroTitle");
+const contentHeroSubtitle = document.getElementById("contentHeroSubtitle");
+const saveContentBtn = document.getElementById("saveContentBtn");
+const contentStatus = document.getElementById("contentStatus");
+
 const couponStore = document.getElementById("couponStore");
 const couponTitle = document.getElementById("couponTitle");
 const couponCategory = document.getElementById("couponCategory");
@@ -106,6 +112,28 @@ async function loadCrawler() {
   const logs = await (await adminFetch("/api/admin/logs")).json();
   logPanel.textContent = (logs || []).map(log => `[${log.createdAt}] [${log.level}] ${log.message}`).join("\n") || "No logs yet";
   statCrawler.textContent = settings.crawlerEnabled ? "Enabled" : "Disabled";
+}
+
+async function loadContent() {
+  const data = await (await adminFetch("/api/admin/content")).json();
+  contentHeroEyebrow.value = data.heroEyebrow || "";
+  contentHeroTitle.value = data.heroTitle || "";
+  contentHeroSubtitle.value = data.heroSubtitle || "";
+}
+
+async function saveContent() {
+  contentStatus.textContent = "Saving...";
+  const body = {
+    heroEyebrow: contentHeroEyebrow.value,
+    heroTitle: contentHeroTitle.value,
+    heroSubtitle: contentHeroSubtitle.value
+  };
+  const response = await adminFetch("/api/admin/content", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  contentStatus.textContent = response.ok ? "Saved" : "Save failed";
 }
 
 async function saveCrawler() {
@@ -356,6 +384,7 @@ async function logout() {
 
 saveCrawlerBtn.addEventListener("click", saveCrawler);
 runCrawlerBtn.addEventListener("click", runCrawler);
+saveContentBtn.addEventListener("click", saveContent);
 saveCouponBtn.addEventListener("click", saveCoupon);
 clearCouponBtn.addEventListener("click", clearCouponForm);
 saveBrandBtn.addEventListener("click", saveBrand);
@@ -369,5 +398,5 @@ logoutBtn.addEventListener("click", event => { event.preventDefault(); logout();
 (async function init() {
   const ok = await checkAuth();
   if (!ok) return;
-  await Promise.all([loadCrawler(), loadCoupons(), loadBrands(), loadBlogs(), loadAds()]);
+  await Promise.all([loadCrawler(), loadContent(), loadCoupons(), loadBrands(), loadBlogs(), loadAds()]);
 })();

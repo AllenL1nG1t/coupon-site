@@ -7,6 +7,9 @@ const blogTemplate = document.getElementById("blogCardTemplate");
 const searchInput = document.getElementById("searchInput");
 const searchForm = document.getElementById("searchForm");
 const filterChips = document.getElementById("filterChips");
+const heroEyebrow = document.getElementById("heroEyebrow");
+const heroTitle = document.getElementById("heroTitle");
+const heroSubtitle = document.getElementById("heroSubtitle");
 
 const adStrip = document.getElementById("adStrip");
 const adStripLink = document.getElementById("adStripLink");
@@ -39,6 +42,12 @@ async function fetchBlogs() {
 async function fetchAds() {
   const response = await fetch("/api/ads/public");
   if (!response.ok) throw new Error("Failed to fetch ads");
+  return response.json();
+}
+
+async function fetchContent() {
+  const response = await fetch("/api/content/public");
+  if (!response.ok) throw new Error("Failed to fetch content");
   return response.json();
 }
 
@@ -99,6 +108,13 @@ function renderAdsenseBlock(container, clientId, slotId) {
   } catch (_) {
     // ignore runtime adsense push errors
   }
+}
+
+function applyHeroContent(content) {
+  if (!content) return;
+  heroEyebrow.textContent = content.heroEyebrow || heroEyebrow.textContent;
+  heroTitle.textContent = content.heroTitle || heroTitle.textContent;
+  heroSubtitle.textContent = content.heroSubtitle || heroSubtitle.textContent;
 }
 
 function renderFallbackAdBlock(container, label) {
@@ -255,6 +271,12 @@ searchForm.addEventListener("submit", event => {
     adSettings = await fetchAds();
   } catch (_) {
     adSettings = null;
+  }
+  try {
+    const content = await fetchContent();
+    applyHeroContent(content);
+  } catch (_) {
+    // keep defaults
   }
   applyHomeAds();
   await Promise.all([refreshCoupons(), refreshBlogs()]);

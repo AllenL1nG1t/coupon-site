@@ -20,9 +20,9 @@
         </form>
 
         <nav class="nav">
-            <span class="nav-muted">Categories</span>
-            <span class="nav-muted">Stores</span>
-            <span class="nav-muted">Cash Back</span>
+            <a href="#categories">Categories</a>
+            <a href="#stores">Stores</a>
+            <a href="#cashback">Cash Back</a>
             <a href="/admin-login.html">Login</a>
         </nav>
     </div>
@@ -38,32 +38,21 @@
     <section class="container section ad-section hidden" id="homeAdTop"></section>
 
     <section class="hero">
-        <div class="container hero-grid">
-            <div>
-                <p class="eyebrow">TODAY'S BEST DEALS</p>
-                <h1>Save money with verified promo codes from top brands</h1>
-                <p class="subtitle">Click Show Coupon Code: current tab goes to affiliate URL, and a new tab shows your coupon code.</p>
-                <div class="chips" id="filterChips">
-                    <button data-filter="all" class="active">All</button>
-                    <button data-filter="fashion">Fashion</button>
-                    <button data-filter="travel">Travel</button>
-                    <button data-filter="electronics">Electronics</button>
-                    <button data-filter="food">Food</button>
-                </div>
-            </div>
-            <div class="hero-card">
-                <p class="hero-card-title">Members saved today</p>
-                <p class="hero-card-amount">$48,219</p>
-                <ul>
-                    <li>Coupon + affiliate URL managed from Admin</li>
-                    <li>Brand intro page managed from Admin</li>
-                    <li>Blog posts and image upload from Admin</li>
-                </ul>
+        <div class="container hero-single">
+            <p class="eyebrow" id="heroEyebrow">SIMPLYCODES STYLE DEALS</p>
+            <h1 id="heroTitle">Find verified promo codes that actually work</h1>
+            <p class="subtitle" id="heroSubtitle">Instant savings, clean checkout flow, and transparent code quality from real-time verification.</p>
+            <div class="chips" id="filterChips">
+                <button data-filter="all" class="active">All</button>
+                <button data-filter="fashion">Fashion</button>
+                <button data-filter="travel">Travel</button>
+                <button data-filter="electronics">Electronics</button>
+                <button data-filter="food">Food</button>
             </div>
         </div>
     </section>
 
-    <section class="container section">
+    <section class="container section" id="stores">
         <div class="section-head">
             <h2>Trending Stores</h2>
             <span class="muted-inline">Click a store for brand intro</span>
@@ -73,12 +62,24 @@
 
     <section class="container section ad-section hidden" id="homeAdMid"></section>
 
-    <section class="container section">
+    <section class="container section" id="categories">
         <div class="section-head">
             <h2>Top Coupons Right Now</h2>
             <span class="muted-inline">Latest available offers</span>
         </div>
         <div class="coupon-list" id="couponList"></div>
+    </section>
+
+    <section class="container section" id="cashback">
+        <div class="section-head">
+            <h2>Cash Back</h2>
+            <span class="muted-inline">Featured cash back paths</span>
+        </div>
+        <div class="cashback-grid">
+            <article class="cashback-card"><h3>Travel</h3><p>Up to 8% with selected booking platforms.</p></article>
+            <article class="cashback-card"><h3>Electronics</h3><p>Up to 6% with selected tech retailers.</p></article>
+            <article class="cashback-card"><h3>Food</h3><p>Up to 5% with popular delivery apps.</p></article>
+        </div>
     </section>
 
     <section class="container section ad-section hidden" id="homeAdBottom"></section>
