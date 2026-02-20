@@ -1,4 +1,4 @@
-const couponList = document.getElementById("couponList");
+﻿const couponList = document.getElementById("couponList");
 const couponTemplate = document.getElementById("couponCardTemplate");
 const storeGrid = document.getElementById("storeGrid");
 const storeTemplate = document.getElementById("storeTileTemplate");
@@ -7,6 +7,7 @@ const blogTemplate = document.getElementById("blogCardTemplate");
 const searchInput = document.getElementById("searchInput");
 const searchForm = document.getElementById("searchForm");
 const filterChips = document.getElementById("filterChips");
+const heroSection = document.getElementById("heroSection");
 const heroEyebrow = document.getElementById("heroEyebrow");
 const heroTitle = document.getElementById("heroTitle");
 const heroSubtitle = document.getElementById("heroSubtitle");
@@ -115,6 +116,17 @@ function applyHeroContent(content) {
   heroEyebrow.textContent = content.heroEyebrow || heroEyebrow.textContent;
   heroTitle.textContent = content.heroTitle || heroTitle.textContent;
   heroSubtitle.textContent = content.heroSubtitle || heroSubtitle.textContent;
+
+  const bgColor = content.heroBgColor || "#f7f9fd";
+  heroSection.style.backgroundColor = bgColor;
+
+  if (content.heroBgImageUrl) {
+    heroSection.style.backgroundImage = `linear-gradient(rgba(255,255,255,0.82), rgba(255,255,255,0.9)), url('${content.heroBgImageUrl}')`;
+    heroSection.style.backgroundSize = "cover";
+    heroSection.style.backgroundPosition = "center";
+  } else {
+    heroSection.style.backgroundImage = "none";
+  }
 }
 
 function renderFallbackAdBlock(container, label) {
@@ -191,16 +203,6 @@ function renderBlogs(blogs) {
   });
 }
 
-function openCodePageAndRedirectCurrent(data, coupon) {
-  const codePage = `/coupon-code.html?store=${encodeURIComponent(coupon.store)}&title=${encodeURIComponent(coupon.title)}&code=${encodeURIComponent(data.couponCode)}`;
-  const codeWindow = window.open(codePage, "_blank", "noopener");
-  if (!codeWindow) {
-    alert("Please allow popups to open coupon code page.");
-    return;
-  }
-  window.location.assign(data.affiliateUrl);
-}
-
 function renderCoupons(coupons) {
   couponList.innerHTML = "";
 
@@ -222,7 +224,7 @@ function renderCoupons(coupons) {
       try {
         const data = await revealCoupon(coupon.id);
         btn.textContent = "Redirecting...";
-        openCodePageAndRedirectCurrent(data, coupon);
+        window.location.assign(data.affiliateUrl);
       } catch (_) {
         btn.textContent = "Try again";
         btn.disabled = false;

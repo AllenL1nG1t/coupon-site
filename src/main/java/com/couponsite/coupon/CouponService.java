@@ -54,17 +54,28 @@ public class CouponService {
     }
 
     @Transactional
-    public void upsert(Coupon incoming) {
-        couponRepository.findFirstByStoreIgnoreCaseAndTitleIgnoreCase(incoming.getStore(), incoming.getTitle())
-            .ifPresentOrElse(existing -> {
+    public boolean upsert(Coupon incoming) {
+        String normalizedStore = nonBlankOrDefault(incoming.getStore(), "Unknown Store");
+        String normalizedCode = nonBlankOrDefault(incoming.getCouponCode(), "SEEDEAL");
+
+        incoming.setStore(normalizedStore);
+        incoming.setCouponCode(normalizedCode);
+
+        return couponRepository.findFirstByStoreIgnoreCaseAndCouponCodeIgnoreCase(normalizedStore, normalizedCode)
+            .map(existing -> {
+                existing.setTitle(incoming.getTitle());
                 existing.setCategory(incoming.getCategory());
                 existing.setExpires(incoming.getExpires());
-                existing.setCouponCode(incoming.getCouponCode());
                 existing.setAffiliateUrl(incoming.getAffiliateUrl());
                 existing.setLogoUrl(incoming.getLogoUrl());
                 existing.setSource(incoming.getSource());
                 couponRepository.save(existing);
-            }, () -> couponRepository.save(incoming));
+                return false;
+            })
+            .orElseGet(() -> {
+                couponRepository.save(incoming);
+                return true;
+            });
     }
 
     public long count() {

@@ -48,6 +48,7 @@ public class SimplyCodesCrawlerService {
     public synchronized int crawlLatest() {
         crawlerLogService.info("SimplyCodes crawler started.");
         int upserts = 0;
+        int duplicates = 0;
 
         for (StoreSeed seed : STORE_SEEDS) {
             String url = "https://simplycodes.com/store/" + seed.path();
@@ -66,8 +67,11 @@ public class SimplyCodesCrawlerService {
                     upserts += applyFallbackCoupons(seed);
                 } else {
                     for (Coupon coupon : parsedCoupons) {
-                        couponService.upsert(coupon);
-                        upserts++;
+                        if (couponService.upsert(coupon)) {
+                            upserts++;
+                        } else {
+                            duplicates++;
+                        }
                     }
                     crawlerLogService.info("Parsed " + parsedCoupons.size() + " coupons from " + seed.storeName());
                 }
@@ -78,7 +82,7 @@ public class SimplyCodesCrawlerService {
             }
         }
 
-        crawlerLogService.info("SimplyCodes crawler finished. upserts=" + upserts);
+        crawlerLogService.info("SimplyCodes crawler finished. upserts=" + upserts + ", skippedDuplicates=" + duplicates);
         return upserts;
     }
 
@@ -137,8 +141,13 @@ public class SimplyCodesCrawlerService {
             fallbackCoupon(seed, "SimplyCodes: latest promo for " + seed.storeName(), "SCODE20", "Ends soon")
         );
 
-        fallback.forEach(couponService::upsert);
-        return fallback.size();
+        int inserted = 0;
+        for (Coupon coupon : fallback) {
+            if (couponService.upsert(coupon)) {
+                inserted++;
+            }
+        }
+        return inserted;
     }
 
     private Coupon fallbackCoupon(StoreSeed seed, String title, String code, String expires) {

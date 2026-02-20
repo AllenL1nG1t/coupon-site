@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -43,14 +43,18 @@
     <section class="admin-section hidden" data-section="content">
         <div class="section-head-admin">
             <h3>Homepage Hero Content</h3>
-            <span>Edit simplycodes-style hero copy on homepage</span>
+            <span>Edit hero text, background color and image</span>
         </div>
         <div class="admin-grid">
             <input id="contentHeroEyebrow" placeholder="Hero eyebrow">
             <input id="contentHeroTitle" placeholder="Hero title">
             <textarea id="contentHeroSubtitle" rows="4" placeholder="Hero subtitle"></textarea>
+            <input id="contentHeroBgColor" placeholder="Hero background color (e.g. #f7f9fd)">
+            <input id="contentHeroBgImageUrl" placeholder="Hero background image URL">
         </div>
         <div class="admin-row">
+            <input id="heroImageFile" type="file" accept="image/*">
+            <button id="uploadHeroImageBtn" class="primary-btn">Upload Hero Image</button>
             <button id="saveContentBtn" class="primary-btn">Save Hero Content</button>
             <span id="contentStatus"></span>
         </div>
@@ -125,26 +129,47 @@
     <section class="admin-section hidden" data-section="ads">
         <div class="section-head-admin">
             <h3>Ads Management</h3>
-            <span>Configure strip ad + homepage/blog placements + AdSense</span>
+            <span>Configure strip ad, homepage/blog placements, and AdSense IDs</span>
         </div>
-        <div class="admin-grid">
-            <label><input type="checkbox" id="adsStripEnabled"> Enable scrolling strip ad</label>
-            <input id="adsStripText" placeholder="Strip ad text">
-            <input id="adsStripLink" placeholder="Strip ad link">
+
+        <div class="admin-subcard-grid">
+            <article class="admin-subcard">
+                <h4>Scrolling Strip</h4>
+                <div class="admin-grid">
+                    <label><input type="checkbox" id="adsStripEnabled"> Enable scrolling strip ad</label>
+                    <input id="adsStripText" placeholder="Strip ad text">
+                    <input id="adsStripLink" placeholder="Strip ad link">
+                </div>
+            </article>
+
+            <article class="admin-subcard">
+                <h4>Homepage Placements</h4>
+                <div class="admin-grid">
+                    <label><input type="checkbox" id="adsHomeTopEnabled"> Home top ad</label>
+                    <label><input type="checkbox" id="adsHomeMidEnabled"> Home mid ad</label>
+                    <label><input type="checkbox" id="adsHomeBottomEnabled"> Home bottom ad</label>
+                </div>
+            </article>
+
+            <article class="admin-subcard">
+                <h4>Blog Placements</h4>
+                <div class="admin-grid">
+                    <label><input type="checkbox" id="adsBlogTopEnabled"> Blog top ad</label>
+                    <label><input type="checkbox" id="adsBlogInlineEnabled"> Blog inline ad</label>
+                    <label><input type="checkbox" id="adsBlogBottomEnabled"> Blog bottom ad</label>
+                </div>
+            </article>
+
+            <article class="admin-subcard">
+                <h4>Google AdSense</h4>
+                <div class="admin-grid">
+                    <input id="adsenseClientId" placeholder="Google AdSense Client ID (ca-pub-xxxx)">
+                    <input id="adsenseHomeSlot" placeholder="Home AdSense Slot ID">
+                    <input id="adsenseBlogSlot" placeholder="Blog AdSense Slot ID">
+                </div>
+            </article>
         </div>
-        <div class="admin-grid">
-            <label><input type="checkbox" id="adsHomeTopEnabled"> Home top ad</label>
-            <label><input type="checkbox" id="adsHomeMidEnabled"> Home mid ad</label>
-            <label><input type="checkbox" id="adsHomeBottomEnabled"> Home bottom ad</label>
-            <label><input type="checkbox" id="adsBlogTopEnabled"> Blog top ad</label>
-            <label><input type="checkbox" id="adsBlogInlineEnabled"> Blog inline ad</label>
-            <label><input type="checkbox" id="adsBlogBottomEnabled"> Blog bottom ad</label>
-        </div>
-        <div class="admin-grid">
-            <input id="adsenseClientId" placeholder="Google AdSense Client ID (ca-pub-xxxx)">
-            <input id="adsenseHomeSlot" placeholder="Home AdSense Slot ID">
-            <input id="adsenseBlogSlot" placeholder="Blog AdSense Slot ID">
-        </div>
+
         <div class="admin-row">
             <button id="saveAdsBtn" class="primary-btn">Save Ads Config</button>
             <span id="adsStatus"></span>
@@ -154,7 +179,7 @@
     <section class="admin-section hidden" data-section="crawler">
         <div class="section-head-admin">
             <h3>Crawler</h3>
-            <span>RetailMeNot + automatic fallback mode</span>
+            <span>RetailMeNot + SimplyCodes + fallback mode</span>
         </div>
         <div class="admin-row">
             <label><input type="checkbox" id="crawlerEnabled"> Enable scheduled crawler</label>

@@ -48,6 +48,7 @@ public class RetailMeNotCrawlerService {
     public synchronized int crawlLatest() {
         crawlerLogService.info("RetailMeNot crawler started.");
         int upserts = 0;
+        int duplicates = 0;
 
         for (StoreSeed seed : STORE_SEEDS) {
             String url = "https://www.retailmenot.com/view/" + seed.path();
@@ -66,8 +67,11 @@ public class RetailMeNotCrawlerService {
                     upserts += applyFallbackCoupons(seed);
                 } else {
                     for (Coupon coupon : parsedCoupons) {
-                        couponService.upsert(coupon);
-                        upserts++;
+                        if (couponService.upsert(coupon)) {
+                            upserts++;
+                        } else {
+                            duplicates++;
+                        }
                     }
                     crawlerLogService.info("Parsed " + parsedCoupons.size() + " coupons from " + seed.storeName());
                 }
@@ -78,7 +82,7 @@ public class RetailMeNotCrawlerService {
             }
         }
 
-        crawlerLogService.info("RetailMeNot crawler finished. upserts=" + upserts);
+        crawlerLogService.info("RetailMeNot crawler finished. upserts=" + upserts + ", skippedDuplicates=" + duplicates);
         return upserts;
     }
 
@@ -137,8 +141,13 @@ public class RetailMeNotCrawlerService {
             fallbackCoupon(seed, "Selected items promotion at " + seed.storeName(), "DEAL20", "Ends soon")
         );
 
-        fallback.forEach(couponService::upsert);
-        return fallback.size();
+        int inserted = 0;
+        for (Coupon coupon : fallback) {
+            if (couponService.upsert(coupon)) {
+                inserted++;
+            }
+        }
+        return inserted;
     }
 
     private Coupon fallbackCoupon(StoreSeed seed, String title, String code, String expires) {

@@ -17,6 +17,10 @@ const statCrawler = document.getElementById("statCrawler");
 const contentHeroEyebrow = document.getElementById("contentHeroEyebrow");
 const contentHeroTitle = document.getElementById("contentHeroTitle");
 const contentHeroSubtitle = document.getElementById("contentHeroSubtitle");
+const contentHeroBgColor = document.getElementById("contentHeroBgColor");
+const contentHeroBgImageUrl = document.getElementById("contentHeroBgImageUrl");
+const heroImageFile = document.getElementById("heroImageFile");
+const uploadHeroImageBtn = document.getElementById("uploadHeroImageBtn");
 const saveContentBtn = document.getElementById("saveContentBtn");
 const contentStatus = document.getElementById("contentStatus");
 
@@ -119,6 +123,8 @@ async function loadContent() {
   contentHeroEyebrow.value = data.heroEyebrow || "";
   contentHeroTitle.value = data.heroTitle || "";
   contentHeroSubtitle.value = data.heroSubtitle || "";
+  contentHeroBgColor.value = data.heroBgColor || "";
+  contentHeroBgImageUrl.value = data.heroBgImageUrl || "";
 }
 
 async function saveContent() {
@@ -126,7 +132,9 @@ async function saveContent() {
   const body = {
     heroEyebrow: contentHeroEyebrow.value,
     heroTitle: contentHeroTitle.value,
-    heroSubtitle: contentHeroSubtitle.value
+    heroSubtitle: contentHeroSubtitle.value,
+    heroBgColor: contentHeroBgColor.value,
+    heroBgImageUrl: contentHeroBgImageUrl.value
   };
   const response = await adminFetch("/api/admin/content", {
     method: "PUT",
@@ -134,6 +142,23 @@ async function saveContent() {
     body: JSON.stringify(body)
   });
   contentStatus.textContent = response.ok ? "Saved" : "Save failed";
+}
+
+async function uploadHeroImage() {
+  if (!heroImageFile.files.length) {
+    contentStatus.textContent = "Choose a hero image first";
+    return;
+  }
+  const formData = new FormData();
+  formData.append("file", heroImageFile.files[0]);
+  const response = await adminFetch("/api/admin/uploads/images", { method: "POST", body: formData });
+  if (!response.ok) {
+    contentStatus.textContent = "Upload failed";
+    return;
+  }
+  const data = await response.json();
+  contentHeroBgImageUrl.value = data.url;
+  contentStatus.textContent = `Uploaded: ${data.url}`;
 }
 
 async function saveCrawler() {
@@ -385,6 +410,7 @@ async function logout() {
 saveCrawlerBtn.addEventListener("click", saveCrawler);
 runCrawlerBtn.addEventListener("click", runCrawler);
 saveContentBtn.addEventListener("click", saveContent);
+uploadHeroImageBtn.addEventListener("click", uploadHeroImage);
 saveCouponBtn.addEventListener("click", saveCoupon);
 clearCouponBtn.addEventListener("click", clearCouponForm);
 saveBrandBtn.addEventListener("click", saveBrand);

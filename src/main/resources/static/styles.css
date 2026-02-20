@@ -100,7 +100,11 @@ body {
     100% { transform: translateX(-50%); }
 }
 
-.hero { padding: 24px 0 26px; }
+.hero {
+    padding: 24px 0 26px;
+    background-color: #f7f9fd;
+    background-repeat: no-repeat;
+}
 .hero-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 22px; }
 .hero-single { max-width: 900px; }
 
@@ -198,6 +202,19 @@ h1 {
 .cashback-card p {
     margin: 0;
     color: var(--muted);
+}
+.cashback-card ul {
+    margin: 10px 0 0;
+    padding-left: 18px;
+    color: var(--muted);
+}
+.cashback-card li {
+    margin-bottom: 6px;
+}
+.cashback-card a {
+    color: #245fa6;
+    text-decoration: none;
+    font-weight: 600;
 }
 
 .coupon-list { display: grid; gap: 12px; }
@@ -441,6 +458,21 @@ h1 {
 }
 
 .admin-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.admin-subcard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px;
+}
+.admin-subcard {
+    border: 1px solid #dce9fa;
+    border-radius: 10px;
+    padding: 10px;
+    background: #f9fcff;
+}
+.admin-subcard h4 {
+    margin: 0 0 10px;
+    color: #315a8f;
+}
 
 .admin-table {
     width: 100%;
