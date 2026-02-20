@@ -3,6 +3,9 @@ package com.couponsite.admin;
 import com.couponsite.blog.BlogPostDto;
 import com.couponsite.blog.BlogPostUpsertRequest;
 import com.couponsite.blog.BlogService;
+import com.couponsite.brand.BrandProfileDto;
+import com.couponsite.brand.BrandProfileService;
+import com.couponsite.brand.BrandProfileUpsertRequest;
 import com.couponsite.coupon.CouponService;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -31,19 +34,22 @@ public class AdminController {
     private final RetailMeNotCrawlerService retailMeNotCrawlerService;
     private final CouponService couponService;
     private final BlogService blogService;
+    private final BrandProfileService brandProfileService;
 
     public AdminController(
         AppSettingService appSettingService,
         CrawlerLogService crawlerLogService,
         RetailMeNotCrawlerService retailMeNotCrawlerService,
         CouponService couponService,
-        BlogService blogService
+        BlogService blogService,
+        BrandProfileService brandProfileService
     ) {
         this.appSettingService = appSettingService;
         this.crawlerLogService = crawlerLogService;
         this.retailMeNotCrawlerService = retailMeNotCrawlerService;
         this.couponService = couponService;
         this.blogService = blogService;
+        this.brandProfileService = brandProfileService;
     }
 
     @GetMapping("/dashboard")
@@ -101,6 +107,22 @@ public class AdminController {
     @DeleteMapping("/blogs")
     public ResponseEntity<Void> deleteBlog(@RequestParam Long id) {
         blogService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/brands")
+    public List<BrandProfileDto> brands() {
+        return brandProfileService.listAll();
+    }
+
+    @PutMapping("/brands")
+    public BrandProfileDto upsertBrand(@RequestBody BrandProfileUpsertRequest request) {
+        return brandProfileService.upsert(request);
+    }
+
+    @DeleteMapping("/brands")
+    public ResponseEntity<Void> deleteBrand(@RequestParam Long id) {
+        brandProfileService.delete(id);
         return ResponseEntity.noContent().build();
     }
 

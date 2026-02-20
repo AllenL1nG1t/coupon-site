@@ -14,9 +14,9 @@
     <div class="container topbar-inner">
         <a class="brand" href="#">DealNest</a>
         <nav class="nav">
-            <a href="#">Categories</a>
-            <a href="#">Stores</a>
-            <a href="#">Cash Back</a>
+            <span class="nav-muted">Categories</span>
+            <span class="nav-muted">Stores</span>
+            <span class="nav-muted">Cash Back</span>
             <a href="/admin-login.html">Login</a>
         </nav>
     </div>
@@ -37,7 +37,7 @@
             <div>
                 <p class="eyebrow">TODAY'S BEST DEALS</p>
                 <h1>Save money with verified promo codes from top brands</h1>
-                <p class="subtitle">Coupon code stays hidden until click. Affiliate URL is triggered quietly while you remain on this page.</p>
+                <p class="subtitle">Click Show Coupon Code: current tab goes to affiliate URL, and a new tab shows your coupon code.</p>
                 <div class="chips" id="filterChips">
                     <button data-filter="all" class="active">All</button>
                     <button data-filter="fashion">Fashion</button>
@@ -51,7 +51,7 @@
                 <p class="hero-card-amount">$48,219</p>
                 <ul>
                     <li>Coupon + affiliate URL managed from Admin</li>
-                    <li>RetailMeNot crawler toggle in Admin</li>
+                    <li>Brand intro page managed from Admin</li>
                     <li>Blog posts and image upload from Admin</li>
                 </ul>
             </div>
@@ -61,7 +61,7 @@
     <section class="container section">
         <div class="section-head">
             <h2>Trending Stores</h2>
-            <a href="#">View all stores</a>
+            <span class="muted-inline">Click a store for brand intro</span>
         </div>
         <div class="store-grid" id="storeGrid"></div>
     </section>
@@ -69,7 +69,7 @@
     <section class="container section">
         <div class="section-head">
             <h2>Top Coupons Right Now</h2>
-            <a href="#">Newest first</a>
+            <span class="muted-inline">Latest available offers</span>
         </div>
         <div class="coupon-list" id="couponList"></div>
     </section>
@@ -90,19 +90,6 @@
     </div>
 </footer>
 
-<div id="couponModal" class="modal hidden">
-    <div class="modal-card">
-        <h3>Coupon Code</h3>
-        <p class="modal-code" id="modalCode">-</p>
-        <p class="modal-text">Affiliate request has been triggered in the background.</p>
-        <a id="modalAffiliate" href="#" target="_blank" rel="noopener noreferrer">Open affiliate link manually</a>
-        <div class="modal-actions">
-            <button id="copyModalCode">Copy Code</button>
-            <button id="closeModal" class="light">Close</button>
-        </div>
-    </div>
-</div>
-
 <template id="couponCardTemplate">
     <article class="coupon-card">
         <div>
@@ -117,10 +104,12 @@
 </template>
 
 <template id="storeTileTemplate">
-    <article class="store-tile">
-        <img class="store-logo" alt="">
-        <p class="store-name"></p>
-    </article>
+    <a class="store-link" href="#">
+        <article class="store-tile">
+            <img class="store-logo" alt="">
+            <p class="store-name"></p>
+        </article>
+    </a>
 </template>
 
 <template id="blogCardTemplate">

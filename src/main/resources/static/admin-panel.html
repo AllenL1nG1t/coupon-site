@@ -22,6 +22,7 @@
         <div class="admin-tabs" id="adminTabs">
             <button class="admin-tab active" data-tab="dashboard">Dashboard</button>
             <button class="admin-tab" data-tab="coupons">Coupons</button>
+            <button class="admin-tab" data-tab="brands">Brands</button>
             <button class="admin-tab" data-tab="blogs">Blogs</button>
             <button class="admin-tab" data-tab="crawler">Crawler</button>
         </div>
@@ -32,6 +33,7 @@
         <div class="stat-grid" id="statGrid">
             <article class="stat-card"><p>Total Coupons</p><h4 id="statCoupons">-</h4></article>
             <article class="stat-card"><p>Published Blogs</p><h4 id="statBlogs">-</h4></article>
+            <article class="stat-card"><p>Total Brands</p><h4 id="statBrands">-</h4></article>
             <article class="stat-card"><p>Crawler Status</p><h4 id="statCrawler">-</h4></article>
         </div>
     </section>
@@ -55,9 +57,29 @@
             <button id="saveCouponBtn" class="primary-btn">Add Coupon</button>
             <button id="clearCouponBtn" class="admin-mini-btn">Clear Form</button>
         </div>
-        <div class="table-wrap">
-            <table class="admin-table" id="couponTable"></table>
+        <div class="table-wrap"><table class="admin-table" id="couponTable"></table></div>
+    </section>
+
+    <section class="admin-section hidden" data-section="brands">
+        <div class="section-head-admin">
+            <h3>Brand Introduction Management</h3>
+            <span>Used by Trending Stores detail pages</span>
         </div>
+        <div class="admin-grid brand-form-grid">
+            <input id="brandStoreName" placeholder="Store Name">
+            <input id="brandSlug" placeholder="Slug (e.g. best-buy)">
+            <input id="brandTitle" placeholder="Brand Title">
+            <input id="brandSummary" placeholder="Summary">
+            <input id="brandOfficialUrl" placeholder="Official URL">
+            <input id="brandLogoUrl" placeholder="Logo URL">
+            <input id="brandHeroImageUrl" placeholder="Hero Image URL">
+            <textarea id="brandDescription" rows="6" placeholder="Description"></textarea>
+        </div>
+        <div class="admin-row">
+            <button id="saveBrandBtn" class="primary-btn">Add Brand</button>
+            <button id="clearBrandBtn" class="admin-mini-btn">Clear Form</button>
+        </div>
+        <div class="table-wrap"><table class="admin-table" id="brandTable"></table></div>
     </section>
 
     <section class="admin-section hidden" data-section="blogs">
@@ -79,9 +101,7 @@
             <button id="clearBlogBtn" class="admin-mini-btn">Clear Form</button>
             <span id="blogStatus"></span>
         </div>
-        <div class="table-wrap">
-            <table class="admin-table" id="blogTable"></table>
-        </div>
+        <div class="table-wrap"><table class="admin-table" id="blogTable"></table></div>
     </section>
 
     <section class="admin-section hidden" data-section="crawler">

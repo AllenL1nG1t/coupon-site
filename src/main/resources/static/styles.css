@@ -46,6 +46,7 @@ body {
 
 .nav { display: flex; gap: 20px; }
 .nav a { color: var(--muted); text-decoration: none; font-weight: 600; }
+.nav-muted { color: #8aa0bf; font-weight: 600; cursor: default; user-select: none; }
 
 .search-top { padding: 18px 0 10px; }
 
@@ -134,6 +135,7 @@ h1 {
 
 .section-head h2 { margin: 0; font-family: "Space Grotesk", sans-serif; }
 .section-head a { text-decoration: none; color: #2b72c8; font-weight: 600; }
+.muted-inline { color: #7b8da9; font-size: 13px; }
 
 .store-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
 
@@ -148,6 +150,7 @@ h1 {
 
 .store-logo { width: 42px; height: 42px; object-fit: contain; }
 .store-name { margin: 6px 0 0; }
+.store-link { text-decoration: none; color: inherit; }
 
 .coupon-list { display: grid; gap: 12px; }
 
@@ -190,6 +193,52 @@ h1 {
 .blog-title { margin: 0 0 8px; font-size: 20px; }
 .blog-summary { margin: 0 0 8px; color: #355079; font-weight: 600; }
 .blog-body { margin: 0; color: var(--muted); line-height: 1.45; }
+
+.brand-wrap { width: min(1120px, 94vw); margin: 20px auto 40px; }
+.brand-hero {
+    display: grid;
+    grid-template-columns: minmax(200px, 340px) 1fr;
+    gap: 18px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px;
+}
+.brand-hero img { width: 100%; height: 220px; object-fit: cover; border-radius: 12px; background: #f1f5fc; }
+.brand-meta-row { display: flex; gap: 12px; align-items: center; }
+.brand-logo { width: 58px !important; height: 58px !important; object-fit: contain !important; border-radius: 10px; border: 1px solid #d6e2f2; padding: 6px; background: #fff; }
+.brand-content-card {
+    margin-top: 14px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px;
+}
+
+.code-wrap {
+    min-height: calc(100vh - 72px);
+    display: grid;
+    place-items: center;
+    padding: 20px;
+}
+.code-card {
+    width: min(620px, 92vw);
+    border: 1px solid #d8e7fa;
+    background: #fff;
+    border-radius: 16px;
+    padding: 18px;
+}
+.coupon-code-large {
+    margin: 14px 0;
+    border: 2px dashed #7badf5;
+    color: #1d5fb8;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    font-size: 28px;
+    text-align: center;
+}
 
 .modal {
     position: fixed;
@@ -355,6 +404,7 @@ h1 {
 
 .coupon-form-grid input:nth-child(6),
 .coupon-form-grid input:nth-child(7),
+.brand-form-grid textarea,
 .blog-form-grid textarea {
     grid-column: 1 / -1;
 }
@@ -398,6 +448,7 @@ h1 {
 
 @media (max-width: 920px) {
     .hero-grid { grid-template-columns: 1fr; }
+    .brand-hero { grid-template-columns: 1fr; }
     .nav { display: none; }
     .coupon-card { grid-template-columns: 1fr; }
     .coupon-actions { justify-items: start; }

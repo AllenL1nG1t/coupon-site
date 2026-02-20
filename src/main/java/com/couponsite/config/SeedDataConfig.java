@@ -3,6 +3,8 @@ package com.couponsite.config;
 import com.couponsite.admin.CrawlerLogService;
 import com.couponsite.blog.BlogPostUpsertRequest;
 import com.couponsite.blog.BlogService;
+import com.couponsite.brand.BrandProfileService;
+import com.couponsite.brand.BrandProfileUpsertRequest;
 import com.couponsite.coupon.Coupon;
 import com.couponsite.coupon.LogoCatalog;
 import com.couponsite.coupon.CouponService;
@@ -14,7 +16,12 @@ import org.springframework.context.annotation.Configuration;
 public class SeedDataConfig {
 
     @Bean
-    CommandLineRunner initCoupons(CouponService couponService, CrawlerLogService crawlerLogService, BlogService blogService) {
+    CommandLineRunner initCoupons(
+        CouponService couponService,
+        CrawlerLogService crawlerLogService,
+        BlogService blogService,
+        BrandProfileService brandProfileService
+    ) {
         return args -> {
             if (couponService.count() > 0) {
                 couponService.normalizeStoreLogos();
@@ -48,7 +55,31 @@ public class SeedDataConfig {
                     true
                 ));
             }
+
+            if (brandProfileService.count() == 0) {
+                seedBrand(brandProfileService, "Nike", "Global sportswear brand known for footwear, apparel, and athlete partnerships.", "https://www.nike.com/");
+                seedBrand(brandProfileService, "Expedia", "Online travel platform for flights, hotels, and vacation packages.", "https://www.expedia.com/");
+                seedBrand(brandProfileService, "Best Buy", "Retailer focused on electronics, appliances, and tech services.", "https://www.bestbuy.com/");
+                seedBrand(brandProfileService, "DoorDash", "Delivery platform for restaurants, groceries, and convenience stores.", "https://www.doordash.com/");
+                seedBrand(brandProfileService, "Macy's", "Department store brand for fashion, beauty, and home products.", "https://www.macys.com/");
+                seedBrand(brandProfileService, "Samsung", "Consumer electronics and appliance manufacturer.", "https://www.samsung.com/");
+            }
         };
+    }
+
+    private void seedBrand(BrandProfileService service, String store, String summary, String officialUrl) {
+        String slug = service.normalizeSlug(store);
+        service.upsert(new BrandProfileUpsertRequest(
+            null,
+            slug,
+            store,
+            store + " Brand Intro",
+            summary,
+            summary + " This page is managed from admin and can be fully customized.",
+            "/logos/default.svg",
+            LogoCatalog.forStore(store),
+            officialUrl
+        ));
     }
 
     private Coupon seed(

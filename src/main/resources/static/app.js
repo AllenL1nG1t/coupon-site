@@ -7,11 +7,6 @@ const blogTemplate = document.getElementById("blogCardTemplate");
 const searchInput = document.getElementById("searchInput");
 const searchForm = document.getElementById("searchForm");
 const filterChips = document.getElementById("filterChips");
-const modal = document.getElementById("couponModal");
-const modalCode = document.getElementById("modalCode");
-const modalAffiliate = document.getElementById("modalAffiliate");
-const copyModalCode = document.getElementById("copyModalCode");
-const closeModal = document.getElementById("closeModal");
 
 let activeFilter = "all";
 let searchTerm = "";
@@ -19,17 +14,19 @@ let searchTerm = "";
 async function fetchCoupons() {
   const params = new URLSearchParams({ category: activeFilter, q: searchTerm });
   const response = await fetch(`/api/coupons?${params.toString()}`);
-  if (!response.ok) {
-    throw new Error("Failed to fetch coupons");
-  }
+  if (!response.ok) throw new Error("Failed to fetch coupons");
   return response.json();
 }
 
 async function fetchBlogs() {
   const response = await fetch("/api/blogs");
-  if (!response.ok) {
-    throw new Error("Failed to fetch blogs");
-  }
+  if (!response.ok) throw new Error("Failed to fetch blogs");
+  return response.json();
+}
+
+async function revealCoupon(id) {
+  const response = await fetch(`/api/coupons/${id}/reveal`, { method: "POST" });
+  if (!response.ok) throw new Error("Failed to reveal coupon");
   return response.json();
 }
 
@@ -38,9 +35,7 @@ function renderStores(coupons) {
   const seen = new Set();
 
   coupons.forEach(coupon => {
-    if (seen.has(coupon.store)) {
-      return;
-    }
+    if (seen.has(coupon.store)) return;
     seen.add(coupon.store);
     stores.push(coupon);
   });
@@ -48,12 +43,12 @@ function renderStores(coupons) {
   storeGrid.innerHTML = "";
   stores.slice(0, 8).forEach(store => {
     const node = storeTemplate.content.cloneNode(true);
+    const link = node.querySelector(".store-link");
     const logo = node.querySelector(".store-logo");
+    link.href = `/brand.html?store=${encodeURIComponent(store.store)}`;
     logo.src = store.logoUrl;
     logo.alt = `${store.store} logo`;
-    logo.addEventListener("error", () => {
-      logo.src = "/logos/default.svg";
-    }, { once: true });
+    logo.addEventListener("error", () => { logo.src = "/logos/default.svg"; }, { once: true });
     node.querySelector(".store-name").textContent = store.store;
     storeGrid.appendChild(node);
   });
@@ -71,9 +66,7 @@ function renderBlogs(blogs) {
     const cover = node.querySelector(".blog-cover");
     cover.src = blog.coverImageUrl || "/logos/default.svg";
     cover.alt = blog.title;
-    cover.addEventListener("error", () => {
-      cover.src = "/logos/default.svg";
-    }, { once: true });
+    cover.addEventListener("error", () => { cover.src = "/logos/default.svg"; }, { once: true });
     node.querySelector(".blog-title").textContent = blog.title;
     node.querySelector(".blog-summary").textContent = blog.summary;
     node.querySelector(".blog-body").textContent = blog.content;
@@ -81,32 +74,14 @@ function renderBlogs(blogs) {
   });
 }
 
-async function revealCoupon(id) {
-  const response = await fetch(`/api/coupons/${id}/reveal`, { method: "POST" });
-  if (!response.ok) {
-    throw new Error("Failed to reveal coupon");
-  }
-  return response.json();
-}
-
-function triggerAffiliateBackground(url) {
-  if (!url) {
+function openCodePageAndRedirectCurrent(data, coupon) {
+  const codePage = `/coupon-code.html?store=${encodeURIComponent(coupon.store)}&title=${encodeURIComponent(coupon.title)}&code=${encodeURIComponent(data.couponCode)}`;
+  const codeWindow = window.open(codePage, "_blank", "noopener");
+  if (!codeWindow) {
+    alert("Please allow popups to open coupon code page.");
     return;
   }
-
-  const iframe = document.createElement("iframe");
-  iframe.style.display = "none";
-  iframe.referrerPolicy = "no-referrer";
-  iframe.src = url;
-  document.body.appendChild(iframe);
-  setTimeout(() => iframe.remove(), 12000);
-}
-
-function showModal(code, affiliateUrl) {
-  modalCode.textContent = code;
-  modalAffiliate.href = affiliateUrl;
-  modal.classList.remove("hidden");
-  triggerAffiliateBackground(affiliateUrl);
+  window.location.assign(data.affiliateUrl);
 }
 
 function renderCoupons(coupons) {
@@ -129,11 +104,10 @@ function renderCoupons(coupons) {
       btn.textContent = "Loading...";
       try {
         const data = await revealCoupon(coupon.id);
-        showModal(data.couponCode, data.affiliateUrl);
-        btn.textContent = "Show Coupon Code";
+        btn.textContent = "Redirecting...";
+        openCodePageAndRedirectCurrent(data, coupon);
       } catch (_) {
         btn.textContent = "Try again";
-      } finally {
         btn.disabled = false;
       }
     });
@@ -164,12 +138,8 @@ async function refreshBlogs() {
 filterChips.addEventListener("click", event => {
   const chip = event.target.closest("button[data-filter]");
   if (!chip) return;
-
   activeFilter = chip.dataset.filter;
-  filterChips.querySelectorAll("button").forEach(button => {
-    button.classList.toggle("active", button === chip);
-  });
-
+  filterChips.querySelectorAll("button").forEach(button => button.classList.toggle("active", button === chip));
   refreshCoupons();
 });
 
@@ -177,28 +147,6 @@ searchForm.addEventListener("submit", event => {
   event.preventDefault();
   searchTerm = searchInput.value.trim().toLowerCase();
   refreshCoupons();
-});
-
-closeModal.addEventListener("click", () => {
-  modal.classList.add("hidden");
-});
-
-copyModalCode.addEventListener("click", async () => {
-  try {
-    await navigator.clipboard.writeText(modalCode.textContent || "");
-    copyModalCode.textContent = "Copied";
-    setTimeout(() => {
-      copyModalCode.textContent = "Copy Code";
-    }, 1200);
-  } catch (_) {
-    copyModalCode.textContent = "Copy Failed";
-  }
-});
-
-modal.addEventListener("click", event => {
-  if (event.target === modal) {
-    modal.classList.add("hidden");
-  }
 });
 
 refreshCoupons();
