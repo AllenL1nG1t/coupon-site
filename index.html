@@ -1,0 +1,104 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DealNest - Coupons, Promo Codes & Cash Back</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<header class="topbar">
+    <div class="container topbar-inner">
+        <a class="brand" href="#">DealNest</a>
+        <nav class="nav">
+            <a href="#">Categories</a>
+            <a href="#">Stores</a>
+            <a href="#">Cash Back</a>
+            <a href="#">How It Works</a>
+        </nav>
+        <button class="signin-btn">Sign In</button>
+    </div>
+</header>
+
+<main>
+    <section class="hero">
+        <div class="container hero-grid">
+            <div>
+                <p class="eyebrow">TODAY'S BEST DEALS</p>
+                <h1>Save money with verified promo codes from top brands</h1>
+                <p class="subtitle">Find exclusive coupons, one-click copies, and limited-time offers updated daily.</p>
+                <form class="search-box" id="searchForm">
+                    <input id="searchInput" type="text" placeholder="Search stores, categories, or brands">
+                    <button type="submit">Search</button>
+                </form>
+                <div class="chips" id="filterChips">
+                    <button data-filter="all" class="active">All</button>
+                    <button data-filter="fashion">Fashion</button>
+                    <button data-filter="travel">Travel</button>
+                    <button data-filter="electronics">Electronics</button>
+                    <button data-filter="food">Food</button>
+                </div>
+            </div>
+            <div class="hero-card">
+                <p class="hero-card-title">Members saved today</p>
+                <p class="hero-card-amount">$48,219</p>
+                <ul>
+                    <li>12,000+ active coupons</li>
+                    <li>Verified by real users</li>
+                    <li>Updated every 15 minutes</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="container section">
+        <div class="section-head">
+            <h2>Trending Stores</h2>
+            <a href="#">View all stores</a>
+        </div>
+        <div class="store-grid">
+            <article class="store-tile">Nike</article>
+            <article class="store-tile">Expedia</article>
+            <article class="store-tile">Best Buy</article>
+            <article class="store-tile">DoorDash</article>
+            <article class="store-tile">Macy's</article>
+            <article class="store-tile">Samsung</article>
+        </div>
+    </section>
+
+    <section class="container section">
+        <div class="section-head">
+            <h2>Top Coupons Right Now</h2>
+            <a href="#">Newest first</a>
+        </div>
+        <div class="coupon-list" id="couponList"></div>
+    </section>
+</main>
+
+<footer class="footer">
+    <div class="container footer-inner">
+        <p>DealNest © 2026</p>
+        <p>Deals are user-submitted and manually reviewed.</p>
+    </div>
+</footer>
+
+<template id="couponCardTemplate">
+    <article class="coupon-card">
+        <div>
+            <p class="coupon-store"></p>
+            <h3 class="coupon-title"></h3>
+            <p class="coupon-meta"></p>
+        </div>
+        <div class="coupon-actions">
+            <span class="coupon-code"></span>
+            <button class="copy-btn">Copy Code</button>
+        </div>
+    </article>
+</template>
+
+<script src="./app.js"></script>
+</body>
+</html>
