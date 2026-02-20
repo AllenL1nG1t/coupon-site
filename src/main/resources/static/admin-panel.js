@@ -252,7 +252,7 @@ async function saveCouponRowById(id) {
   if (!row) return;
   const fields = [
     { name: "store" }, { name: "title" }, { name: "category" }, { name: "expires" },
-    { name: "couponCode" }, { name: "affiliateUrl" }, { name: "logoUrl" }, { name: "source" }
+    { name: "couponCode" }, { name: "affiliateUrl" }, { name: "logoUrl" }, { name: "source" }, { name: "clickCount" }
   ];
   const payload = { id, ...readRowData(row, fields) };
   await adminFetch("/api/admin/coupons", {
@@ -266,7 +266,7 @@ async function saveCouponRowById(id) {
 
 function renderCouponRows(coupons) {
   couponTable.innerHTML = `<thead><tr>
-    <th>ID</th><th>Store</th><th>Title</th><th>Category</th><th>Expires</th><th>Code</th><th>Affiliate URL</th><th>Logo</th><th>Source</th><th>Actions</th>
+    <th>ID</th><th>Store</th><th>Title</th><th>Category</th><th>Expires</th><th>Code</th><th>Clicks</th><th>Affiliate URL</th><th>Logo</th><th>Source</th><th>Actions</th>
   </tr></thead><tbody>${coupons.map(c => `
     <tr data-id='${c.id}'>
       <td>${c.id}</td>
@@ -275,6 +275,7 @@ function renderCouponRows(coupons) {
       <td class='editable-cell' data-field='category'>${c.category || ""}</td>
       <td class='editable-cell' data-field='expires'>${c.expires || ""}</td>
       <td class='editable-cell' data-field='couponCode'>${c.couponCode || ""}</td>
+      <td class='editable-cell' data-field='clickCount'>${c.clickCount ?? 0}</td>
       <td class='editable-cell cut-cell' data-field='affiliateUrl'>${c.affiliateUrl || ""}</td>
       <td class='editable-cell cut-cell' data-field='logoUrl'>${c.logoUrl || ""}</td>
       <td class='editable-cell' data-field='source'>${c.source || ""}</td>

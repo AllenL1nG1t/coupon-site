@@ -40,6 +40,9 @@ public class Coupon {
     @Column(nullable = false)
     private String source;
 
+    @Column
+    private Integer clickCount;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
@@ -51,6 +54,9 @@ public class Coupon {
         LocalDateTime now = LocalDateTime.now();
         createdAt = now;
         updatedAt = now;
+        if (clickCount == null) {
+            clickCount = 0;
+        }
     }
 
     @PreUpdate
@@ -128,6 +134,14 @@ public class Coupon {
 
     public void setSource(String source) {
         this.source = source;
+    }
+
+    public Integer getClickCount() {
+        return clickCount == null ? 0 : clickCount;
+    }
+
+    public void setClickCount(Integer clickCount) {
+        this.clickCount = clickCount;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -61,6 +61,7 @@ public class CouponService {
         Coupon coupon = couponRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Coupon not found: " + id));
 
+        coupon.setClickCount(coupon.getClickCount() + 1);
         crawlerLogService.info("Coupon revealed: id=" + id + ", store=" + coupon.getStore());
         return new CouponRevealDto(coupon.getId(), coupon.getCouponCode(), coupon.getAffiliateUrl());
     }
@@ -81,10 +82,16 @@ public class CouponService {
                 existing.setAffiliateUrl(incoming.getAffiliateUrl());
                 existing.setLogoUrl(incoming.getLogoUrl());
                 existing.setSource(incoming.getSource());
+                if (existing.getClickCount() == null) {
+                    existing.setClickCount(0);
+                }
                 couponRepository.save(existing);
                 return false;
             })
             .orElseGet(() -> {
+                if (incoming.getClickCount() == null) {
+                    incoming.setClickCount(0);
+                }
                 couponRepository.save(incoming);
                 return true;
             });
@@ -116,7 +123,8 @@ public class CouponService {
                 coupon.getCouponCode(),
                 coupon.getAffiliateUrl(),
                 coupon.getLogoUrl(),
-                coupon.getSource()
+                coupon.getSource(),
+                coupon.getClickCount()
             )).toList();
     }
 
@@ -134,6 +142,11 @@ public class CouponService {
         coupon.setAffiliateUrl(nonBlankOrDefault(request.affiliateUrl(), "https://example-affiliate.com"));
         coupon.setLogoUrl(nonBlankOrDefault(request.logoUrl(), LogoCatalog.forStore(coupon.getStore())));
         coupon.setSource(nonBlankOrDefault(request.source(), "admin"));
+        if (request.clickCount() != null && request.clickCount() >= 0) {
+            coupon.setClickCount(request.clickCount());
+        } else if (coupon.getClickCount() == null) {
+            coupon.setClickCount(0);
+        }
         Coupon saved = couponRepository.save(coupon);
 
         return new AdminCouponDto(
@@ -145,7 +158,8 @@ public class CouponService {
             saved.getCouponCode(),
             saved.getAffiliateUrl(),
             saved.getLogoUrl(),
-            saved.getSource()
+            saved.getSource(),
+            saved.getClickCount()
         );
     }
 
@@ -169,7 +183,8 @@ public class CouponService {
             coupon.getCategory(),
             coupon.getExpires(),
             coupon.getLogoUrl(),
-            coupon.getSource()
+            coupon.getSource(),
+            coupon.getClickCount()
         );
     }
 

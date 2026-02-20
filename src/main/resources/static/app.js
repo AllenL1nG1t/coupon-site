@@ -21,6 +21,7 @@ const homeAdMid = document.getElementById("homeAdMid");
 const homeAdSideLeft = document.getElementById("homeAdSideLeft");
 const homeAdSideRight = document.getElementById("homeAdSideRight");
 const homeAdBottom = document.getElementById("homeAdBottom");
+const couponMainLayout = document.getElementById("couponMainLayout");
 const blogAdTop = document.getElementById("blogAdTop");
 const blogAdBottom = document.getElementById("blogAdBottom");
 
@@ -28,6 +29,12 @@ let activeFilter = "all";
 let searchTerm = "";
 let adSettings = null;
 let adsenseLoaded = false;
+
+function normalizeColor(value) {
+  if (!value) return "#f7f9fd";
+  const color = value.trim();
+  return /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#f7f9fd";
+}
 
 async function fetchCoupons() {
   const params = new URLSearchParams({ category: activeFilter, q: searchTerm });
@@ -125,15 +132,12 @@ function applyHeroContent(content) {
   heroTitle.textContent = content.heroTitle || heroTitle.textContent;
   heroSubtitle.textContent = content.heroSubtitle || heroSubtitle.textContent;
 
-  const bgColor = content.heroBgColor || "#f7f9fd";
-  heroSection.style.setProperty("background-color", bgColor, "important");
+  const bgColor = normalizeColor(content.heroBgColor);
 
   if (content.heroBgImageUrl) {
-    heroSection.style.backgroundImage = `linear-gradient(rgba(255,255,255,0.72), rgba(255,255,255,0.85)), url('${content.heroBgImageUrl}')`;
-    heroSection.style.backgroundSize = "cover";
-    heroSection.style.backgroundPosition = "center";
+    heroSection.style.background = `${bgColor} url('${content.heroBgImageUrl}') center / cover no-repeat`;
   } else {
-    heroSection.style.backgroundImage = "none";
+    heroSection.style.background = bgColor;
   }
 }
 
@@ -179,6 +183,8 @@ function applyHomeAds() {
   renderPlacement(blogAdTop, adSettings.blogTopEnabled, adSettings.adsenseClientId, adSettings.blogAdsenseSlot, "Blog Top Ad");
   renderPlacement(blogAdBottom, adSettings.blogBottomEnabled, adSettings.adsenseClientId, adSettings.blogAdsenseSlot, "Blog Bottom Ad");
   configureStrip(adSettings);
+  couponMainLayout.classList.toggle("with-side-left", !!adSettings.homeSideLeftEnabled);
+  couponMainLayout.classList.toggle("with-side-right", !!adSettings.homeSideRightEnabled);
 }
 
 function renderBlogs(blogs) {
@@ -225,7 +231,7 @@ function renderCoupons(coupons) {
     const node = couponTemplate.content.cloneNode(true);
     node.querySelector(".coupon-store").textContent = coupon.store;
     node.querySelector(".coupon-title").textContent = coupon.title;
-    node.querySelector(".coupon-meta").textContent = `${coupon.expires} · ${coupon.category} · source: ${coupon.source}`;
+    node.querySelector(".coupon-meta").textContent = `${coupon.expires} · ${coupon.category} · clicks: ${coupon.clickCount ?? 0} · source: ${coupon.source}`;
 
     const btn = node.querySelector(".reveal-btn");
     btn.addEventListener("click", async () => {

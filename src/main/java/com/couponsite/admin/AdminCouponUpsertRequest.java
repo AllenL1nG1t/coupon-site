@@ -9,6 +9,7 @@ public record AdminCouponUpsertRequest(
     String couponCode,
     String affiliateUrl,
     String logoUrl,
-    String source
+    String source,
+    Integer clickCount
 ) {
 }

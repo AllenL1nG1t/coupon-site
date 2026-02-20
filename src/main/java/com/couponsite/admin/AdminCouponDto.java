@@ -9,6 +9,7 @@ public record AdminCouponDto(
     String couponCode,
     String affiliateUrl,
     String logoUrl,
-    String source
+    String source,
+    int clickCount
 ) {
 }

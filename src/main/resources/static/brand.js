@@ -60,7 +60,7 @@ function renderCoupons(coupons) {
       <div>
         <p class="coupon-store">${coupon.store}</p>
         <h3 class="coupon-title">${coupon.title}</h3>
-        <p class="coupon-meta">${coupon.expires} · ${coupon.category} · source: ${coupon.source}</p>
+        <p class="coupon-meta">${coupon.expires} · ${coupon.category} · clicks: ${coupon.clickCount ?? 0} · source: ${coupon.source}</p>
       </div>
       <div class="coupon-actions">
         <button class="reveal-btn" data-reveal-id="${coupon.id}">Show Coupon Code</button>

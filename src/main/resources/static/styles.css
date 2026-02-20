@@ -220,9 +220,18 @@ h1 {
 .coupon-list { display: grid; gap: 12px; }
 .coupon-main-layout {
     display: grid;
-    grid-template-columns: minmax(150px, 220px) 1fr minmax(150px, 220px);
+    grid-template-columns: 1fr;
     gap: 12px;
     align-items: start;
+}
+.coupon-main-layout.with-side-left {
+    grid-template-columns: minmax(150px, 220px) 1fr;
+}
+.coupon-main-layout.with-side-right {
+    grid-template-columns: 1fr minmax(150px, 220px);
+}
+.coupon-main-layout.with-side-left.with-side-right {
+    grid-template-columns: minmax(150px, 220px) 1fr minmax(150px, 220px);
 }
 .home-side-ad {
     position: sticky;
