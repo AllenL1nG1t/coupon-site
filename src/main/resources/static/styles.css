@@ -287,18 +287,75 @@ h1 {
 }
 
 .brand-wrap { width: min(1120px, 94vw); margin: 20px auto 40px; }
+.brand-breadcrumb {
+    margin: 0 0 10px;
+    color: #6782a6;
+    font-size: 14px;
+}
+.brand-breadcrumb a {
+    color: #2b72c8;
+    text-decoration: none;
+}
 .brand-hero {
     display: grid;
-    grid-template-columns: minmax(200px, 340px) 1fr;
+    grid-template-columns: minmax(260px, 360px) 1fr;
     gap: 18px;
     background: #fff;
     border: 1px solid var(--line);
     border-radius: 16px;
     padding: 16px;
+    box-shadow: 0 12px 26px rgba(24, 56, 98, 0.08);
 }
-.brand-hero img { width: 100%; height: 220px; object-fit: cover; border-radius: 12px; background: #f1f5fc; }
+.brand-hero-visual {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #deebfb;
+}
+.brand-hero img { width: 100%; height: 250px; object-fit: cover; background: #f1f5fc; }
+.brand-hero-main {
+    display: grid;
+    align-content: start;
+    gap: 12px;
+}
 .brand-meta-row { display: flex; gap: 12px; align-items: center; }
 .brand-logo { width: 58px !important; height: 58px !important; object-fit: contain !important; border-radius: 10px; border: 1px solid #d6e2f2; padding: 6px; background: #fff; }
+.brand-cta-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.brand-verified {
+    display: inline-grid;
+    place-items: center;
+    border-radius: 999px;
+    padding: 8px 12px;
+    background: #ebf7ef;
+    color: #277d4e;
+    font-weight: 700;
+    font-size: 13px;
+}
+.brand-kpis {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(110px, 1fr));
+    gap: 10px;
+}
+.brand-kpis article {
+    border: 1px solid #dce9fb;
+    border-radius: 10px;
+    padding: 10px;
+    background: #f8fbff;
+}
+.brand-kpis p {
+    margin: 0;
+    color: #6081aa;
+    font-size: 12px;
+    font-weight: 600;
+}
+.brand-kpis h3 {
+    margin: 6px 0 0;
+    color: #164f99;
+    font-size: 22px;
+}
 .brand-content-card {
     margin-top: 14px;
     background: #fff;
@@ -566,6 +623,7 @@ h1 {
 @media (max-width: 920px) {
     .hero-grid { grid-template-columns: 1fr; }
     .brand-hero { grid-template-columns: 1fr; }
+    .brand-kpis { grid-template-columns: 1fr; }
     .topbar-layout { grid-template-columns: 1fr; height: auto; padding: 10px 0; }
     .nav { display: none; }
     .coupon-card { grid-template-columns: 1fr; }

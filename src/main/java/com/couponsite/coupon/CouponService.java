@@ -40,7 +40,18 @@ public class CouponService {
         if (store == null || store.isBlank()) {
             return List.of();
         }
-        return couponRepository.findAllByStoreIgnoreCaseOrderByCreatedAtDesc(store.trim()).stream()
+        String target = store.trim();
+        List<Coupon> exact = couponRepository.findAllByStoreIgnoreCaseOrderByCreatedAtDesc(target);
+        if (!exact.isEmpty()) {
+            return exact.stream().map(this::toSummary).toList();
+        }
+
+        String normalizedTarget = normalizeStoreKey(target);
+        return couponRepository.findAllByOrderByCreatedAtDesc().stream()
+            .filter(coupon -> {
+                String normalizedStore = normalizeStoreKey(coupon.getStore());
+                return normalizedStore.contains(normalizedTarget) || normalizedTarget.contains(normalizedStore);
+            })
             .map(this::toSummary)
             .toList();
     }
@@ -160,6 +171,13 @@ public class CouponService {
             coupon.getLogoUrl(),
             coupon.getSource()
         );
+    }
+
+    private String normalizeStoreKey(String raw) {
+        if (raw == null) {
+            return "";
+        }
+        return raw.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
     }
 }
 

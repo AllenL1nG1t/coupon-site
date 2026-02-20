@@ -9,9 +9,17 @@ const brandOfficial = document.getElementById("brandOfficial");
 const brandHeroImage = document.getElementById("brandHeroImage");
 const brandLogo = document.getElementById("brandLogo");
 const brandCouponList = document.getElementById("brandCouponList");
+const brandCrumb = document.getElementById("brandCrumb");
+const brandCouponCount = document.getElementById("brandCouponCount");
+const brandTopCategory = document.getElementById("brandTopCategory");
+const brandStoreName = document.getElementById("brandStoreName");
+const brandCouponHint = document.getElementById("brandCouponHint");
 
 function fallbackView() {
-  brandTitle.textContent = store || slug || "Brand";
+  const label = store || slug || "Brand";
+  brandTitle.textContent = label;
+  brandCrumb.textContent = label;
+  brandStoreName.textContent = label;
   brandSummary.textContent = "Brand intro not configured yet. Please add it from Admin > Brands.";
   brandDescription.textContent = "This brand page supports custom hero image, summary, long description and official site URL, all managed in admin panel.";
   brandOfficial.href = "/admin-login.html";
@@ -33,10 +41,19 @@ function openCodePageAndRedirectCurrent(data, coupon) {
 }
 
 function renderCoupons(coupons) {
+  brandCouponCount.textContent = String(coupons.length);
   if (!coupons.length) {
+    brandTopCategory.textContent = "-";
+    brandCouponHint.textContent = "No matched coupons yet";
     brandCouponList.innerHTML = `<article class="coupon-card"><p>No coupons available for this brand yet.</p></article>`;
     return;
   }
+
+  const categoryCount = new Map();
+  coupons.forEach(c => categoryCount.set(c.category, (categoryCount.get(c.category) || 0) + 1));
+  const topCategory = Array.from(categoryCount.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] || "-";
+  brandTopCategory.textContent = topCategory;
+  brandCouponHint.textContent = `${coupons.length} active coupons`;
 
   brandCouponList.innerHTML = coupons.map(coupon => `
     <article class="coupon-card" data-coupon-id="${coupon.id}" data-store="${coupon.store}" data-title="${coupon.title}">
@@ -73,6 +90,25 @@ function renderCoupons(coupons) {
   });
 }
 
+async function fetchCouponsByCandidates(candidates) {
+  const seen = new Set();
+  const merged = [];
+
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    const response = await fetch(`/api/coupons/by-store?store=${encodeURIComponent(candidate)}`);
+    if (!response.ok) continue;
+    const data = await response.json();
+    data.forEach(coupon => {
+      if (seen.has(coupon.id)) return;
+      seen.add(coupon.id);
+      merged.push(coupon);
+    });
+  }
+
+  return merged;
+}
+
 async function loadBrand() {
   let url = "";
   if (slug) url = `/api/brands/detail?slug=${encodeURIComponent(slug)}`;
@@ -86,12 +122,15 @@ async function loadBrand() {
   const response = await fetch(url);
   if (!response.ok) {
     fallbackView();
-    renderCoupons([]);
+    const coupons = await fetchCouponsByCandidates([store, slug]);
+    renderCoupons(coupons);
     return;
   }
 
   const data = await response.json();
   brandTitle.textContent = data.title;
+  brandCrumb.textContent = data.storeName;
+  brandStoreName.textContent = data.storeName;
   brandSummary.textContent = data.summary;
   brandDescription.textContent = data.description;
   brandOfficial.href = data.officialUrl;
@@ -102,17 +141,12 @@ async function loadBrand() {
   brandHeroImage.addEventListener("error", () => { brandHeroImage.src = "/logos/default.svg"; }, { once: true });
   brandLogo.addEventListener("error", () => { brandLogo.src = "/logos/default.svg"; }, { once: true });
 
-  const couponResponse = await fetch(`/api/coupons/by-store?store=${encodeURIComponent(data.storeName)}`);
-  if (!couponResponse.ok) {
-    renderCoupons([]);
-    return;
-  }
-
-  const coupons = await couponResponse.json();
+  const coupons = await fetchCouponsByCandidates([data.storeName, store, slug]);
   renderCoupons(coupons);
 }
 
-loadBrand().catch(() => {
+loadBrand().catch(async () => {
   fallbackView();
-  renderCoupons([]);
+  const coupons = await fetchCouponsByCandidates([store, slug]);
+  renderCoupons(coupons);
 });

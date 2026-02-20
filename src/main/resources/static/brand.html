@@ -15,9 +15,13 @@
 </header>
 
 <main class="brand-wrap" id="brandWrap">
+    <p class="brand-breadcrumb"><a href="/">Home</a> / <span id="brandCrumb">Brand</span></p>
+
     <section class="brand-hero" id="brandHero">
-        <img id="brandHeroImage" alt="Brand hero image">
-        <div>
+        <div class="brand-hero-visual">
+            <img id="brandHeroImage" alt="Brand hero image">
+        </div>
+        <div class="brand-hero-main">
             <div class="brand-meta-row">
                 <img id="brandLogo" class="brand-logo" alt="Brand logo">
                 <div>
@@ -25,7 +29,15 @@
                     <p id="brandSummary"></p>
                 </div>
             </div>
-            <a id="brandOfficial" class="primary-btn" target="_blank" rel="noopener noreferrer">Visit official site</a>
+            <div class="brand-cta-row">
+                <a id="brandOfficial" class="primary-btn" target="_blank" rel="noopener noreferrer">Visit official site</a>
+                <span class="brand-verified">Verified offers</span>
+            </div>
+            <div class="brand-kpis">
+                <article><p>Available Coupons</p><h3 id="brandCouponCount">0</h3></article>
+                <article><p>Top Category</p><h3 id="brandTopCategory">-</h3></article>
+                <article><p>Active Store</p><h3 id="brandStoreName">-</h3></article>
+            </div>
         </div>
     </section>
 
@@ -35,7 +47,10 @@
     </section>
 
     <section class="brand-content-card">
-        <h2>Coupons for this brand</h2>
+        <div class="section-head">
+            <h2>Coupons for this brand</h2>
+            <span class="muted-inline" id="brandCouponHint">Latest verified deals</span>
+        </div>
         <div class="coupon-list" id="brandCouponList"></div>
     </section>
 </main>
