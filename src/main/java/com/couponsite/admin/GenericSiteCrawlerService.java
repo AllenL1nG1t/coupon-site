@@ -3,8 +3,8 @@ package com.couponsite.admin;
 import com.couponsite.brand.BrandProfile;
 import com.couponsite.brand.BrandProfileService;
 import com.couponsite.coupon.Coupon;
-import com.couponsite.coupon.CouponService;
 import com.couponsite.coupon.LogoCatalog;
+import com.couponsite.coupon.StagedCouponService;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -58,7 +58,7 @@ public class GenericSiteCrawlerService {
 
     private final CrawlerSiteService crawlerSiteService;
     private final AppSettingService appSettingService;
-    private final CouponService couponService;
+    private final StagedCouponService stagedCouponService;
     private final BrandProfileService brandProfileService;
     private final BrandLogoCrawlerService brandLogoCrawlerService;
     private final CrawlerLogService crawlerLogService;
@@ -69,14 +69,14 @@ public class GenericSiteCrawlerService {
     public GenericSiteCrawlerService(
         CrawlerSiteService crawlerSiteService,
         AppSettingService appSettingService,
-        CouponService couponService,
+        StagedCouponService stagedCouponService,
         BrandProfileService brandProfileService,
         BrandLogoCrawlerService brandLogoCrawlerService,
         CrawlerLogService crawlerLogService
     ) {
         this.crawlerSiteService = crawlerSiteService;
         this.appSettingService = appSettingService;
-        this.couponService = couponService;
+        this.stagedCouponService = stagedCouponService;
         this.brandProfileService = brandProfileService;
         this.brandLogoCrawlerService = brandLogoCrawlerService;
         this.crawlerLogService = crawlerLogService;
@@ -138,7 +138,7 @@ public class GenericSiteCrawlerService {
                 int siteDuplicates = 0;
 
                 for (Coupon coupon : parsedCoupons) {
-                    if (couponService.upsert(coupon)) {
+                    if (stagedCouponService.stageFromCrawler(coupon)) {
                         inserted++;
                         siteInserted++;
                     } else {

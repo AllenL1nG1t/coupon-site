@@ -39,6 +39,8 @@
         <div class="admin-tabs" id="adminTabs">
             <button class="admin-tab active" data-tab="dashboard" id="tabDashboard">Dashboard</button>
             <button class="admin-tab" data-tab="content" id="tabContent">Content</button>
+            <button class="admin-tab" data-tab="theme" id="tabTheme">Theme</button>
+            <button class="admin-tab" data-tab="seo" id="tabSeo">SEO</button>
             <button class="admin-tab" data-tab="coupons" id="tabCoupons">Coupons</button>
             <button class="admin-tab" data-tab="brands" id="tabBrands">Brands</button>
             <button class="admin-tab" data-tab="blogs" id="tabBlogs">Blogs</button>
@@ -55,6 +57,11 @@
             <article class="stat-card"><p id="statBrandsLabel">Total Brands</p><h4 id="statBrands">-</h4></article>
             <article class="stat-card"><p id="statCrawlerLabel">Crawler Status</p><h4 id="statCrawler">-</h4></article>
         </div>
+        <div class="section-head-admin" style="margin-top:10px;">
+            <h3 id="brandCouponStatsTitle">Brand Coupon Counts</h3>
+            <span id="brandCouponStatsDesc">Coupons grouped by brand/store</span>
+        </div>
+        <div class="table-wrap"><table class="admin-table" id="brandCouponStatTable"></table></div>
     </section>
 
     <section class="admin-section hidden" data-section="content">
@@ -62,14 +69,11 @@
             <h3 id="contentSectionTitle">Homepage Hero & Footer Content</h3>
             <span id="contentSectionDesc">Edit hero text, background image and footer social links</span>
         </div>
+        <div class="admin-help-list">
+            <p>Hero area controls `index.html` top banner title/subtitle/background.</p>
+            <p>Footer links control About/Privacy/Contact/Submit/Affiliate links across front pages.</p>
+        </div>
         <div class="admin-grid">
-            <label id="contentThemeLabel">Theme Preset
-                <select id="contentThemePreset">
-                    <option value="scheme-a">Scheme A - Trust Blue (Recommended)</option>
-                    <option value="scheme-b">Scheme B - Tech Navy + Cyan</option>
-                    <option value="scheme-c">Scheme C - High Conversion Red</option>
-                </select>
-            </label>
             <input id="contentHeroEyebrow" placeholder="Hero eyebrow">
             <input id="contentHeroTitle" placeholder="Hero title">
             <textarea id="contentHeroSubtitle" rows="4" placeholder="Hero subtitle"></textarea>
@@ -97,6 +101,51 @@
         </div>
     </section>
 
+    <section class="admin-section hidden" data-section="theme">
+        <div class="section-head-admin">
+            <h3 id="themeSectionTitle">Theme & Site Identity</h3>
+            <span id="themeSectionDesc">Global theme, logo, site title/slogan for all pages</span>
+        </div>
+        <div class="admin-grid">
+            <label id="contentThemeLabel">Theme Preset
+                <select id="contentThemePreset">
+                    <option value="scheme-a">Ocean Trust</option>
+                    <option value="scheme-b">Aqua Night</option>
+                    <option value="scheme-c">Commerce Red</option>
+                </select>
+            </label>
+            <input id="themeDisplayName" placeholder="Theme display name (custom)">
+            <input id="siteName" placeholder="Site name (e.g. Dotiki Coupon)">
+            <input id="siteSlogan" placeholder="Site slogan (under logo)">
+            <input id="siteLogoText" placeholder="Logo text badge (e.g. D)">
+            <input id="siteLogoImageUrl" placeholder="Logo image URL (optional)">
+        </div>
+        <div class="admin-row">
+            <input id="siteLogoImageFile" type="file" accept="image/*">
+            <button id="uploadSiteLogoBtn" class="primary-btn">Upload Site Logo</button>
+            <button id="saveThemeBtn" class="primary-btn">Save Theme</button>
+            <span id="themeStatus"></span>
+        </div>
+    </section>
+
+    <section class="admin-section hidden" data-section="seo">
+        <div class="section-head-admin">
+            <h3 id="seoSectionTitle">SEO Settings</h3>
+            <span id="seoSectionDesc">Global meta tags and social preview settings</span>
+        </div>
+        <div class="admin-grid">
+            <input id="seoTitle" placeholder="Meta title">
+            <textarea id="seoDescription" rows="3" placeholder="Meta description"></textarea>
+            <input id="seoKeywords" placeholder="Meta keywords (comma separated)">
+            <input id="seoOgImageUrl" placeholder="Open Graph image URL">
+            <input id="seoCanonicalBase" placeholder="Canonical base URL (e.g. https://example.com)">
+        </div>
+        <div class="admin-row">
+            <button id="saveSeoBtn" class="primary-btn">Save SEO</button>
+            <span id="seoStatus"></span>
+        </div>
+    </section>
+
     <section class="admin-section hidden" data-section="coupons">
         <div class="section-head-admin">
             <h3>Coupon Management</h3>
@@ -106,7 +155,7 @@
             <input id="couponStore" placeholder="Store">
             <input id="couponTitle" placeholder="Title">
             <input id="couponCategory" placeholder="Category">
-            <input id="couponExpires" placeholder="Expires">
+            <input id="couponExpires" type="date" placeholder="Expires">
             <input id="couponCode" placeholder="Coupon Code">
             <input id="couponAffiliate" placeholder="Affiliate URL">
             <input id="couponLogo" placeholder="Logo URL">
@@ -155,6 +204,17 @@
             <input id="blogSummary" placeholder="Blog summary">
             <input id="blogCover" placeholder="Cover image URL">
             <select id="blogPublished"><option value="true">Published</option><option value="false">Draft</option></select>
+            <div class="blog-editor-toolbar" id="blogEditorToolbar">
+                <button type="button" class="admin-mini-btn" data-editor-cmd="bold">Bold</button>
+                <button type="button" class="admin-mini-btn" data-editor-cmd="italic">Italic</button>
+                <button type="button" class="admin-mini-btn" data-editor-cmd="underline">Underline</button>
+                <button type="button" class="admin-mini-btn" data-editor-cmd="createLink">Link</button>
+                <button type="button" class="admin-mini-btn" data-editor-cmd="insertHTML">HTML</button>
+                <button type="button" class="admin-mini-btn" data-editor-cmd="fontSize">Size</button>
+                <button type="button" class="admin-mini-btn" data-editor-cmd="foreColor">Text Color</button>
+                <button type="button" class="admin-mini-btn" data-editor-cmd="hiliteColor">Bg Color</button>
+            </div>
+            <div id="blogContentEditor" class="blog-content-editor" contenteditable="true"></div>
             <textarea id="blogContent" rows="8" placeholder="Blog content"></textarea>
         </div>
         <div class="admin-row">
@@ -222,59 +282,95 @@
 
     <section class="admin-section hidden" data-section="crawler">
         <div class="section-head-admin">
-            <h3>Crawler</h3>
+            <h3 id="crawlerMainTitle">Crawler</h3>
             <span id="crawlerSectionDesc">Coupon / Brand / Logo crawler split controls</span>
         </div>
-        <div class="admin-row">
-            <label id="couponCrawlerEnabledLabel"><input type="checkbox" id="couponCrawlerEnabled"> Enable scheduled coupon crawler</label>
-            <label id="couponCrawlerIntervalLabel">Coupon interval (minutes)
-                <input id="couponCrawlerIntervalMinutes" type="number" min="1" step="1" value="30" style="width:90px;">
-            </label>
-            <button id="runCouponCrawlerBtn" class="primary-btn">Run Coupon Crawler</button>
+        <div class="admin-subtabs" id="crawlerSubTabs">
+            <button class="admin-subtab active" data-crawler-tab="schedule" id="crawlerSubtabSchedule">Schedule</button>
+            <button class="admin-subtab" data-crawler-tab="sites" id="crawlerSubtabSites">Sites</button>
+            <button class="admin-subtab" data-crawler-tab="staging" id="crawlerSubtabStaging">Staging</button>
+            <button class="admin-subtab" data-crawler-tab="logs" id="crawlerSubtabLogs">Logs</button>
         </div>
-        <div class="admin-row">
-            <label id="brandCrawlerEnabledLabel"><input type="checkbox" id="brandCrawlerEnabled"> Enable scheduled brand crawler</label>
-            <label id="brandCrawlerIntervalLabel">Brand interval (minutes)
-                <input id="brandCrawlerIntervalMinutes" type="number" min="1" step="1" value="30" style="width:90px;">
-            </label>
-            <button id="runBrandCrawlerBtn" class="primary-btn">Run Brand Crawler</button>
+        <div class="admin-subsection" data-crawler-section="schedule">
+            <div class="admin-row">
+                <label id="couponCrawlerEnabledLabel"><input type="checkbox" id="couponCrawlerEnabled"> Enable scheduled coupon crawler</label>
+                <label id="couponCrawlerIntervalLabel">Coupon interval (minutes)
+                    <input id="couponCrawlerIntervalMinutes" type="number" min="1" step="1" value="30" style="width:90px;">
+                </label>
+                <button id="runCouponCrawlerBtn" class="primary-btn">Run Coupon Crawler</button>
+            </div>
+            <div class="admin-row">
+                <label id="brandCrawlerEnabledLabel"><input type="checkbox" id="brandCrawlerEnabled"> Enable scheduled brand crawler</label>
+                <label id="brandCrawlerIntervalLabel">Brand interval (minutes)
+                    <input id="brandCrawlerIntervalMinutes" type="number" min="1" step="1" value="30" style="width:90px;">
+                </label>
+                <button id="runBrandCrawlerBtn" class="primary-btn">Run Brand Crawler</button>
+            </div>
+            <div class="admin-row">
+                <label id="brandLogoCrawlerEnabledLabel"><input type="checkbox" id="brandLogoCrawlerEnabled"> Enable scheduled brand logo crawler</label>
+                <label id="brandLogoCrawlerIntervalLabel">Logo interval (minutes)
+                    <input id="brandLogoCrawlerIntervalMinutes" type="number" min="1" step="1" value="30" style="width:90px;">
+                </label>
+                <button id="saveCrawlerBtn" class="primary-btn">Save</button>
+                <button id="runBrandLogoCrawlerBtn" class="primary-btn">Run Brand Logo Crawler</button>
+                <span id="crawlerStatus"></span>
+            </div>
         </div>
-        <div class="admin-row">
-            <label id="brandLogoCrawlerEnabledLabel"><input type="checkbox" id="brandLogoCrawlerEnabled"> Enable scheduled brand logo crawler</label>
-            <label id="brandLogoCrawlerIntervalLabel">Logo interval (minutes)
-                <input id="brandLogoCrawlerIntervalMinutes" type="number" min="1" step="1" value="30" style="width:90px;">
-            </label>
-            <button id="saveCrawlerBtn" class="primary-btn">Save</button>
-            <button id="runBrandLogoCrawlerBtn" class="primary-btn">Run Brand Logo Crawler</button>
-            <span id="crawlerStatus"></span>
+        <div class="admin-subsection hidden" data-crawler-section="sites">
+            <div class="section-head-admin" style="margin-top:10px;">
+                <h3 id="crawlerSitesTitle">Crawler Sites</h3>
+                <span id="crawlerSitesDesc">Add websites and control coupon/brand/logo crawling per site</span>
+            </div>
+            <div class="admin-grid">
+                <input id="crawlerSiteName" placeholder="Site name (e.g. Slickdeals)">
+                <input id="crawlerSiteBaseUrl" placeholder="Site base URL (e.g. https://slickdeals.net/)">
+                <label><input id="crawlerSiteActive" type="checkbox" checked> Active</label>
+                <label><input id="crawlerSiteCouponEnabled" type="checkbox" checked> Coupon crawl</label>
+                <label><input id="crawlerSiteBrandEnabled" type="checkbox" checked> Brand crawl</label>
+                <label><input id="crawlerSiteLogoEnabled" type="checkbox" checked> Logo crawl</label>
+            </div>
+            <div class="admin-row">
+                <button id="saveCrawlerSiteBtn" class="primary-btn">Add Crawler Site</button>
+                <span class="muted-inline" id="crawlerBuiltinHint">Built-in: RetailMeNot / SimplyCodes can be toggled below too</span>
+            </div>
+            <div class="table-wrap"><table class="admin-table" id="crawlerSiteTable"></table></div>
         </div>
-        <div class="section-head-admin" style="margin-top:10px;">
-            <h3>Crawler Sites</h3>
-            <span id="crawlerSitesDesc">Add websites and control coupon/brand/logo crawling per site</span>
+        <div class="admin-subsection hidden" data-crawler-section="staging">
+            <div class="section-head-admin" style="margin-top:14px;">
+                <h3 id="stagedCouponsTitle">Crawler Staging Queue</h3>
+                <span id="stagedCouponsDesc">Crawler data is stored here first. Select and post to main site manually.</span>
+            </div>
+            <div class="admin-row">
+                <button id="postSelectedStagedBtn" class="primary-btn">Post Selected to Main Site</button>
+                <span class="muted-inline" id="stagedCouponsHint">Rows already posted are marked.</span>
+            </div>
+            <div class="table-wrap"><table class="admin-table" id="stagedCouponTable"></table></div>
         </div>
-        <div class="admin-grid">
-            <input id="crawlerSiteName" placeholder="Site name (e.g. Slickdeals)">
-            <input id="crawlerSiteBaseUrl" placeholder="Site base URL (e.g. https://slickdeals.net/)">
-            <label><input id="crawlerSiteActive" type="checkbox" checked> Active</label>
-            <label><input id="crawlerSiteCouponEnabled" type="checkbox" checked> Coupon crawl</label>
-            <label><input id="crawlerSiteBrandEnabled" type="checkbox" checked> Brand crawl</label>
-            <label><input id="crawlerSiteLogoEnabled" type="checkbox" checked> Logo crawl</label>
+        <div class="admin-subsection hidden" data-crawler-section="logs">
+            <div class="admin-row" style="justify-content:flex-end;">
+                <label style="display:flex;gap:8px;align-items:center;font-weight:600;color:#395378;">
+                    <span id="adminLogLangLabel">Log Language</span>
+                    <select id="logLang" style="width:140px;">
+                        <option value="en">English</option>
+                        <option value="zh">中文</option>
+                    </select>
+                </label>
+            </div>
+            <div class="section-head-admin" style="margin-top:8px;">
+                <h3 id="crawlerLogsTitle">Crawler Logs</h3>
+            </div>
+            <div class="section-head-admin" style="margin-top:8px;">
+                <h3 id="crawlerReportTitle">Crawler Data Report</h3>
+                <span id="crawlerReportDesc">Coupons / brands / logos by source site</span>
+            </div>
+            <div class="table-wrap"><table class="admin-table" id="crawlerReportTable"></table></div>
+            <div class="section-head-admin" style="margin-top:8px;">
+                <h3 id="stagedBrandLogosTitle">Staged Brand Logos</h3>
+                <span id="stagedBrandLogosDesc">Source and image preview for crawled logos</span>
+            </div>
+            <div class="table-wrap"><table class="admin-table" id="stagedBrandLogoTable"></table></div>
+            <pre id="logPanel" class="logs-panel"></pre>
         </div>
-        <div class="admin-row">
-            <button id="saveCrawlerSiteBtn" class="primary-btn">Add Crawler Site</button>
-            <span class="muted-inline" id="crawlerBuiltinHint">Built-in: RetailMeNot / SimplyCodes can be toggled below too</span>
-        </div>
-        <div class="admin-row" style="justify-content:flex-end;">
-            <label style="display:flex;gap:8px;align-items:center;font-weight:600;color:#395378;">
-                <span id="adminLogLangLabel">Log Language</span>
-                <select id="logLang" style="width:140px;">
-                    <option value="en">English</option>
-                    <option value="zh">中文</option>
-                </select>
-            </label>
-        </div>
-        <div class="table-wrap"><table class="admin-table" id="crawlerSiteTable"></table></div>
-        <pre id="logPanel" class="logs-panel"></pre>
     </section>
 </div>
 

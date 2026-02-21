@@ -362,6 +362,8 @@ h1 {
 .coupon-store { margin: 0; color: #4e6d93; font-weight: 600; }
 .coupon-title { margin: 6px 0; font-size: 20px; }
 .coupon-meta { margin: 0; color: var(--muted); }
+.coupon-meta.expired { color: #9ca3af; }
+.coupon-card.expired { opacity: 0.65; }
 .coupon-actions { display: grid; align-content: center; justify-items: end; gap: 8px; }
 
 .reveal-btn, .primary-btn {
@@ -661,6 +663,35 @@ h1 {
     color: #fff;
 }
 
+.admin-subtabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.admin-subtab {
+    border: 1px solid #c5d9f4;
+    background: #fff;
+    color: #204b81;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 1.2;
+    cursor: pointer;
+}
+
+.admin-subtab.active {
+    background: #0f7dff;
+    border-color: #0f7dff;
+    color: #fff;
+}
+
+.admin-subsection {
+    margin-top: 6px;
+}
+
 .section-head-admin {
     display: flex;
     justify-content: space-between;
@@ -676,9 +707,17 @@ h1 {
     color: #5678a5;
     font-size: 13px;
 }
+.admin-help-list {
+    margin: 0 0 10px;
+    color: #49678f;
+    font-size: 13px;
+}
+.admin-help-list p {
+    margin: 4px 0;
+}
 
 .admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
-.admin-grid input, .admin-grid textarea, .admin-grid select {
+.admin-grid input:not([type="checkbox"]):not([type="radio"]), .admin-grid textarea, .admin-grid select {
     width: 100%;
     border: 1px solid #c9d9ef;
     border-radius: 8px;
@@ -701,6 +740,15 @@ h1 {
 .admin-grid label.checkbox-label input[type="checkbox"],
 .admin-row label.checkbox-label input[type="checkbox"] {
     margin: 0;
+    width: 16px;
+    height: 16px;
+    accent-color: #0f7dff;
+}
+.admin-subcard .admin-grid input[type="checkbox"] {
+    width: 16px !important;
+    height: 16px !important;
+    appearance: auto;
+    -webkit-appearance: checkbox;
 }
 .admin-grid input[type="color"] {
     padding: 4px;
@@ -719,6 +767,36 @@ h1 {
     padding: 6px 10px;
     font-size: 13px;
     line-height: 1.2;
+}
+.table-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 8px 0;
+}
+.table-controls input,
+.table-controls select {
+    border: 1px solid #c9d9ef;
+    border-radius: 8px;
+    padding: 6px 8px;
+}
+.blog-editor-toolbar {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    grid-column: 1 / -1;
+}
+.blog-content-editor {
+    grid-column: 1 / -1;
+    min-height: 140px;
+    border: 1px solid #c9d9ef;
+    border-radius: 8px;
+    padding: 8px;
+    background: #fff;
+}
+#blogContent {
+    display: none;
 }
 .admin-subcard-grid {
     display: grid;
@@ -781,6 +859,24 @@ h1 {
     border: 1px solid #e4edf8;
     border-radius: 10px;
     margin-top: 10px;
+}
+
+.staged-status {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.staged-status.posted {
+    background: #e8f8ee;
+    color: #12693f;
+}
+
+.staged-status.pending {
+    background: #fff4e8;
+    color: #9a4c12;
 }
 
 .cut-cell {
@@ -1175,9 +1271,27 @@ body[data-home="1"] h1 {
 .home-coupon-card {
     padding: 14px;
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: auto 1fr auto;
     gap: 14px;
     align-items: center;
+}
+.home-coupon-logo-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    border: 1px solid var(--home-line);
+    background: #fff;
+    display: grid;
+    place-items: center;
+    padding: 4px;
+}
+.home-coupon-logo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+.home-coupon-card.expired {
+    opacity: 0.65;
 }
 
 .home-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
@@ -1196,6 +1310,9 @@ body[data-home="1"] h1 {
 .badge-timer { background: #fff7ed; color: #c2410c; }
 
 .coupon-meta { margin: 8px 0 0; color: var(--home-muted); font-size: 13px; }
+.coupon-meta.expired {
+    color: #9ca3af;
+}
 
 .home-category-grid {
     display: grid;
@@ -1236,6 +1353,12 @@ body[data-home="1"] h1 {
 .home-blog-card .blog-content { padding: 12px; }
 .home-blog-card .blog-title { margin: 0 0 6px; font-size: 18px; }
 .home-blog-card .blog-summary { margin: 0; color: var(--home-muted); font-size: 14px; }
+.store-logo {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 4px;
+}
 
 .home-footer {
     margin-top: 20px;

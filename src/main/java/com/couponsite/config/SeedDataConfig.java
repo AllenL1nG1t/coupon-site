@@ -11,6 +11,7 @@ import com.couponsite.brand.BrandProfileUpsertRequest;
 import com.couponsite.coupon.Coupon;
 import com.couponsite.coupon.LogoCatalog;
 import com.couponsite.coupon.CouponService;
+import java.time.LocalDate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -37,12 +38,12 @@ public class SeedDataConfig {
             if (couponService.count() > 0) {
                 couponService.normalizeStoreLogos();
             } else {
-                couponService.upsert(seed("Nike", "20% Off New Season Sneakers", "fashion", "Ends tonight", "RUN20", "", LogoCatalog.forStore("Nike"), "seed"));
-                couponService.upsert(seed("Expedia", "Save $50 on Hotels $300+", "travel", "2 days left", "TRIP50", "", LogoCatalog.forStore("Expedia"), "seed"));
-                couponService.upsert(seed("Best Buy", "Extra 15% Off Headphones", "electronics", "This week", "SOUND15", "", LogoCatalog.forStore("Best Buy"), "seed"));
-                couponService.upsert(seed("DoorDash", "$10 Off First 2 Orders", "food", "No expiration date", "FAST10", "", LogoCatalog.forStore("DoorDash"), "seed"));
-                couponService.upsert(seed("Macy's", "30% Off Clearance + Free Shipping", "fashion", "Ends Sunday", "GLOW30", "", LogoCatalog.forStore("Macy's"), "seed"));
-                couponService.upsert(seed("Samsung", "$100 Off Select Monitors", "electronics", "Limited stock", "VIEW100", "", LogoCatalog.forStore("Samsung"), "seed"));
+                couponService.upsert(seed("Nike", "20% Off New Season Sneakers", "fashion", LocalDate.now().plusDays(7).toString(), "RUN20", "", LogoCatalog.forStore("Nike"), "seed"));
+                couponService.upsert(seed("Expedia", "Save $50 on Hotels $300+", "travel", LocalDate.now().plusDays(10).toString(), "TRIP50", "", LogoCatalog.forStore("Expedia"), "seed"));
+                couponService.upsert(seed("Best Buy", "Extra 15% Off Headphones", "electronics", LocalDate.now().plusDays(14).toString(), "SOUND15", "", LogoCatalog.forStore("Best Buy"), "seed"));
+                couponService.upsert(seed("DoorDash", "$10 Off First 2 Orders", "food", LocalDate.now().plusDays(5).toString(), "FAST10", "", LogoCatalog.forStore("DoorDash"), "seed"));
+                couponService.upsert(seed("Macy's", "30% Off Clearance + Free Shipping", "fashion", LocalDate.now().plusDays(12).toString(), "GLOW30", "", LogoCatalog.forStore("Macy's"), "seed"));
+                couponService.upsert(seed("Samsung", "$100 Off Select Monitors", "electronics", LocalDate.now().plusDays(9).toString(), "VIEW100", "", LogoCatalog.forStore("Samsung"), "seed"));
                 crawlerLogService.info("Seed coupons initialized.");
             }
 

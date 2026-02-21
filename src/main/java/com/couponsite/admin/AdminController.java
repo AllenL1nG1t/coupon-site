@@ -7,6 +7,7 @@ import com.couponsite.brand.BrandProfileDto;
 import com.couponsite.brand.BrandProfileService;
 import com.couponsite.brand.BrandProfileUpsertRequest;
 import com.couponsite.coupon.CouponService;
+import com.couponsite.coupon.StagedCouponService;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,6 +15,10 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,7 +44,11 @@ public class AdminController {
     private final CrawlerSiteService crawlerSiteService;
     private final AdSettingsService adSettingsService;
     private final ContentSettingsService contentSettingsService;
+    private final SeoSettingsService seoSettingsService;
+    private final CrawlerReportService crawlerReportService;
+    private final StagedBrandLogoService stagedBrandLogoService;
     private final CouponService couponService;
+    private final StagedCouponService stagedCouponService;
     private final BlogService blogService;
     private final BrandProfileService brandProfileService;
 
@@ -54,7 +63,11 @@ public class AdminController {
         CrawlerSiteService crawlerSiteService,
         AdSettingsService adSettingsService,
         ContentSettingsService contentSettingsService,
+        SeoSettingsService seoSettingsService,
+        CrawlerReportService crawlerReportService,
+        StagedBrandLogoService stagedBrandLogoService,
         CouponService couponService,
+        StagedCouponService stagedCouponService,
         BlogService blogService,
         BrandProfileService brandProfileService
     ) {
@@ -68,14 +81,29 @@ public class AdminController {
         this.crawlerSiteService = crawlerSiteService;
         this.adSettingsService = adSettingsService;
         this.contentSettingsService = contentSettingsService;
+        this.seoSettingsService = seoSettingsService;
+        this.crawlerReportService = crawlerReportService;
+        this.stagedBrandLogoService = stagedBrandLogoService;
         this.couponService = couponService;
+        this.stagedCouponService = stagedCouponService;
         this.blogService = blogService;
         this.brandProfileService = brandProfileService;
     }
 
     @GetMapping("/dashboard")
     public AdminDashboardDto dashboard() {
-        return new AdminDashboardDto(appSettingService.isCouponCrawlerEnabled(), crawlerLogService.latest());
+        String statusText = "Coupon crawler: " + (appSettingService.isCouponCrawlerEnabled() ? "enabled" : "disabled")
+            + " every " + Math.max(1, appSettingService.getCouponCrawlerIntervalMs() / 60_000) + " min"
+            + " | Brand crawler: " + (appSettingService.isBrandCrawlerEnabled() ? "enabled" : "disabled")
+            + " every " + Math.max(1, appSettingService.getBrandCrawlerIntervalMs() / 60_000) + " min"
+            + " | Logo crawler: " + (appSettingService.isBrandLogoCrawlerEnabled() ? "enabled" : "disabled")
+            + " every " + Math.max(1, appSettingService.getBrandLogoCrawlerIntervalMs() / 60_000) + " min";
+        return new AdminDashboardDto(
+            appSettingService.isCouponCrawlerEnabled(),
+            statusText,
+            crawlerLogService.latest(),
+            couponService.countByStore()
+        );
     }
 
     @GetMapping("/settings")
@@ -117,6 +145,11 @@ public class AdminController {
         return crawlerLogService.latest();
     }
 
+    @GetMapping("/crawler/report")
+    public CrawlerReportDto crawlerReport() {
+        return crawlerReportService.build();
+    }
+
     @PostMapping("/crawler/run")
     public ResponseEntity<String> runCrawler() {
         CouponRunResult couponResult = runCouponCrawlerInternal();
@@ -130,7 +163,7 @@ public class AdminController {
         int total = couponCount + brandCount + logoCount;
         long brandProfilesTotal = brandProfileService.count();
         return ResponseEntity.ok(
-            "Crawler done, coupons=" + couponCount
+            "Crawler done, stagedCoupons=" + couponCount
                 + " (retailmenot=" + couponResult.retailMeNot() + ", simplycodes=" + couponResult.simplyCodes() + ", custom=" + couponResult.custom() + ")"
                 + ", brandUpserts=" + brandCount
                 + " (brandSeeds=" + brandSeedCount + ", custom=" + brandCustomCount + ")"
@@ -145,7 +178,7 @@ public class AdminController {
     public ResponseEntity<String> runCouponCrawler() {
         CouponRunResult couponResult = runCouponCrawlerInternal();
         return ResponseEntity.ok(
-            "Coupon crawler done, total=" + couponResult.total()
+            "Coupon crawler done, stagedTotal=" + couponResult.total()
                 + ", retailmenot=" + couponResult.retailMeNot()
                 + ", simplycodes=" + couponResult.simplyCodes()
                 + ", custom=" + couponResult.custom()
@@ -206,6 +239,41 @@ public class AdminController {
     @GetMapping("/coupons")
     public List<AdminCouponDto> coupons() {
         return couponService.listAdminCoupons();
+    }
+
+    @GetMapping("/staged-coupons")
+    public List<AdminStagedCouponDto> stagedCoupons() {
+        return stagedCouponService.listAdminStagedCoupons();
+    }
+
+    @GetMapping("/staged-brand-logos")
+    public List<StagedBrandLogoDto> stagedBrandLogos() {
+        return stagedBrandLogoService.listAll();
+    }
+
+    @GetMapping("/staged-brand-logos/image")
+    public ResponseEntity<byte[]> stagedBrandLogoImage(@RequestParam Long id) {
+        StagedBrandLogo logo = stagedBrandLogoService.findById(id);
+        if (logo.getLogoImage() == null || logo.getLogoImage().length == 0) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok()
+            .cacheControl(CacheControl.maxAge(1, TimeUnit.HOURS).cachePublic())
+            .header(HttpHeaders.CONTENT_TYPE, MediaType.parseMediaType(
+                logo.getLogoImageContentType() == null || logo.getLogoImageContentType().isBlank() ? "image/png" : logo.getLogoImageContentType()
+            ).toString())
+            .body(logo.getLogoImage());
+    }
+
+    @PostMapping("/staged-coupons/post")
+    public AdminStagedCouponDto postStagedCoupon(@RequestParam Long id) {
+        return stagedCouponService.postToMain(id);
+    }
+
+    @PostMapping("/staged-coupons/post-batch")
+    public ResponseEntity<String> postStagedCoupons(@RequestBody StagedCouponPostRequest request) {
+        int posted = stagedCouponService.postToMain(request == null ? List.of() : request.ids());
+        return ResponseEntity.ok("Posted to main site: " + posted);
     }
 
     @PutMapping("/coupons")
@@ -269,6 +337,16 @@ public class AdminController {
     @PutMapping("/content")
     public ContentSettingsDto updateContent(@RequestBody ContentSettingsDto request) {
         return contentSettingsService.save(request);
+    }
+
+    @GetMapping("/seo")
+    public SeoSettingsDto seo() {
+        return seoSettingsService.get();
+    }
+
+    @PutMapping("/seo")
+    public SeoSettingsDto updateSeo(@RequestBody SeoSettingsDto request) {
+        return seoSettingsService.save(request);
     }
 
     @PostMapping("/uploads/images")

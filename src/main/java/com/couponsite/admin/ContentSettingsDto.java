@@ -2,6 +2,11 @@ package com.couponsite.admin;
 
 public record ContentSettingsDto(
     String themePreset,
+    String themeDisplayName,
+    String siteName,
+    String siteSlogan,
+    String siteLogoText,
+    String siteLogoImageUrl,
     String heroEyebrow,
     String heroTitle,
     String heroSubtitle,

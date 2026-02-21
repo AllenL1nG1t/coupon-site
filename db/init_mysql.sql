@@ -62,6 +62,41 @@ CREATE TABLE IF NOT EXISTS coupon (
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS staged_coupon (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  affiliate_url VARCHAR(1200) NOT NULL,
+  category VARCHAR(255) NOT NULL,
+  coupon_code VARCHAR(255) NOT NULL,
+  created_at DATETIME(6) NOT NULL,
+  expires VARCHAR(255) NOT NULL,
+  logo_url VARCHAR(255) NOT NULL,
+  source VARCHAR(255) NOT NULL,
+  store VARCHAR(255) NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  posted BIT(1) NOT NULL,
+  posted_at DATETIME(6) DEFAULT NULL,
+  posted_coupon_id BIGINT DEFAULT NULL,
+  updated_at DATETIME(6) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_staged_coupon_store_code (store, coupon_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS staged_brand_logo (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  store_name VARCHAR(255) NOT NULL,
+  source_site_key VARCHAR(255) NOT NULL,
+  source_url VARCHAR(1200) NOT NULL,
+  logo_image LONGBLOB,
+  logo_image_content_type VARCHAR(255),
+  posted BIT(1) NOT NULL,
+  posted_at DATETIME(6) DEFAULT NULL,
+  brand_profile_id BIGINT DEFAULT NULL,
+  created_at DATETIME(6) NOT NULL,
+  updated_at DATETIME(6) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_staged_brand_logo_store (store_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS crawler_log (
   id BIGINT NOT NULL AUTO_INCREMENT,
   created_at DATETIME(6) NOT NULL,
@@ -150,6 +185,26 @@ SELECT 'content.theme.preset', 'scheme-a', NOW(6)
 WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.theme.preset');
 
 INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'content.theme.displayName', 'Ocean Trust', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.theme.displayName');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'content.site.name', 'Dotiki Coupon', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.site.name');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'content.site.slogan', 'Smart Coupons. Real Savings.', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.site.slogan');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'content.site.logoText', 'D', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.site.logoText');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'content.site.logoImageUrl', '', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.site.logoImageUrl');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
 SELECT 'content.hero.eyebrow', 'SIMPLYCODES STYLE DEALS', NOW(6)
 WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.hero.eyebrow');
 
@@ -170,24 +225,44 @@ SELECT 'content.hero.bg.imageUrl', '', NOW(6)
 WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.hero.bg.imageUrl');
 
 INSERT INTO app_setting (setting_key, setting_value, updated_at)
-SELECT 'content.footer.aboutUrl', '/about', NOW(6)
+SELECT 'content.footer.aboutUrl', '/about.html', NOW(6)
 WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.footer.aboutUrl');
 
 INSERT INTO app_setting (setting_key, setting_value, updated_at)
-SELECT 'content.footer.privacyUrl', '/privacy', NOW(6)
+SELECT 'content.footer.privacyUrl', '/privacy.html', NOW(6)
 WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.footer.privacyUrl');
 
 INSERT INTO app_setting (setting_key, setting_value, updated_at)
-SELECT 'content.footer.contactUrl', '/contact', NOW(6)
+SELECT 'content.footer.contactUrl', '/contact.html', NOW(6)
 WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.footer.contactUrl');
 
 INSERT INTO app_setting (setting_key, setting_value, updated_at)
-SELECT 'content.footer.submitCouponUrl', '/submit-coupon', NOW(6)
+SELECT 'content.footer.submitCouponUrl', '/submit-coupon.html', NOW(6)
 WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.footer.submitCouponUrl');
 
 INSERT INTO app_setting (setting_key, setting_value, updated_at)
-SELECT 'content.footer.affiliateDisclosureUrl', '/affiliate-disclosure', NOW(6)
+SELECT 'content.footer.affiliateDisclosureUrl', '/affiliate-disclosure.html', NOW(6)
 WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.footer.affiliateDisclosureUrl');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'seo.title', 'Dotiki Coupon - Verified Coupons & Real Savings', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'seo.title');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'seo.description', 'Find verified promo codes, active deals, and cashback guides across top stores.', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'seo.description');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'seo.keywords', 'coupon,promo code,deals,discounts,cashback', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'seo.keywords');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'seo.og.imageUrl', '', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'seo.og.imageUrl');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'seo.canonical.baseUrl', '', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'seo.canonical.baseUrl');
 
 INSERT INTO app_setting (setting_key, setting_value, updated_at)
 SELECT 'ads.strip.enabled', 'true', NOW(6)

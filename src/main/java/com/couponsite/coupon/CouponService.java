@@ -3,9 +3,13 @@ package com.couponsite.coupon;
 import com.couponsite.admin.CrawlerLogService;
 import com.couponsite.admin.AdminCouponDto;
 import com.couponsite.admin.AdminCouponUpsertRequest;
+import com.couponsite.admin.BrandCouponStatDto;
 import com.couponsite.brand.BrandProfileService;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,13 +35,26 @@ public class CouponService {
         String normalizedQuery = query == null ? "" : query.trim().toLowerCase(Locale.ROOT);
 
         return couponRepository.findAll().stream()
-            .filter(coupon -> "all".equals(normalizedCategory) || coupon.getCategory().equalsIgnoreCase(normalizedCategory))
+            .filter(coupon -> {
+                if ("expired".equals(normalizedCategory)) {
+                    return isExpired(coupon.getExpires());
+                }
+                return "all".equals(normalizedCategory) || coupon.getCategory().equalsIgnoreCase(normalizedCategory);
+            })
             .filter(coupon -> {
                 if (normalizedQuery.isBlank()) {
                     return true;
                 }
                 String merged = (coupon.getStore() + " " + coupon.getTitle() + " " + coupon.getCategory()).toLowerCase(Locale.ROOT);
                 return merged.contains(normalizedQuery);
+            })
+            .sorted((a, b) -> {
+                boolean ax = isExpired(a.getExpires());
+                boolean bx = isExpired(b.getExpires());
+                if (ax != bx) {
+                    return ax ? 1 : -1;
+                }
+                return b.getCreatedAt().compareTo(a.getCreatedAt());
             })
             .map(this::toSummary)
             .toList();
@@ -76,6 +93,11 @@ public class CouponService {
 
     @Transactional
     public boolean upsert(Coupon incoming) {
+        return upsertWithId(incoming).inserted();
+    }
+
+    @Transactional
+    public UpsertResult upsertWithId(Coupon incoming) {
         String normalizedStore = nonBlankOrDefault(incoming.getStore(), "Unknown Store");
         String normalizedCode = nonBlankOrDefault(incoming.getCouponCode(), "SEEDEAL");
 
@@ -93,20 +115,35 @@ public class CouponService {
                 if (existing.getClickCount() == null) {
                     existing.setClickCount(0);
                 }
-                couponRepository.save(existing);
-                return false;
+                Coupon saved = couponRepository.save(existing);
+                return new UpsertResult(false, saved.getId());
             })
             .orElseGet(() -> {
                 if (incoming.getClickCount() == null) {
                     incoming.setClickCount(0);
                 }
-                couponRepository.save(incoming);
-                return true;
+                Coupon saved = couponRepository.save(incoming);
+                return new UpsertResult(true, saved.getId());
             });
     }
 
     public long count() {
         return couponRepository.count();
+    }
+
+    public List<BrandCouponStatDto> countByStore() {
+        Map<String, Long> grouped = couponRepository.findAll().stream()
+            .collect(java.util.stream.Collectors.groupingBy(c -> nonBlankOrDefault(c.getStore(), "Unknown"), java.util.stream.Collectors.counting()));
+        return grouped.entrySet().stream()
+            .sorted((a, b) -> {
+                int byCount = Long.compare(b.getValue(), a.getValue());
+                if (byCount != 0) {
+                    return byCount;
+                }
+                return a.getKey().compareToIgnoreCase(b.getKey());
+            })
+            .map(entry -> new BrandCouponStatDto(entry.getKey(), entry.getValue()))
+            .toList();
     }
 
     @Transactional
@@ -146,7 +183,7 @@ public class CouponService {
         coupon.setStore(nonBlankOrDefault(request.store(), "Unknown Store"));
         coupon.setTitle(nonBlankOrDefault(request.title(), "Untitled Offer"));
         coupon.setCategory(nonBlankOrDefault(request.category(), "other"));
-        coupon.setExpires(nonBlankOrDefault(request.expires(), "Limited time"));
+        coupon.setExpires(nonBlankOrDefault(request.expires(), LocalDate.now().plusDays(30).toString()));
         coupon.setCouponCode(nonBlankOrDefault(request.couponCode(), "SEEDEAL"));
         coupon.setAffiliateUrl(nonBlankOrDefault(request.affiliateUrl(), ""));
         coupon.setLogoUrl(nonBlankOrDefault(request.logoUrl(), LogoCatalog.forStore(coupon.getStore())));
@@ -187,15 +224,28 @@ public class CouponService {
 
     private CouponSummaryDto toSummary(Coupon coupon) {
         String logoUrl = brandProfileService.resolvePublicLogoUrlByStore(coupon.getStore(), coupon.getLogoUrl());
+        boolean expired = isExpired(coupon.getExpires());
         return new CouponSummaryDto(
             coupon.getId(),
             coupon.getStore(),
             coupon.getTitle(),
             coupon.getCategory(),
             coupon.getExpires(),
+            expired,
             logoUrl,
             coupon.getClickCount()
         );
+    }
+
+    public boolean isExpired(String expires) {
+        if (expires == null || expires.isBlank()) {
+            return false;
+        }
+        try {
+            return LocalDate.parse(expires.trim()).isBefore(LocalDate.now());
+        } catch (DateTimeParseException ignored) {
+            return false;
+        }
     }
 
     private String normalizeStoreKey(String raw) {
@@ -220,6 +270,9 @@ public class CouponService {
                 return "https://example.com";
             })
             .orElse("https://example.com");
+    }
+
+    public record UpsertResult(boolean inserted, Long couponId) {
     }
 }
 

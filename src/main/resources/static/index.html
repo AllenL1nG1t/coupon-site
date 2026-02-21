@@ -34,8 +34,17 @@
         </nav>
     </div>
 </header>
+<section class="ad-strip hidden" id="adStrip">
+    <a id="adStripLink" href="#" target="_blank" rel="noopener noreferrer">
+        <div class="ad-strip-track" id="adStripText"></div>
+    </a>
+</section>
 
 <main>
+    <section class="container home-section hidden ad-section" id="homeTopAdWrap">
+        <div class="ad-box" id="homeTopAd"></div>
+    </section>
+
     <section class="home-hero" id="heroSection">
         <div class="container home-hero-grid">
             <div>
@@ -73,7 +82,19 @@
             <span class="muted-inline">Verified and ready to copy</span>
         </div>
         <div class="home-filter-row" id="filterChips"></div>
-        <div class="home-coupon-list" id="couponList"></div>
+        <div class="coupon-main-layout" id="dealsLayout">
+            <aside class="home-side-ad hidden ad-section" id="homeSideLeftAdWrap">
+                <div class="ad-box" id="homeSideLeftAd"></div>
+            </aside>
+            <div class="home-coupon-list" id="couponList"></div>
+            <aside class="home-side-ad hidden ad-section" id="homeSideRightAdWrap">
+                <div class="ad-box" id="homeSideRightAd"></div>
+            </aside>
+        </div>
+    </section>
+
+    <section class="container home-section hidden ad-section" id="homeMidAdWrap">
+        <div class="ad-box" id="homeMidAd"></div>
     </section>
 
     <section class="container home-section" id="categoryBrowse">
@@ -109,7 +130,20 @@
             <h2>Latest Saving Guides</h2>
             <span class="muted-inline">SEO-friendly tips and monthly deal roundups</span>
         </div>
+        <div class="hidden ad-section" id="blogTopAdWrap">
+            <div class="ad-box" id="blogTopAd"></div>
+        </div>
         <div class="home-blog-grid" id="blogList"></div>
+        <div class="hidden ad-section inline-blog-ad" id="blogInlineAdWrap">
+            <div class="ad-box" id="blogInlineAd"></div>
+        </div>
+        <div class="hidden ad-section" id="blogBottomAdWrap">
+            <div class="ad-box" id="blogBottomAd"></div>
+        </div>
+    </section>
+
+    <section class="container home-section hidden ad-section" id="homeBottomAdWrap">
+        <div class="ad-box" id="homeBottomAd"></div>
     </section>
 </main>
 
@@ -119,11 +153,11 @@
             <p id="footerCopyright">Dotiki Coupon (c) 2026</p>
             <p id="footerTagline">Deals are user-submitted and manually reviewed.</p>
             <div class="home-footer-links">
-                <a id="footerAboutLink" href="/about">About</a>
-                <a id="footerPrivacyLink" href="/privacy">Privacy</a>
-                <a id="footerContactLink" href="/contact">Contact</a>
-                <a id="footerSubmitCouponLink" href="/submit-coupon">Submit Coupon</a>
-                <a id="footerAffiliateDisclosureLink" href="/affiliate-disclosure">Affiliate Disclosure</a>
+                <a id="footerAboutLink" href="/about.html">About</a>
+                <a id="footerPrivacyLink" href="/privacy.html">Privacy</a>
+                <a id="footerContactLink" href="/contact.html">Contact</a>
+                <a id="footerSubmitCouponLink" href="/submit-coupon.html">Submit Coupon</a>
+                <a id="footerAffiliateDisclosureLink" href="/affiliate-disclosure.html">Affiliate Disclosure</a>
             </div>
         </div>
         <div class="footer-social">
@@ -139,6 +173,9 @@
 
 <template id="couponCardTemplate">
     <article class="home-coupon-card">
+        <div class="home-coupon-logo-wrap">
+            <img class="home-coupon-logo" alt="">
+        </div>
         <div class="home-coupon-main">
             <p class="coupon-store"></p>
             <h3 class="coupon-title"></h3>

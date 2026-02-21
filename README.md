@@ -1,20 +1,31 @@
 ﻿# Dotiki Coupon
 
 - Language: [English (Default)](README.md) | [Chinese (Simplified)](README.zh-CN.md)
-- Version: 0.0.2-SNAPSHOT
-- Last Updated: 2026-02-21 01:17:42 -05:00
+- Version: 0.0.3
+- Last Updated: 2026-02-21 16:55:00 -05:00
 
 Dotiki Coupon site built with Java + Spring Boot + Maven.
 
 ## Versioning
 - Current version is stored in `VERSION`.
 - Every update should bump/update the version and sync it in both `README.md` and `README.zh-CN.md`.
+- Changelog:
+  - English: `CHANGELOG.md`
+  - Chinese: `CHANGELOG.zh-CN.md`
+- Workflow rule:
+  - Every feature/fix/refactor must append a clear entry to both changelog files in the same commit.
+  - Every successful local startup must use `scripts/start-and-sync.ps1` so latest code is auto-synced to GitHub.
 
 ## Recent Updates
 - Unified coupon click redirect flow across home, brand, and catalog pages:
   - Current tab navigates to affiliate URL
   - New tab opens `coupon-code.html`
 - Added cache-busting for homepage script loading to avoid stale `app.js` behavior.
+- Added admin list pagination/filter support (50/100/200 per page, date range, keyword/status filters).
+- Added Theme menu and SEO menu in admin panel.
+- Added crawler report API + staged brand logo table and image preview endpoint.
+- Added footer pages (`about/privacy/contact/submit-coupon/affiliate-disclosure`).
+- Coupon expiry now uses date format (`YYYY-MM-DD`) and expired coupons are separated in frontend views.
 
 ## Tech Stack
 - Java 17
@@ -27,6 +38,30 @@ Dotiki Coupon site built with Java + Spring Boot + Maven.
 ```bash
 mvn spring-boot:run
 ```
+
+Recommended workflow (startup + auto push to GitHub after health check):
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\start-and-sync.ps1
+```
+
+## Deploy To AWS (One Command)
+1. Install prerequisites on Linux: `awscli`, `eb`, `mvn`, `git`.
+2. Copy env template and fill real values:
+```bash
+cp scripts/deploy-eb.env.example scripts/deploy-eb.env
+```
+3. Run one-click deploy:
+```bash
+chmod +x scripts/deploy-eb.sh
+./scripts/deploy-eb.sh -f scripts/deploy-eb.env
+```
+
+What this script does:
+- Builds the project jar (`mvn clean package`).
+- Initializes EB app (`eb init`) if needed.
+- Creates/uses target EB environment.
+- Sets DB env vars (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`).
+- Deploys staged code to EB.
 
 Default URLs:
 - Site: `http://localhost:8081/`
@@ -71,6 +106,14 @@ Notes:
   - Eyebrow/title/subtitle
   - Background color
   - Background image (upload supported)
+- Theme & site identity management:
+  - Theme preset + custom theme display name
+  - Site name/slogan
+  - Site logo text/image upload
+- SEO management:
+  - Meta title/description/keywords
+  - OG image URL
+  - Canonical base URL
 - Crawler management:
   - Separate scheduled switches:
     - Coupon crawler
@@ -106,6 +149,7 @@ Notes:
 - `GET /api/brands/logo?slug=`
 - `GET /api/ads/public`
 - `GET /api/content/public`
+- `GET /api/seo/public`
 
 ## Admin API
 - Auth:
@@ -120,6 +164,9 @@ Notes:
   - `POST /api/admin/crawler/run-coupons`
   - `POST /api/admin/crawler/run-brands`
   - `POST /api/admin/crawler/run-brand-logos`
+  - `GET /api/admin/crawler/report`
+  - `GET /api/admin/staged-brand-logos`
+  - `GET /api/admin/staged-brand-logos/image?id=`
 - Coupons:
   - `GET /api/admin/coupons`
   - `PUT /api/admin/coupons`
@@ -138,9 +185,13 @@ Notes:
 - Content:
   - `GET /api/admin/content`
   - `PUT /api/admin/content`
+- SEO:
+  - `GET /api/admin/seo`
+  - `PUT /api/admin/seo`
 - Upload:
   - `POST /api/admin/uploads/images` (multipart `file`)
 
 ## Known Limitation
 - RetailMeNot can return `403` due to anti-bot protection. Fallback coupon seeding is used when crawling is blocked.
+
 

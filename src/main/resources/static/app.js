@@ -14,6 +14,29 @@ const heroSection = document.getElementById("heroSection");
 const heroEyebrow = document.getElementById("heroEyebrow");
 const heroTitle = document.getElementById("heroTitle");
 const heroSubtitle = document.getElementById("heroSubtitle");
+const adStrip = document.getElementById("adStrip");
+const adStripLink = document.getElementById("adStripLink");
+const adStripText = document.getElementById("adStripText");
+const dealsLayout = document.getElementById("dealsLayout");
+const homeTopAdWrap = document.getElementById("homeTopAdWrap");
+const homeTopAd = document.getElementById("homeTopAd");
+const homeMidAdWrap = document.getElementById("homeMidAdWrap");
+const homeMidAd = document.getElementById("homeMidAd");
+const homeBottomAdWrap = document.getElementById("homeBottomAdWrap");
+const homeBottomAd = document.getElementById("homeBottomAd");
+const homeSideLeftAdWrap = document.getElementById("homeSideLeftAdWrap");
+const homeSideLeftAd = document.getElementById("homeSideLeftAd");
+const homeSideRightAdWrap = document.getElementById("homeSideRightAdWrap");
+const homeSideRightAd = document.getElementById("homeSideRightAd");
+const blogTopAdWrap = document.getElementById("blogTopAdWrap");
+const blogTopAd = document.getElementById("blogTopAd");
+const blogInlineAdWrap = document.getElementById("blogInlineAdWrap");
+const blogInlineAd = document.getElementById("blogInlineAd");
+const blogBottomAdWrap = document.getElementById("blogBottomAdWrap");
+const blogBottomAd = document.getElementById("blogBottomAd");
+const homeBrandLogo = document.querySelector(".home-brand-logo");
+const homeBrandTitle = document.querySelector(".home-brand strong");
+const homeBrandSlogan = document.querySelector(".home-brand small");
 
 const footerTagline = document.getElementById("footerTagline");
 const footerTwitterLink = document.getElementById("footerTwitterLink");
@@ -99,6 +122,18 @@ async function fetchContent() {
   return response.json();
 }
 
+async function fetchAds() {
+  const response = await fetch("/api/ads/public");
+  if (!response.ok) throw new Error("Failed to fetch ads");
+  return response.json();
+}
+
+async function fetchSeo() {
+  const response = await fetch("/api/seo/public");
+  if (!response.ok) throw new Error("Failed to fetch seo");
+  return response.json();
+}
+
 async function revealCoupon(id) {
   const response = await fetch(`/api/coupons/${id}/reveal`, { method: "POST" });
   if (!response.ok) throw new Error("Failed to reveal coupon");
@@ -142,6 +177,73 @@ function applyContent(content) {
   footerContactLink.href = content.footerContactUrl || footerContactLink.href;
   footerSubmitCouponLink.href = content.footerSubmitCouponUrl || footerSubmitCouponLink.href;
   footerAffiliateDisclosureLink.href = content.footerAffiliateDisclosureUrl || footerAffiliateDisclosureLink.href;
+  if (homeBrandTitle) homeBrandTitle.textContent = content.siteName || homeBrandTitle.textContent;
+  if (homeBrandSlogan) homeBrandSlogan.textContent = content.siteSlogan || homeBrandSlogan.textContent;
+  if (homeBrandLogo) {
+    if (content.siteLogoImageUrl) {
+      homeBrandLogo.innerHTML = `<img src="${content.siteLogoImageUrl}" alt="logo" style="width:100%;height:100%;object-fit:contain;">`;
+    } else {
+      homeBrandLogo.textContent = content.siteLogoText || homeBrandLogo.textContent;
+    }
+  }
+}
+
+function applyAds(ads) {
+  if (!adStrip || !ads) return;
+  if (!ads.stripEnabled || !ads.stripText) {
+    adStrip.classList.add("hidden");
+    return;
+  }
+  adStrip.classList.remove("hidden");
+  adStripText.textContent = `${ads.stripText} • ${ads.stripText}`;
+  adStripLink.href = ads.stripLink || "#";
+
+  const renderSlot = (wrap, box, enabled, label) => {
+    if (!wrap || !box) return;
+    if (!enabled) {
+      wrap.classList.add("hidden");
+      box.innerHTML = "";
+      return;
+    }
+    wrap.classList.remove("hidden");
+    const title = ads.stripText || "Ad Placement";
+    const link = ads.stripLink || "#";
+    box.innerHTML = `<a href="${link}" target="_blank" rel="noopener noreferrer" class="ad-box-fallback">${label}: ${title}</a>`;
+  };
+
+  renderSlot(homeTopAdWrap, homeTopAd, !!ads.homeTopEnabled, "Home Top Ad");
+  renderSlot(homeMidAdWrap, homeMidAd, !!ads.homeMidEnabled, "Home Mid Ad");
+  renderSlot(homeBottomAdWrap, homeBottomAd, !!ads.homeBottomEnabled, "Home Bottom Ad");
+  renderSlot(homeSideLeftAdWrap, homeSideLeftAd, !!ads.homeSideLeftEnabled, "Home Middle Left Ad");
+  renderSlot(homeSideRightAdWrap, homeSideRightAd, !!ads.homeSideRightEnabled, "Home Middle Right Ad");
+  renderSlot(blogTopAdWrap, blogTopAd, !!ads.blogTopEnabled, "Blog Top Ad");
+  renderSlot(blogInlineAdWrap, blogInlineAd, !!ads.blogInlineEnabled, "Blog Inline Ad");
+  renderSlot(blogBottomAdWrap, blogBottomAd, !!ads.blogBottomEnabled, "Blog Bottom Ad");
+
+  if (dealsLayout) {
+    dealsLayout.classList.toggle("with-side-left", !!ads.homeSideLeftEnabled);
+    dealsLayout.classList.toggle("with-side-right", !!ads.homeSideRightEnabled);
+  }
+}
+
+function applySeo(seo) {
+  if (!seo) return;
+  if (seo.title) document.title = seo.title;
+  const setMeta = (name, content, attr = "name") => {
+    if (!content) return;
+    let node = document.head.querySelector(`meta[${attr}="${name}"]`);
+    if (!node) {
+      node = document.createElement("meta");
+      node.setAttribute(attr, name);
+      document.head.appendChild(node);
+    }
+    node.setAttribute("content", content);
+  };
+  setMeta("description", seo.description);
+  setMeta("keywords", seo.keywords);
+  setMeta("og:title", seo.title, "property");
+  setMeta("og:description", seo.description, "property");
+  setMeta("og:image", seo.ogImageUrl, "property");
 }
 
 function renderCategoryGrid(coupons) {
@@ -159,6 +261,9 @@ function renderCategoryGrid(coupons) {
 function renderFilterChips(coupons) {
   const categories = Array.from(new Set(coupons.map(coupon => toSafeText(coupon.category).toLowerCase()))).filter(Boolean);
   const all = ["all", ...categories];
+  if (!all.includes("expired")) {
+    all.push("expired");
+  }
 
   filterChips.innerHTML = all.map(category => `
     <button class="home-chip ${category === activeFilter ? "active" : ""}" data-filter="${category}">${category}</button>
@@ -213,10 +318,19 @@ function sortDeals(coupons) {
 
 function buildCouponNode(coupon) {
   const node = couponTemplate.content.cloneNode(true);
+  const logo = node.querySelector(".home-coupon-logo");
   node.querySelector(".coupon-store").textContent = toSafeText(coupon.store);
   node.querySelector(".coupon-title").textContent = toSafeText(coupon.title);
-  node.querySelector(".coupon-meta").textContent = `${toSafeText(coupon.category)} | ${toSafeText(coupon.expires)} | ${Number(coupon.clickCount || 0)} clicks`;
+  const meta = node.querySelector(".coupon-meta");
+  meta.textContent = `${toSafeText(coupon.category)} | ${toSafeText(coupon.expires)} | ${Number(coupon.clickCount || 0)} clicks`;
   node.querySelector(".badge-timer").textContent = humanTimer(coupon.expires);
+  logo.src = coupon.logoUrl || "/logos/default.svg";
+  logo.alt = `${coupon.store || "brand"} logo`;
+  logo.addEventListener("error", () => { logo.src = "/logos/default.svg"; }, { once: true });
+  if (coupon.expired) {
+    node.querySelector(".home-coupon-card").classList.add("expired");
+    meta.classList.add("expired");
+  }
 
   const hotBadge = node.querySelector(".badge-hot");
   if (isHotCoupon(coupon)) {
@@ -274,7 +388,9 @@ function renderCoupons(coupons) {
     couponList.innerHTML = `<article class="home-coupon-card"><p>No coupons match your search.</p></article>`;
     return;
   }
-  allCouponsCache = sortDeals(coupons);
+  const active = coupons.filter(c => !c.expired);
+  const expired = coupons.filter(c => c.expired);
+  allCouponsCache = [...sortDeals(active), ...sortDeals(expired)];
   displayedCouponCount = 0;
   setupCouponLoadMoreButton();
 }
@@ -334,8 +450,10 @@ searchForm.addEventListener("submit", event => {
 
 (async function init() {
   try {
-    const content = await fetchContent();
+    const [content, ads, seo] = await Promise.all([fetchContent(), fetchAds(), fetchSeo()]);
     applyContent(content);
+    applyAds(ads);
+    applySeo(seo);
   } catch (_) {
     document.body.dataset.theme = "scheme-a";
   }

@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -94,7 +95,11 @@ public class CrawlerSiteService {
         site.setCouponEnabled(couponEnabled);
         site.setBrandEnabled(brandEnabled);
         site.setLogoEnabled(logoEnabled);
-        crawlerSiteRepository.save(site);
+        try {
+            crawlerSiteRepository.save(site);
+        } catch (DataIntegrityViolationException ignored) {
+            // Another initializer or legacy data already inserted the same site key.
+        }
     }
 
     private CrawlerSiteDto toDto(CrawlerSite site) {

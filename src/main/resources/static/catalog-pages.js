@@ -17,8 +17,23 @@ async function applyThemeFromContent() {
     if (!response.ok) return;
     const content = await response.json();
     document.body.dataset.theme = normalizeTheme(content.themePreset);
+    const brand = document.querySelector(".brand");
+    if (brand) {
+      brand.textContent = content.siteName || "Dotiki Coupon";
+    }
   } catch (_) {
     // keep default theme
+  }
+}
+
+async function applySeo() {
+  try {
+    const response = await fetch("/api/seo/public");
+    if (!response.ok) return;
+    const seo = await response.json();
+    if (seo.title) document.title = seo.title;
+  } catch (_) {
+    // ignore
   }
 }
 
@@ -58,11 +73,11 @@ function categoriesFromCoupons(coupons) {
 
 function couponCard(coupon) {
   return `
-    <article class="coupon-card">
+    <article class="coupon-card ${coupon.expired ? "expired" : ""}">
       <div>
         <p class="coupon-store">${coupon.store}</p>
         <h3 class="coupon-title">${coupon.title}</h3>
-        <p class="coupon-meta">${coupon.expires} · ${coupon.category}</p>
+        <p class="coupon-meta ${coupon.expired ? "expired" : ""}">${coupon.expires} · ${coupon.category}</p>
       </div>
       <div class="coupon-actions">
         <button class="reveal-btn" data-reveal-id="${coupon.id}" data-store="${coupon.store}" data-title="${coupon.title}">Show Coupon Code</button>
@@ -151,6 +166,7 @@ async function renderCategoriesPage() {
     </section>
     <div class="chips" id="categoryChips">
       <button data-category="all" class="active">All</button>
+      <button data-category="expired">Expired</button>
       ${categories.map(c => `<button data-category="${c}">${c}</button>`).join("")}
     </div>
     <div class="coupon-list" id="categoryCouponList"></div>
@@ -217,6 +233,7 @@ searchForm.addEventListener("submit", async event => {
 (async function init() {
   try {
     await applyThemeFromContent();
+    await applySeo();
     if (pageMode === "stores") await renderStoresPage();
     if (pageMode === "categories") await renderCategoriesPage();
     if (pageMode === "cashback") await renderCashbackPage();

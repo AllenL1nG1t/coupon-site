@@ -27,6 +27,21 @@ async function applyThemeFromContent() {
     if (!response.ok) return;
     const content = await response.json();
     document.body.dataset.theme = normalizeTheme(content.themePreset);
+    const brandTop = document.querySelector(".brand");
+    if (brandTop) {
+      brandTop.textContent = content.siteName || "Dotiki Coupon";
+    }
+  } catch (_) {
+    // ignore
+  }
+}
+
+async function applySeo() {
+  try {
+    const response = await fetch("/api/seo/public");
+    if (!response.ok) return;
+    const seo = await response.json();
+    if (seo.title) document.title = seo.title;
   } catch (_) {
     // ignore
   }
@@ -72,20 +87,26 @@ function renderCoupons(coupons) {
   coupons.forEach(c => categoryCount.set(c.category, (categoryCount.get(c.category) || 0) + 1));
   const topCategory = Array.from(categoryCount.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] || "-";
   brandTopCategory.textContent = topCategory;
-  brandCouponHint.textContent = `${coupons.length} active coupons`;
+  const activeCoupons = coupons.filter(c => !c.expired);
+  const expiredCoupons = coupons.filter(c => c.expired);
+  brandCouponHint.textContent = `${activeCoupons.length} active coupons / ${expiredCoupons.length} expired`;
 
-  brandCouponList.innerHTML = coupons.map(coupon => `
+  const renderGroup = (list, title, expired = false) => `
+    <h3 style="margin:10px 0 6px;">${title}</h3>
+    ${list.map(coupon => `
     <article class="coupon-card" data-coupon-id="${coupon.id}" data-store="${coupon.store}" data-title="${coupon.title}">
       <div>
         <p class="coupon-store">${coupon.store}</p>
         <h3 class="coupon-title">${coupon.title}</h3>
-        <p class="coupon-meta">${coupon.expires} · ${coupon.category} · clicks: ${coupon.clickCount ?? 0}</p>
+        <p class="coupon-meta ${expired ? "expired" : ""}">${coupon.expires} · ${coupon.category} · clicks: ${coupon.clickCount ?? 0}</p>
       </div>
       <div class="coupon-actions">
         <button class="reveal-btn" data-reveal-id="${coupon.id}">Show Coupon Code</button>
       </div>
     </article>
-  `).join("");
+  `).join("")}
+  `;
+  brandCouponList.innerHTML = `${renderGroup(activeCoupons, "Active Coupons")}${expiredCoupons.length ? renderGroup(expiredCoupons, "Expired Coupons", true) : ""}`;
 
   brandCouponList.querySelectorAll("[data-reveal-id]").forEach(btn => {
     btn.addEventListener("click", async () => {
@@ -183,6 +204,7 @@ async function loadBrand() {
 
 (async function init() {
   await applyThemeFromContent();
+  await applySeo();
   try {
     await loadBrand();
   } catch (_) {

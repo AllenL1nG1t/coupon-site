@@ -28,16 +28,19 @@ public class BrandLogoCrawlerService {
     private final BrandProfileService brandProfileService;
     private final AppSettingService appSettingService;
     private final CrawlerLogService crawlerLogService;
+    private final StagedBrandLogoService stagedBrandLogoService;
     private final AtomicLong lastScheduledRunAt = new AtomicLong(0L);
 
     public BrandLogoCrawlerService(
         BrandProfileService brandProfileService,
         AppSettingService appSettingService,
-        CrawlerLogService crawlerLogService
+        CrawlerLogService crawlerLogService,
+        StagedBrandLogoService stagedBrandLogoService
     ) {
         this.brandProfileService = brandProfileService;
         this.appSettingService = appSettingService;
         this.crawlerLogService = crawlerLogService;
+        this.stagedBrandLogoService = stagedBrandLogoService;
     }
 
     @Scheduled(fixedDelay = 30_000)
@@ -88,6 +91,7 @@ public class BrandLogoCrawlerService {
         profile.setLogoImage(downloaded.bytes());
         profile.setLogoImageContentType(downloaded.contentType());
         brandProfileService.save(profile);
+        stagedBrandLogoService.stageFromCrawler(profile, "brand-logo", downloaded.sourceUrl(), downloaded.bytes(), downloaded.contentType());
         return true;
     }
 
@@ -114,8 +118,8 @@ public class BrandLogoCrawlerService {
         }
 
         if (downloaded == null && isRemoteImageUrl(profile.getLogoUrl())) {
-            downloaded = downloadLogo(profile.getLogoUrl());
-        }
+                downloaded = downloadLogo(profile.getLogoUrl());
+            }
         if (downloaded == null && isLocalLogoPath(profile.getLogoUrl())) {
             downloaded = loadLocalLogo(profile.getLogoUrl());
         }
@@ -191,7 +195,7 @@ public class BrandLogoCrawlerService {
                 String normalizedType = contentType.startsWith("image/")
                     ? contentType
                     : "image/svg+xml";
-                return new DownloadedLogo(bytes, normalizedType);
+                return new DownloadedLogo(bytes, normalizedType, url);
             }
         } catch (Exception ignored) {
             return null;
@@ -225,7 +229,7 @@ public class BrandLogoCrawlerService {
             if (bytes == null || bytes.length == 0 || bytes.length > LOGO_MAX_BYTES) {
                 return null;
             }
-            return new DownloadedLogo(bytes, detectContentType(path));
+            return new DownloadedLogo(bytes, detectContentType(path), path);
         } catch (Exception ignored) {
             return null;
         }
@@ -317,6 +321,6 @@ public class BrandLogoCrawlerService {
         return profile.getLogoImage() != null && profile.getLogoImage().length > 0;
     }
 
-    private record DownloadedLogo(byte[] bytes, String contentType) {
+    private record DownloadedLogo(byte[] bytes, String contentType, String sourceUrl) {
     }
 }

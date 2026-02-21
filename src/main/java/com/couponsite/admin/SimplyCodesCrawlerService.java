@@ -1,8 +1,8 @@
 package com.couponsite.admin;
 
 import com.couponsite.coupon.Coupon;
-import com.couponsite.coupon.CouponService;
 import com.couponsite.coupon.LogoCatalog;
+import com.couponsite.coupon.StagedCouponService;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
@@ -38,19 +38,19 @@ public class SimplyCodesCrawlerService {
         new StoreSeed("Grubhub", "food", LogoCatalog.forStore("Grubhub"), List.of("grubhub.com", "grubhub"))
     );
 
-    private final CouponService couponService;
+    private final StagedCouponService stagedCouponService;
     private final AppSettingService appSettingService;
     private final CrawlerSiteService crawlerSiteService;
     private final CrawlerLogService crawlerLogService;
     private final AtomicLong lastScheduledRunAt = new AtomicLong(0L);
 
     public SimplyCodesCrawlerService(
-        CouponService couponService,
+        StagedCouponService stagedCouponService,
         AppSettingService appSettingService,
         CrawlerSiteService crawlerSiteService,
         CrawlerLogService crawlerLogService
     ) {
-        this.couponService = couponService;
+        this.stagedCouponService = stagedCouponService;
         this.appSettingService = appSettingService;
         this.crawlerSiteService = crawlerSiteService;
         this.crawlerLogService = crawlerLogService;
@@ -98,7 +98,7 @@ public class SimplyCodesCrawlerService {
                     int storeUpserts = 0;
                     int storeDuplicates = 0;
                     for (Coupon coupon : parsedCoupons) {
-                        if (couponService.upsert(coupon)) {
+                        if (stagedCouponService.stageFromCrawler(coupon)) {
                             upserts++;
                             storeUpserts++;
                         } else {
@@ -188,7 +188,7 @@ public class SimplyCodesCrawlerService {
 
         int inserted = 0;
         for (Coupon coupon : fallback) {
-            if (couponService.upsert(coupon)) {
+            if (stagedCouponService.stageFromCrawler(coupon)) {
                 inserted++;
             }
         }

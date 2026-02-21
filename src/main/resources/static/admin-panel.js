@@ -17,8 +17,12 @@ const crawlerSiteBrandEnabled = document.getElementById("crawlerSiteBrandEnabled
 const crawlerSiteLogoEnabled = document.getElementById("crawlerSiteLogoEnabled");
 const saveCrawlerSiteBtn = document.getElementById("saveCrawlerSiteBtn");
 const crawlerSiteTable = document.getElementById("crawlerSiteTable");
+const stagedCouponTable = document.getElementById("stagedCouponTable");
+const postSelectedStagedBtn = document.getElementById("postSelectedStagedBtn");
 const logPanel = document.getElementById("logPanel");
 const logLang = document.getElementById("logLang");
+const crawlerReportTable = document.getElementById("crawlerReportTable");
+const stagedBrandLogoTable = document.getElementById("stagedBrandLogoTable");
 const adminLang = document.getElementById("adminLang");
 const quickThemePreset = document.getElementById("quickThemePreset");
 const couponTable = document.getElementById("couponTable");
@@ -26,11 +30,13 @@ const blogTable = document.getElementById("blogTable");
 const brandTable = document.getElementById("brandTable");
 const logoutBtn = document.getElementById("logoutBtn");
 const tabsRoot = document.getElementById("adminTabs");
+const crawlerSubTabs = document.getElementById("crawlerSubTabs");
 
 const statCoupons = document.getElementById("statCoupons");
 const statBlogs = document.getElementById("statBlogs");
 const statBrands = document.getElementById("statBrands");
 const statCrawler = document.getElementById("statCrawler");
+const brandCouponStatTable = document.getElementById("brandCouponStatTable");
 
 const contentHeroEyebrow = document.getElementById("contentHeroEyebrow");
 const contentHeroTitle = document.getElementById("contentHeroTitle");
@@ -39,6 +45,15 @@ const contentHeroBgColor = document.getElementById("contentHeroBgColor");
 const contentHeroBgColorPicker = document.getElementById("contentHeroBgColorPicker");
 const contentHeroBgImageUrl = document.getElementById("contentHeroBgImageUrl");
 const contentThemePreset = document.getElementById("contentThemePreset");
+const themeDisplayName = document.getElementById("themeDisplayName");
+const siteName = document.getElementById("siteName");
+const siteSlogan = document.getElementById("siteSlogan");
+const siteLogoText = document.getElementById("siteLogoText");
+const siteLogoImageUrl = document.getElementById("siteLogoImageUrl");
+const siteLogoImageFile = document.getElementById("siteLogoImageFile");
+const uploadSiteLogoBtn = document.getElementById("uploadSiteLogoBtn");
+const saveThemeBtn = document.getElementById("saveThemeBtn");
+const themeStatus = document.getElementById("themeStatus");
 const contentFooterTagline = document.getElementById("contentFooterTagline");
 const contentFooterAboutUrl = document.getElementById("contentFooterAboutUrl");
 const contentFooterPrivacyUrl = document.getElementById("contentFooterPrivacyUrl");
@@ -89,6 +104,16 @@ const saveAllBlogsBtn = document.getElementById("saveAllBlogsBtn");
 const blogImageFile = document.getElementById("blogImageFile");
 const uploadImageBtn = document.getElementById("uploadImageBtn");
 const blogStatus = document.getElementById("blogStatus");
+const blogContentEditor = document.getElementById("blogContentEditor");
+const blogEditorToolbar = document.getElementById("blogEditorToolbar");
+
+const seoTitle = document.getElementById("seoTitle");
+const seoDescription = document.getElementById("seoDescription");
+const seoKeywords = document.getElementById("seoKeywords");
+const seoOgImageUrl = document.getElementById("seoOgImageUrl");
+const seoCanonicalBase = document.getElementById("seoCanonicalBase");
+const saveSeoBtn = document.getElementById("saveSeoBtn");
+const seoStatus = document.getElementById("seoStatus");
 
 const adsStripEnabled = document.getElementById("adsStripEnabled");
 const adsStripText = document.getElementById("adsStripText");
@@ -112,6 +137,8 @@ let cachedBlogs = [];
 let cachedBrands = [];
 let cachedCrawlerSites = [];
 let cachedCrawlerLogs = [];
+let cachedStagedCoupons = [];
+let selectedStagedCouponIds = new Set();
 let currentLang = localStorage.getItem("admin.lang") || "en";
 
 const I18N = {
@@ -121,11 +148,17 @@ const I18N = {
     navSite: "Site",
     tabDashboard: "Dashboard",
     tabContent: "Content",
+    tabTheme: "Theme",
+    tabSeo: "SEO",
     tabCoupons: "Coupons",
     tabBrands: "Brands",
     tabBlogs: "Blogs",
     tabAds: "Ads",
     tabCrawler: "Crawler",
+    crawlerSubtabSchedule: "Schedule",
+    crawlerSubtabSites: "Sites",
+    crawlerSubtabStaging: "Staging",
+    crawlerSubtabLogs: "Logs",
     dashboardTitle: "Dashboard",
     statCouponsLabel: "Total Coupons",
     statBlogsLabel: "Published Blogs",
@@ -145,6 +178,11 @@ const I18N = {
     crawlerSectionDesc: "Coupon / Brand / Logo crawler split controls",
     crawlerSitesDesc: "Add websites and control coupon/brand/logo crawling per site",
     crawlerBuiltinHint: "Built-in: RetailMeNot / SimplyCodes can be toggled below too",
+    crawlerLogsTitle: "Crawler Logs",
+    stagedCouponsTitle: "Crawler Staging Queue",
+    stagedCouponsDesc: "Crawler data is stored here first. Select and post to main site manually.",
+    stagedCouponsHint: "Rows already posted are marked.",
+    postSelectedStagedBtn: "Post Selected to Main Site",
     logLanguage: "Log Language",
     adsStripEnabledLabel: "Enable scrolling strip ad",
     adsHomeTopEnabledLabel: "Home top ad",
@@ -194,6 +232,11 @@ const I18N = {
     tableSave: "Save",
     tableDelete: "Delete",
     tableEdit: "Edit",
+    stagedPost: "Post",
+    stagedRepost: "Repost",
+    stagedPosted: "Posted",
+    stagedPending: "Pending",
+    stagedHeaders: ["Select", "ID", "Status", "Store", "Title", "Code", "Source", "Updated", "Posted At", "Main ID", "Actions"],
     couponHeaders: ["ID", "Store", "Title", "Category", "Expires", "Code", "Clicks", "Created", "Updated", "Affiliate URL", "Logo", "Actions"],
     brandHeaders: ["ID", "Store", "Slug", "Title", "Created", "Updated", "Summary", "Official URL", "Affiliate URL", "Logo", "Hero Image", "Description", "Actions"],
     blogHeaders: ["ID", "Title", "Created", "Updated", "Summary", "Content", "Cover", "Published", "Actions"]
@@ -204,11 +247,17 @@ const I18N = {
     navSite: "站点",
     tabDashboard: "仪表盘",
     tabContent: "首页内容",
+    tabTheme: "主题",
+    tabSeo: "SEO",
     tabCoupons: "优惠券",
     tabBrands: "品牌",
     tabBlogs: "博客",
     tabAds: "广告",
     tabCrawler: "爬虫",
+    crawlerSubtabSchedule: "定时任务",
+    crawlerSubtabSites: "站点管理",
+    crawlerSubtabStaging: "中转队列",
+    crawlerSubtabLogs: "爬虫日志",
     dashboardTitle: "仪表盘",
     statCouponsLabel: "优惠券总数",
     statBlogsLabel: "已发布博客",
@@ -228,6 +277,11 @@ const I18N = {
     crawlerSectionDesc: "优惠券 / 品牌 / Logo 爬虫分模块控制",
     crawlerSitesDesc: "添加站点并按站点控制 coupon/brand/logo 抓取",
     crawlerBuiltinHint: "内置站点：RetailMeNot / SimplyCodes 也可在下方开关控制",
+    crawlerLogsTitle: "爬虫日志",
+    stagedCouponsTitle: "爬虫中间表队列",
+    stagedCouponsDesc: "爬虫数据先写入这里，再由你手动发布到主站。",
+    stagedCouponsHint: "已发布数据会有标记。",
+    postSelectedStagedBtn: "发布选中项到主站",
     logLanguage: "日志语言",
     adsStripEnabledLabel: "启用滚动条广告",
     adsHomeTopEnabledLabel: "首页顶部广告",
@@ -277,6 +331,11 @@ const I18N = {
     tableSave: "保存",
     tableDelete: "删除",
     tableEdit: "编辑",
+    stagedPost: "发布",
+    stagedRepost: "重新发布",
+    stagedPosted: "已发布",
+    stagedPending: "未发布",
+    stagedHeaders: ["选择", "ID", "状态", "店铺", "标题", "优惠码", "来源", "更新时间", "发布时间", "主站ID", "操作"],
     couponHeaders: ["ID", "店铺", "标题", "分类", "有效期", "优惠码", "点击", "创建时间", "更新时间", "联盟链接", "Logo", "操作"],
     brandHeaders: ["ID", "店铺", "Slug", "标题", "创建时间", "更新时间", "摘要", "官网链接", "联盟链接", "Logo", "主图", "描述", "操作"],
     blogHeaders: ["ID", "标题", "创建时间", "更新时间", "摘要", "内容", "封面", "发布", "操作"]
@@ -292,17 +351,37 @@ function applyAdminLanguage() {
     const el = document.getElementById(id);
     if (el) el.textContent = text;
   };
+  const setCheckboxLabel = (id, text) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const input = el.querySelector("input[type='checkbox']");
+    if (!input) {
+      el.textContent = text;
+      return;
+    }
+    while (el.firstChild) {
+      el.removeChild(el.firstChild);
+    }
+    el.appendChild(input);
+    el.appendChild(document.createTextNode(` ${text}`));
+  };
   set("adminThemeLabel", t("theme"));
   set("adminLangLabel", t("language"));
   set("navSiteLink", t("navSite"));
   set("adminLogLangLabel", t("logLanguage"));
   set("tabDashboard", t("tabDashboard"));
   set("tabContent", t("tabContent"));
+  set("tabTheme", t("tabTheme"));
+  set("tabSeo", t("tabSeo"));
   set("tabCoupons", t("tabCoupons"));
   set("tabBrands", t("tabBrands"));
   set("tabBlogs", t("tabBlogs"));
   set("tabAds", t("tabAds"));
   set("tabCrawler", t("tabCrawler"));
+  set("crawlerSubtabSchedule", t("crawlerSubtabSchedule"));
+  set("crawlerSubtabSites", t("crawlerSubtabSites"));
+  set("crawlerSubtabStaging", t("crawlerSubtabStaging"));
+  set("crawlerSubtabLogs", t("crawlerSubtabLogs"));
   set("dashboardTitle", t("dashboardTitle"));
   set("statCouponsLabel", t("statCouponsLabel"));
   set("statBlogsLabel", t("statBlogsLabel"));
@@ -320,22 +399,26 @@ function applyAdminLanguage() {
   set("adsCardBlogTitle", t("adsCardBlogTitle"));
   set("adsCardSenseTitle", t("adsCardSenseTitle"));
   set("crawlerSectionDesc", t("crawlerSectionDesc"));
+  set("crawlerLogsTitle", t("crawlerLogsTitle"));
   set("crawlerSitesDesc", t("crawlerSitesDesc"));
   set("crawlerBuiltinHint", t("crawlerBuiltinHint"));
-  set("adsStripEnabledLabel", t("adsStripEnabledLabel"));
-  set("adsHomeTopEnabledLabel", t("adsHomeTopEnabledLabel"));
-  set("adsHomeMidEnabledLabel", t("adsHomeMidEnabledLabel"));
-  set("adsHomeSideLeftEnabledLabel", t("adsHomeSideLeftEnabledLabel"));
-  set("adsHomeSideRightEnabledLabel", t("adsHomeSideRightEnabledLabel"));
-  set("adsHomeBottomEnabledLabel", t("adsHomeBottomEnabledLabel"));
-  set("adsBlogTopEnabledLabel", t("adsBlogTopEnabledLabel"));
-  set("adsBlogInlineEnabledLabel", t("adsBlogInlineEnabledLabel"));
-  set("adsBlogBottomEnabledLabel", t("adsBlogBottomEnabledLabel"));
-  set("couponCrawlerEnabledLabel", t("couponCrawlerEnabledLabel"));
+  set("stagedCouponsTitle", t("stagedCouponsTitle"));
+  set("stagedCouponsDesc", t("stagedCouponsDesc"));
+  set("stagedCouponsHint", t("stagedCouponsHint"));
+  setCheckboxLabel("adsStripEnabledLabel", t("adsStripEnabledLabel"));
+  setCheckboxLabel("adsHomeTopEnabledLabel", t("adsHomeTopEnabledLabel"));
+  setCheckboxLabel("adsHomeMidEnabledLabel", t("adsHomeMidEnabledLabel"));
+  setCheckboxLabel("adsHomeSideLeftEnabledLabel", t("adsHomeSideLeftEnabledLabel"));
+  setCheckboxLabel("adsHomeSideRightEnabledLabel", t("adsHomeSideRightEnabledLabel"));
+  setCheckboxLabel("adsHomeBottomEnabledLabel", t("adsHomeBottomEnabledLabel"));
+  setCheckboxLabel("adsBlogTopEnabledLabel", t("adsBlogTopEnabledLabel"));
+  setCheckboxLabel("adsBlogInlineEnabledLabel", t("adsBlogInlineEnabledLabel"));
+  setCheckboxLabel("adsBlogBottomEnabledLabel", t("adsBlogBottomEnabledLabel"));
+  setCheckboxLabel("couponCrawlerEnabledLabel", t("couponCrawlerEnabledLabel"));
   set("couponCrawlerIntervalLabel", t("couponCrawlerIntervalLabel"));
-  set("brandCrawlerEnabledLabel", t("brandCrawlerEnabledLabel"));
+  setCheckboxLabel("brandCrawlerEnabledLabel", t("brandCrawlerEnabledLabel"));
   set("brandCrawlerIntervalLabel", t("brandCrawlerIntervalLabel"));
-  set("brandLogoCrawlerEnabledLabel", t("brandLogoCrawlerEnabledLabel"));
+  setCheckboxLabel("brandLogoCrawlerEnabledLabel", t("brandLogoCrawlerEnabledLabel"));
   set("brandLogoCrawlerIntervalLabel", t("brandLogoCrawlerIntervalLabel"));
   const couponTitleEl = document.querySelector('[data-section="coupons"] .section-head-admin h3');
   if (couponTitleEl) couponTitleEl.textContent = t("couponMgmt");
@@ -345,10 +428,8 @@ function applyAdminLanguage() {
   if (blogTitleEl) blogTitleEl.textContent = t("blogMgmt");
   const adsTitleEl = document.querySelector('[data-section="ads"] .section-head-admin h3');
   if (adsTitleEl) adsTitleEl.textContent = t("adsMgmt");
-  const crawlerTitleEl = document.querySelector('[data-section="crawler"] .section-head-admin h3');
-  if (crawlerTitleEl) crawlerTitleEl.textContent = t("crawler");
-  const crawlerSitesTitleEl = document.querySelector('[data-section="crawler"] .section-head-admin[style] h3');
-  if (crawlerSitesTitleEl) crawlerSitesTitleEl.textContent = t("crawlerSites");
+  set("crawlerMainTitle", t("crawler"));
+  set("crawlerSitesTitle", t("crawlerSites"));
   if (saveCrawlerBtn) saveCrawlerBtn.textContent = t("save");
   if (saveContentBtn) saveContentBtn.textContent = currentLang === "zh" ? "保存首页内容" : "Save Hero Content";
   if (uploadHeroImageBtn) uploadHeroImageBtn.textContent = currentLang === "zh" ? "上传 Hero 图片" : "Upload Hero Image";
@@ -357,6 +438,7 @@ function applyAdminLanguage() {
   if (runCouponCrawlerBtn) runCouponCrawlerBtn.textContent = currentLang === "zh" ? "运行优惠券爬虫" : "Run Coupon Crawler";
   if (runBrandCrawlerBtn) runBrandCrawlerBtn.textContent = currentLang === "zh" ? "运行品牌爬虫" : "Run Brand Crawler";
   if (runBrandLogoCrawlerBtn) runBrandLogoCrawlerBtn.textContent = currentLang === "zh" ? "运行品牌 Logo 爬虫" : "Run Brand Logo Crawler";
+  if (postSelectedStagedBtn) postSelectedStagedBtn.textContent = t("postSelectedStagedBtn");
   if (saveCrawlerSiteBtn && !saveCrawlerSiteBtn.dataset.editId) saveCrawlerSiteBtn.textContent = t("addCrawlerSite");
   if (saveCouponBtn && !saveCouponBtn.dataset.editId) saveCouponBtn.textContent = t("addCoupon");
   if (saveBrandBtn && !saveBrandBtn.dataset.editId) saveBrandBtn.textContent = t("addBrand");
@@ -389,16 +471,168 @@ const sortState = {
 const dirtyCouponIds = new Set();
 const dirtyBrandIds = new Set();
 const dirtyBlogIds = new Set();
+const tableViewState = {
+  coupons: { page: 1, size: 50, q: "", from: "", to: "", extra: "all" },
+  brands: { page: 1, size: 50, q: "", from: "", to: "", extra: "all" },
+  blogs: { page: 1, size: 50, q: "", from: "", to: "", extra: "all" },
+  crawlerSites: { page: 1, size: 50, q: "", from: "", to: "", extra: "all" },
+  stagedCoupons: { page: 1, size: 50, q: "", from: "", to: "", extra: "all" }
+};
+
+function formatDateInput(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toISOString().slice(0, 10);
+}
+
+function inDateRange(value, from, to) {
+  if ((!from || from === "") && (!to || to === "")) return true;
+  const current = new Date(value);
+  if (Number.isNaN(current.getTime())) return false;
+  if (from) {
+    const fromDate = new Date(`${from}T00:00:00`);
+    if (current < fromDate) return false;
+  }
+  if (to) {
+    const toDate = new Date(`${to}T23:59:59`);
+    if (current > toDate) return false;
+  }
+  return true;
+}
+
+function paginateRows(rows, state) {
+  const total = rows.length;
+  const pages = Math.max(1, Math.ceil(total / state.size));
+  state.page = Math.min(state.page, pages);
+  const start = (state.page - 1) * state.size;
+  return { rows: rows.slice(start, start + state.size), total, pages };
+}
+
+function ensureTableControls(tableId, state, options = {}) {
+  const table = document.getElementById(tableId);
+  if (!table) return null;
+  const wrap = table.closest(".table-wrap");
+  if (!wrap) return null;
+  const id = `${tableId}Controls`;
+  let controls = document.getElementById(id);
+  if (!controls) {
+    controls = document.createElement("div");
+    controls.id = id;
+    controls.className = "table-controls";
+    wrap.parentNode.insertBefore(controls, wrap);
+  }
+  const extraOptions = options.extraOptions || [];
+  const extraHtml = extraOptions.length
+    ? `<select data-key="extra">${extraOptions.map(item => `<option value="${item.value}" ${state.extra === item.value ? "selected" : ""}>${item.label}</option>`).join("")}</select>`
+    : "";
+  controls.innerHTML = `
+    <input type="text" placeholder="${options.searchPlaceholder || "Search"}" value="${state.q || ""}" data-key="q">
+    <label>From <input type="date" value="${state.from || ""}" data-key="from"></label>
+    <label>To <input type="date" value="${state.to || ""}" data-key="to"></label>
+    ${extraHtml}
+    <select data-key="size">
+      <option value="50" ${state.size === 50 ? "selected" : ""}>50 / page</option>
+      <option value="100" ${state.size === 100 ? "selected" : ""}>100 / page</option>
+      <option value="200" ${state.size === 200 ? "selected" : ""}>200 / page</option>
+    </select>
+    <button class="admin-mini-btn" type="button" data-key="prev">Prev</button>
+    <span data-key="pageInfo"></span>
+    <button class="admin-mini-btn" type="button" data-key="next">Next</button>
+  `;
+  return controls;
+}
 
 function showTab(tab) {
   document.querySelectorAll(".admin-tab").forEach(btn => btn.classList.toggle("active", btn.dataset.tab === tab));
   document.querySelectorAll("[data-section]").forEach(section => section.classList.toggle("hidden", section.dataset.section !== tab));
 }
 
+function showCrawlerTab(tab) {
+  document.querySelectorAll(".admin-subtab").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.crawlerTab === tab);
+  });
+  document.querySelectorAll("[data-crawler-section]").forEach(section => {
+    section.classList.toggle("hidden", section.dataset.crawlerSection !== tab);
+  });
+}
+
 tabsRoot.addEventListener("click", event => {
   const btn = event.target.closest(".admin-tab");
   if (!btn) return;
   showTab(btn.dataset.tab);
+});
+if (crawlerSubTabs) {
+  crawlerSubTabs.addEventListener("click", event => {
+    const btn = event.target.closest(".admin-subtab");
+    if (!btn) return;
+    showCrawlerTab(btn.dataset.crawlerTab);
+  });
+}
+
+document.addEventListener("change", event => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+  const controls = target.closest(".table-controls");
+  if (!controls) return;
+  const stateKey = controls.id.replace("Controls", "").replace("stagedCouponTable", "stagedCoupons").replace("crawlerSiteTable", "crawlerSites").replace("couponTable", "coupons").replace("brandTable", "brands").replace("blogTable", "blogs");
+  const state = tableViewState[stateKey];
+  if (!state) return;
+  const key = target.dataset.key;
+  if (!key) return;
+  if (key === "size") {
+    state.size = Number(target.value || 50);
+    state.page = 1;
+  } else if (key === "from" || key === "to" || key === "extra") {
+    state[key] = target.value || "";
+    state.page = 1;
+  }
+  if (stateKey === "coupons") renderCouponRows(cachedCoupons);
+  if (stateKey === "brands") renderBrandRows(cachedBrands);
+  if (stateKey === "blogs") renderBlogRows(cachedBlogs);
+  if (stateKey === "crawlerSites") renderCrawlerSites(cachedCrawlerSites);
+  if (stateKey === "stagedCoupons") renderStagedCouponRows(cachedStagedCoupons);
+});
+
+document.addEventListener("input", event => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+  const controls = target.closest(".table-controls");
+  if (!controls) return;
+  if (target.dataset.key !== "q") return;
+  const stateKey = controls.id.replace("Controls", "").replace("stagedCouponTable", "stagedCoupons").replace("crawlerSiteTable", "crawlerSites").replace("couponTable", "coupons").replace("brandTable", "brands").replace("blogTable", "blogs");
+  const state = tableViewState[stateKey];
+  if (!state) return;
+  state.q = target.value || "";
+  state.page = 1;
+  if (stateKey === "coupons") renderCouponRows(cachedCoupons);
+  if (stateKey === "brands") renderBrandRows(cachedBrands);
+  if (stateKey === "blogs") renderBlogRows(cachedBlogs);
+  if (stateKey === "crawlerSites") renderCrawlerSites(cachedCrawlerSites);
+  if (stateKey === "stagedCoupons") renderStagedCouponRows(cachedStagedCoupons);
+});
+
+document.addEventListener("click", event => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+  const controls = target.closest(".table-controls");
+  if (!controls) return;
+  const stateKey = controls.id.replace("Controls", "").replace("stagedCouponTable", "stagedCoupons").replace("crawlerSiteTable", "crawlerSites").replace("couponTable", "coupons").replace("brandTable", "brands").replace("blogTable", "blogs");
+  const state = tableViewState[stateKey];
+  if (!state) return;
+  const key = target.dataset.key;
+  if (key === "prev") {
+    state.page = Math.max(1, state.page - 1);
+  } else if (key === "next") {
+    state.page += 1;
+  } else {
+    return;
+  }
+  if (stateKey === "coupons") renderCouponRows(cachedCoupons);
+  if (stateKey === "brands") renderBrandRows(cachedBrands);
+  if (stateKey === "blogs") renderBlogRows(cachedBlogs);
+  if (stateKey === "crawlerSites") renderCrawlerSites(cachedCrawlerSites);
+  if (stateKey === "stagedCoupons") renderStagedCouponRows(cachedStagedCoupons);
 });
 
 async function adminFetch(url, options = {}) {
@@ -529,12 +763,41 @@ async function loadCrawler() {
   brandLogoCrawlerIntervalMinutes.value = Math.max(1, Number(settings.brandLogoCrawlerIntervalMinutes || 30));
   cachedCrawlerLogs = await (await adminFetch("/api/admin/logs")).json();
   renderCrawlerLogs();
+  await loadCrawlerReport();
   statCrawler.textContent = [
-    `C:${couponCrawlerEnabled.checked ? "on" : "off"}(${couponCrawlerIntervalMinutes.value}m)`,
-    `B:${brandCrawlerEnabled.checked ? "on" : "off"}(${brandCrawlerIntervalMinutes.value}m)`,
-    `L:${brandLogoCrawlerEnabled.checked ? "on" : "off"}(${brandLogoCrawlerIntervalMinutes.value}m)`
-  ].join(" ");
-  await loadCrawlerSites();
+    `Coupon crawler: ${couponCrawlerEnabled.checked ? "enabled" : "disabled"} (every ${couponCrawlerIntervalMinutes.value} min)`,
+    `Brand crawler: ${brandCrawlerEnabled.checked ? "enabled" : "disabled"} (every ${brandCrawlerIntervalMinutes.value} min)`,
+    `Logo crawler: ${brandLogoCrawlerEnabled.checked ? "enabled" : "disabled"} (every ${brandLogoCrawlerIntervalMinutes.value} min)`
+  ].join(" | ");
+  await Promise.all([loadCrawlerSites(), loadStagedCoupons()]);
+}
+
+async function loadCrawlerReport() {
+  if (!crawlerReportTable) return;
+  const data = await (await adminFetch("/api/admin/crawler/report")).json();
+  const rows = data.sites || [];
+  crawlerReportTable.innerHTML = `<thead><tr>
+    <th>Site</th><th>Staged Coupons</th><th>Brands</th><th>Logos</th>
+  </tr></thead><tbody>${
+    rows.map(r => `<tr><td>${r.siteName || r.siteKey}</td><td>${r.stagedCouponCount ?? 0}</td><td>${r.brandCount ?? 0}</td><td>${r.logoCount ?? 0}</td></tr>`).join("")
+  }</tbody><tfoot><tr><th>Total</th><th>${data.totalStagedCoupons ?? 0}</th><th>${data.totalBrands ?? 0}</th><th>${data.totalStagedLogos ?? 0}</th></tr></tfoot>`;
+  await loadStagedBrandLogos();
+}
+
+async function loadStagedBrandLogos() {
+  if (!stagedBrandLogoTable) return;
+  const data = await (await adminFetch("/api/admin/staged-brand-logos")).json();
+  stagedBrandLogoTable.innerHTML = `<thead><tr><th>ID</th><th>Store</th><th>Source Site</th><th>Source URL</th><th>Logo</th><th>Updated</th></tr></thead><tbody>${
+    data.map(item => `
+      <tr>
+        <td>${item.id}</td>
+        <td>${item.storeName || ""}</td>
+        <td>${item.sourceSiteKey || ""}</td>
+        <td class="cut-cell">${item.sourceUrl || ""}</td>
+        <td><img src="${item.imageUrl}" alt="logo" style="width:38px;height:38px;object-fit:contain;border:1px solid #d7e3f3;border-radius:8px;padding:3px;background:#fff;"></td>
+        <td>${formatDateTime(item.updatedAt)}</td>
+      </tr>`).join("")
+  }</tbody>`;
 }
 
 function translateLogMessage(message) {
@@ -606,10 +869,22 @@ function clearCrawlerSiteForm() {
 }
 
 function renderCrawlerSites(rows) {
+  const stateView = tableViewState.crawlerSites;
+  const controls = ensureTableControls("crawlerSiteTable", stateView, {
+    searchPlaceholder: "Search key/name/url"
+  });
+  const filteredRows = (rows || []).filter(site => {
+    if (!inDateRange(site.createdAt, stateView.from, stateView.to)) return false;
+    const q = (stateView.q || "").trim().toLowerCase();
+    if (!q) return true;
+    const merged = `${site.siteKey || ""} ${site.siteName || ""} ${site.baseUrl || ""}`.toLowerCase();
+    return merged.includes(q);
+  });
+  const page = paginateRows(filteredRows, stateView);
   const headers = t("crawlerHeaders");
   crawlerSiteTable.innerHTML = `<thead><tr>
     <th>${headers[0]}</th><th>${headers[1]}</th><th>${headers[2]}</th><th>${headers[3]}</th><th>${headers[4]}</th><th>${headers[5]}</th><th>${headers[6]}</th><th>${headers[7]}</th><th>${headers[8]}</th>
-  </tr></thead><tbody>${rows.map(site => `
+  </tr></thead><tbody>${page.rows.map(site => `
     <tr data-id="${site.id}">
       <td>${site.id}</td>
       <td>${site.siteKey}</td>
@@ -622,11 +897,100 @@ function renderCrawlerSites(rows) {
       <td><button class="admin-mini-btn" data-edit-site="${site.id}">${t("tableEdit")}</button> <button class="admin-mini-btn" data-del-site="${site.id}">${t("tableDelete")}</button></td>
     </tr>
   `).join("")}</tbody>`;
+  if (controls) {
+    const pageInfo = controls.querySelector('[data-key="pageInfo"]');
+    if (pageInfo) pageInfo.textContent = `${stateView.page}/${page.pages} (${page.total})`;
+  }
 }
 
 async function loadCrawlerSites() {
   cachedCrawlerSites = await (await adminFetch("/api/admin/crawler/sites")).json();
   renderCrawlerSites(cachedCrawlerSites);
+}
+
+function renderStagedCouponRows(rows) {
+  if (!stagedCouponTable) return;
+  const stateView = tableViewState.stagedCoupons;
+  const controls = ensureTableControls("stagedCouponTable", stateView, {
+    searchPlaceholder: "Search store/title/code/source",
+    extraOptions: [
+      { value: "all", label: "All statuses" },
+      { value: "posted", label: "Posted" },
+      { value: "pending", label: "Pending" }
+    ]
+  });
+  const filteredRows = (rows || []).filter(c => {
+    if (!inDateRange(c.updatedAt, stateView.from, stateView.to)) return false;
+    if (stateView.extra === "posted" && !c.posted) return false;
+    if (stateView.extra === "pending" && c.posted) return false;
+    const q = (stateView.q || "").trim().toLowerCase();
+    if (!q) return true;
+    const merged = `${c.store || ""} ${c.title || ""} ${c.couponCode || ""} ${c.source || ""}`.toLowerCase();
+    return merged.includes(q);
+  });
+  const page = paginateRows(filteredRows, stateView);
+  const headers = t("stagedHeaders");
+  stagedCouponTable.innerHTML = `<thead><tr>
+    <th><input type="checkbox" id="selectAllStaged"></th><th>${headers[1]}</th><th>${headers[2]}</th><th>${headers[3]}</th><th>${headers[4]}</th><th>${headers[5]}</th><th>${headers[6]}</th><th>${headers[7]}</th><th>${headers[8]}</th><th>${headers[9]}</th><th>${headers[10]}</th>
+  </tr></thead><tbody>${page.rows.map(c => {
+    const checked = selectedStagedCouponIds.has(c.id) ? "checked" : "";
+    const statusText = c.posted ? t("stagedPosted") : t("stagedPending");
+    const statusClass = c.posted ? "staged-status posted" : "staged-status pending";
+    return `<tr data-id="${c.id}">
+      <td><input type="checkbox" data-staged-select="${c.id}" ${checked}></td>
+      <td>${c.id}</td>
+      <td><span class="${statusClass}">${statusText}</span></td>
+      <td>${c.store || ""}</td>
+      <td>${c.title || ""}</td>
+      <td>${c.couponCode || ""}</td>
+      <td>${c.source || ""}</td>
+      <td>${formatDateTime(c.updatedAt)}</td>
+      <td>${formatDateTime(c.postedAt)}</td>
+      <td>${c.postedCouponId || ""}</td>
+      <td><button class="admin-mini-btn" data-post-staged="${c.id}">${c.posted ? t("stagedRepost") : t("stagedPost")}</button></td>
+    </tr>`;
+  }).join("")}</tbody>`;
+  const selectAll = stagedCouponTable.querySelector("#selectAllStaged");
+  if (selectAll) {
+    const pageIds = page.rows.map(item => item.id);
+    selectAll.checked = pageIds.length > 0 && pageIds.every(id => selectedStagedCouponIds.has(id));
+    selectAll.addEventListener("change", () => {
+      pageIds.forEach(id => {
+        if (selectAll.checked) {
+          selectedStagedCouponIds.add(id);
+        } else {
+          selectedStagedCouponIds.delete(id);
+        }
+      });
+      renderStagedCouponRows(cachedStagedCoupons);
+    });
+  }
+  if (controls) {
+    const pageInfo = controls.querySelector('[data-key="pageInfo"]');
+    if (pageInfo) pageInfo.textContent = `${stateView.page}/${page.pages} (${page.total})`;
+  }
+}
+
+async function loadStagedCoupons() {
+  if (!stagedCouponTable) return;
+  cachedStagedCoupons = await (await adminFetch("/api/admin/staged-coupons")).json();
+  const validIds = new Set(cachedStagedCoupons.map(c => c.id));
+  selectedStagedCouponIds = new Set(Array.from(selectedStagedCouponIds).filter(id => validIds.has(id)));
+  renderStagedCouponRows(cachedStagedCoupons);
+}
+
+async function postSelectedStagedCoupons() {
+  if (!selectedStagedCouponIds.size) {
+    crawlerStatus.textContent = currentLang === "zh" ? "请先选择要发布的数据" : "Please select staged rows first";
+    return;
+  }
+  const response = await adminFetch("/api/admin/staged-coupons/post-batch", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ids: Array.from(selectedStagedCouponIds) })
+  });
+  crawlerStatus.textContent = await response.text();
+  await Promise.all([loadStagedCoupons(), loadCoupons()]);
 }
 
 async function saveCrawlerSite() {
@@ -656,6 +1020,11 @@ async function saveCrawlerSite() {
 async function loadContent() {
   const data = await (await adminFetch("/api/admin/content")).json();
   contentThemePreset.value = data.themePreset || "scheme-a";
+  themeDisplayName.value = data.themeDisplayName || "";
+  siteName.value = data.siteName || "";
+  siteSlogan.value = data.siteSlogan || "";
+  siteLogoText.value = data.siteLogoText || "";
+  siteLogoImageUrl.value = data.siteLogoImageUrl || "";
   if (quickThemePreset) {
     quickThemePreset.value = contentThemePreset.value;
   }
@@ -681,6 +1050,11 @@ async function saveContent() {
   contentStatus.textContent = t("saving");
   const body = {
     themePreset: contentThemePreset.value || "scheme-a",
+    themeDisplayName: themeDisplayName.value,
+    siteName: siteName.value,
+    siteSlogan: siteSlogan.value,
+    siteLogoText: siteLogoText.value,
+    siteLogoImageUrl: siteLogoImageUrl.value,
     heroEyebrow: contentHeroEyebrow.value,
     heroTitle: contentHeroTitle.value,
     heroSubtitle: contentHeroSubtitle.value,
@@ -770,7 +1144,7 @@ async function runCrawler(endpoint, title) {
   crawlerStatus.textContent = `${t("running")} ${title}...`;
   const response = await adminFetch(endpoint, { method: "POST" });
   crawlerStatus.textContent = await response.text();
-  await Promise.all([loadCrawler(), loadCoupons(), loadBrands()]);
+  await Promise.all([loadCrawler(), loadCoupons(), loadBrands(), loadStagedCoupons()]);
 }
 
 function clearCouponForm() {
@@ -797,14 +1171,34 @@ async function saveCouponRowById(id) {
 }
 
 function renderCouponRows(coupons) {
+  const stateView = tableViewState.coupons;
+  const controls = ensureTableControls("couponTable", stateView, {
+    searchPlaceholder: "Search store/title/category/code",
+    extraOptions: [
+      { value: "all", label: "All statuses" },
+      { value: "active", label: "Active" },
+      { value: "expired", label: "Expired" }
+    ]
+  });
+  const filteredCoupons = (coupons || []).filter(c => {
+    const q = (stateView.q || "").trim().toLowerCase();
+    const isExpired = !!c.expired || (c.expires && c.expires < new Date().toISOString().slice(0, 10));
+    if (stateView.extra === "active" && isExpired) return false;
+    if (stateView.extra === "expired" && !isExpired) return false;
+    if (!inDateRange(c.createdAt, stateView.from, stateView.to)) return false;
+    if (!q) return true;
+    const merged = `${c.store || ""} ${c.title || ""} ${c.category || ""} ${c.couponCode || ""}`.toLowerCase();
+    return merged.includes(q);
+  });
   const headers = t("couponHeaders");
   const state = sortState.coupons;
-  const rows = sortedCopy(coupons, state, {
+  const rows = sortedCopy(filteredCoupons, state, {
     id: (a, b) => Number(a.id || 0) - Number(b.id || 0),
     clickCount: (a, b) => Number(a.clickCount || 0) - Number(b.clickCount || 0),
     createdAt: (a, b) => toTimestamp(a.createdAt) - toTimestamp(b.createdAt),
     updatedAt: (a, b) => toTimestamp(a.updatedAt) - toTimestamp(b.updatedAt)
   });
+  const page = paginateRows(rows, stateView);
   couponTable.innerHTML = `<thead><tr>
     <th data-sort="id">${sortLabel(headers[0], state, "id")}</th>
     <th data-sort="store">${sortLabel(headers[1], state, "store")}</th>
@@ -816,7 +1210,7 @@ function renderCouponRows(coupons) {
     <th data-sort="createdAt">${sortLabel(headers[7], state, "createdAt")}</th>
     <th data-sort="updatedAt">${sortLabel(headers[8], state, "updatedAt")}</th>
     <th>${headers[9]}</th><th>${headers[10]}</th><th>${headers[11]}</th>
-  </tr></thead><tbody>${rows.map(c => `
+  </tr></thead><tbody>${page.rows.map(c => `
     <tr data-id='${c.id}'>
       <td>${c.id}</td>
       <td class='editable-cell' data-field='store'>${c.store || ""}</td>
@@ -830,7 +1224,11 @@ function renderCouponRows(coupons) {
       <td class='editable-cell cut-cell' data-field='affiliateUrl'>${c.affiliateUrl || ""}</td>
       <td class='editable-cell cut-cell' data-field='logoUrl'>${c.logoUrl || ""}</td>
       <td><button class='admin-mini-btn' data-save-coupon='${c.id}'>${t("tableSave")}</button> <button class='admin-mini-btn' data-del-coupon='${c.id}'>${t("tableDelete")}</button></td>
-    </tr>`).join("")}</tbody>`;
+  </tr>`).join("")}</tbody>`;
+  if (controls) {
+    const pageInfo = controls.querySelector('[data-key="pageInfo"]');
+    if (pageInfo) pageInfo.textContent = `${stateView.page}/${page.pages} (${page.total})`;
+  }
 }
 
 async function loadCoupons() {
@@ -879,13 +1277,25 @@ async function saveBrandRowById(id) {
 }
 
 function renderBrandRows(brands) {
+  const stateView = tableViewState.brands;
+  const controls = ensureTableControls("brandTable", stateView, {
+    searchPlaceholder: "Search store/slug/title"
+  });
+  const filteredBrands = (brands || []).filter(b => {
+    if (!inDateRange(b.createdAt, stateView.from, stateView.to)) return false;
+    const q = (stateView.q || "").trim().toLowerCase();
+    if (!q) return true;
+    const merged = `${b.storeName || ""} ${b.slug || ""} ${b.title || ""}`.toLowerCase();
+    return merged.includes(q);
+  });
   const headers = t("brandHeaders");
   const state = sortState.brands;
-  const rows = sortedCopy(brands, state, {
+  const rows = sortedCopy(filteredBrands, state, {
     id: (a, b) => Number(a.id || 0) - Number(b.id || 0),
     createdAt: (a, b) => toTimestamp(a.createdAt) - toTimestamp(b.createdAt),
     updatedAt: (a, b) => toTimestamp(a.updatedAt) - toTimestamp(b.updatedAt)
   });
+  const page = paginateRows(rows, stateView);
   brandTable.innerHTML = `<thead><tr>
     <th data-sort="id">${sortLabel(headers[0], state, "id")}</th>
     <th data-sort="storeName">${sortLabel(headers[1], state, "storeName")}</th>
@@ -894,7 +1304,7 @@ function renderBrandRows(brands) {
     <th data-sort="createdAt">${sortLabel(headers[4], state, "createdAt")}</th>
     <th data-sort="updatedAt">${sortLabel(headers[5], state, "updatedAt")}</th>
     <th>${headers[6]}</th><th>${headers[7]}</th><th>${headers[8]}</th><th>${headers[9]}</th><th>${headers[10]}</th><th>${headers[11]}</th><th>${headers[12]}</th>
-  </tr></thead><tbody>${rows.map(b => `
+  </tr></thead><tbody>${page.rows.map(b => `
     <tr data-id='${b.id}'>
       <td>${b.id}</td>
       <td class='editable-cell' data-field='storeName'>${b.storeName || ""}</td>
@@ -909,7 +1319,11 @@ function renderBrandRows(brands) {
       <td class='editable-cell cut-cell' data-field='heroImageUrl'>${b.heroImageUrl || ""}</td>
       <td class='editable-cell cut-cell' data-field='description'>${b.description || ""}</td>
       <td><button class='admin-mini-btn' data-save-brand='${b.id}'>${t("tableSave")}</button> <button class='admin-mini-btn' data-del-brand='${b.id}'>${t("tableDelete")}</button></td>
-    </tr>`).join("")}</tbody>`;
+  </tr>`).join("")}</tbody>`;
+  if (controls) {
+    const pageInfo = controls.querySelector('[data-key="pageInfo"]');
+    if (pageInfo) pageInfo.textContent = `${stateView.page}/${page.pages} (${page.total})`;
+  }
 }
 
 async function loadBrands() {
@@ -940,6 +1354,9 @@ function clearBlogForm() {
   saveBlogBtn.dataset.editId = "";
   saveBlogBtn.textContent = t("addBlog");
   [blogTitle, blogSummary, blogCover, blogContent].forEach(el => el.value = "");
+  if (blogContentEditor) {
+    blogContentEditor.innerHTML = "";
+  }
   blogPublished.value = "true";
 }
 
@@ -960,20 +1377,39 @@ async function saveBlogRowById(id) {
 }
 
 function renderBlogRows(blogs) {
+  const stateView = tableViewState.blogs;
+  const controls = ensureTableControls("blogTable", stateView, {
+    searchPlaceholder: "Search title/summary/content",
+    extraOptions: [
+      { value: "all", label: "All statuses" },
+      { value: "published", label: "Published" },
+      { value: "draft", label: "Draft" }
+    ]
+  });
+  const filteredBlogs = (blogs || []).filter(b => {
+    if (!inDateRange(b.createdAt, stateView.from, stateView.to)) return false;
+    if (stateView.extra === "published" && !b.published) return false;
+    if (stateView.extra === "draft" && b.published) return false;
+    const q = (stateView.q || "").trim().toLowerCase();
+    if (!q) return true;
+    const merged = `${b.title || ""} ${b.summary || ""} ${b.content || ""}`.toLowerCase();
+    return merged.includes(q);
+  });
   const headers = t("blogHeaders");
   const state = sortState.blogs;
-  const rows = sortedCopy(blogs, state, {
+  const rows = sortedCopy(filteredBlogs, state, {
     id: (a, b) => Number(a.id || 0) - Number(b.id || 0),
     createdAt: (a, b) => toTimestamp(a.createdAt) - toTimestamp(b.createdAt),
     updatedAt: (a, b) => toTimestamp(a.updatedAt) - toTimestamp(b.updatedAt)
   });
+  const page = paginateRows(rows, stateView);
   blogTable.innerHTML = `<thead><tr>
     <th data-sort="id">${sortLabel(headers[0], state, "id")}</th>
     <th data-sort="title">${sortLabel(headers[1], state, "title")}</th>
     <th data-sort="createdAt">${sortLabel(headers[2], state, "createdAt")}</th>
     <th data-sort="updatedAt">${sortLabel(headers[3], state, "updatedAt")}</th>
     <th>${headers[4]}</th><th>${headers[5]}</th><th>${headers[6]}</th><th>${headers[7]}</th><th>${headers[8]}</th>
-  </tr></thead><tbody>${rows.map(b => `
+  </tr></thead><tbody>${page.rows.map(b => `
     <tr data-id='${b.id}'>
       <td>${b.id}</td>
       <td class='editable-cell' data-field='title'>${b.title || ""}</td>
@@ -984,7 +1420,11 @@ function renderBlogRows(blogs) {
       <td class='editable-cell cut-cell' data-field='coverImageUrl'>${b.coverImageUrl || ""}</td>
       <td class='editable-cell' data-field='published'>${b.published}</td>
       <td><button class='admin-mini-btn' data-save-blog='${b.id}'>${t("tableSave")}</button> <button class='admin-mini-btn' data-del-blog='${b.id}'>${t("tableDelete")}</button></td>
-    </tr>`).join("")}</tbody>`;
+  </tr>`).join("")}</tbody>`;
+  if (controls) {
+    const pageInfo = controls.querySelector('[data-key="pageInfo"]');
+    if (pageInfo) pageInfo.textContent = `${stateView.page}/${page.pages} (${page.total})`;
+  }
 }
 
 async function loadBlogs() {
@@ -994,6 +1434,9 @@ async function loadBlogs() {
 }
 
 async function saveBlog() {
+  if (blogContentEditor) {
+    blogContent.value = blogContentEditor.innerHTML;
+  }
   const body = {
     id: saveBlogBtn.dataset.editId ? Number(saveBlogBtn.dataset.editId) : null,
     title: blogTitle.value,
@@ -1005,6 +1448,41 @@ async function saveBlog() {
   await adminFetch("/api/admin/blogs", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   clearBlogForm();
   await loadBlogs();
+}
+
+function initBlogEditor() {
+  if (!blogContentEditor || !blogEditorToolbar) return;
+  blogContentEditor.innerHTML = blogContent.value || "";
+  blogContentEditor.addEventListener("input", () => {
+    blogContent.value = blogContentEditor.innerHTML;
+  });
+  blogEditorToolbar.addEventListener("click", event => {
+    const btn = event.target.closest("[data-editor-cmd]");
+    if (!btn) return;
+    const cmd = btn.dataset.editorCmd;
+    if (cmd === "createLink") {
+      const url = window.prompt("Enter URL");
+      if (url) document.execCommand("createLink", false, url);
+      return;
+    }
+    if (cmd === "insertHTML") {
+      const html = window.prompt("Insert HTML");
+      if (html) document.execCommand("insertHTML", false, html);
+      return;
+    }
+    if (cmd === "fontSize") {
+      const size = window.prompt("Font size 1-7", "3");
+      if (size) document.execCommand("fontSize", false, size);
+      return;
+    }
+    if (cmd === "foreColor" || cmd === "hiliteColor") {
+      const color = window.prompt("Hex color, e.g. #ff0000", "#1f2937");
+      if (color) document.execCommand(cmd, false, color);
+      return;
+    }
+    document.execCommand(cmd, false);
+    blogContent.value = blogContentEditor.innerHTML;
+  });
 }
 
 async function uploadBlogImage() {
@@ -1066,6 +1544,66 @@ async function saveAds() {
     body: JSON.stringify(body)
   });
   adsStatus.textContent = response.ok ? t("save") : t("saveFailed");
+}
+
+async function loadSeo() {
+  const data = await (await adminFetch("/api/admin/seo")).json();
+  seoTitle.value = data.title || "";
+  seoDescription.value = data.description || "";
+  seoKeywords.value = data.keywords || "";
+  seoOgImageUrl.value = data.ogImageUrl || "";
+  seoCanonicalBase.value = data.canonicalBaseUrl || "";
+}
+
+async function saveSeo() {
+  seoStatus.textContent = t("saving");
+  const response = await adminFetch("/api/admin/seo", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      title: seoTitle.value,
+      description: seoDescription.value,
+      keywords: seoKeywords.value,
+      ogImageUrl: seoOgImageUrl.value,
+      canonicalBaseUrl: seoCanonicalBase.value
+    })
+  });
+  seoStatus.textContent = response.ok ? t("save") : t("saveFailed");
+}
+
+async function loadDashboard() {
+  const data = await (await adminFetch("/api/admin/dashboard")).json();
+  if (data.crawlerStatusText) {
+    statCrawler.textContent = data.crawlerStatusText;
+  }
+  const rows = data.brandCouponStats || [];
+  if (!brandCouponStatTable) return;
+  brandCouponStatTable.innerHTML = `<thead><tr><th>Brand</th><th>Coupons</th></tr></thead><tbody>${
+    rows.map(row => `<tr><td>${row.storeName || ""}</td><td>${row.couponCount ?? 0}</td></tr>`).join("")
+  }</tbody>`;
+}
+
+async function saveTheme() {
+  themeStatus.textContent = t("saving");
+  await saveContent();
+  themeStatus.textContent = t("save");
+}
+
+async function uploadSiteLogo() {
+  if (!siteLogoImageFile || !siteLogoImageFile.files.length) {
+    themeStatus.textContent = t("chooseImageFirst");
+    return;
+  }
+  const formData = new FormData();
+  formData.append("file", siteLogoImageFile.files[0]);
+  const response = await adminFetch("/api/admin/uploads/images", { method: "POST", body: formData });
+  if (!response.ok) {
+    themeStatus.textContent = t("uploadFailed");
+    return;
+  }
+  const data = await response.json();
+  siteLogoImageUrl.value = data.url;
+  themeStatus.textContent = `${t("uploadedPrefix")} ${data.url}`;
 }
 
 async function logout() {
@@ -1182,6 +1720,30 @@ crawlerSiteTable.addEventListener("click", async event => {
   await loadCrawlerSites();
 });
 
+if (stagedCouponTable) {
+  stagedCouponTable.addEventListener("click", async event => {
+    const postBtn = event.target.closest("[data-post-staged]");
+    if (postBtn) {
+      const id = Number(postBtn.dataset.postStaged);
+      const response = await adminFetch(`/api/admin/staged-coupons/post?id=${id}`, { method: "POST" });
+      if (response.ok) {
+        crawlerStatus.textContent = currentLang === "zh" ? `已发布中间数据 #${id}` : `Posted staged coupon #${id}`;
+      }
+      await Promise.all([loadStagedCoupons(), loadCoupons()]);
+      return;
+    }
+
+    const checkbox = event.target.closest("input[data-staged-select]");
+    if (!checkbox) return;
+    const id = Number(checkbox.dataset.stagedSelect);
+    if (checkbox.checked) {
+      selectedStagedCouponIds.add(id);
+    } else {
+      selectedStagedCouponIds.delete(id);
+    }
+  });
+}
+
 async function saveAllCoupons() {
   for (const id of Array.from(dirtyCouponIds)) {
     await saveCouponRowById(id);
@@ -1208,6 +1770,9 @@ saveCrawlerSiteBtn.addEventListener("click", saveCrawlerSite);
 runCouponCrawlerBtn.addEventListener("click", () => runCrawler("/api/admin/crawler/run-coupons", t("runCouponCrawler")));
 runBrandCrawlerBtn.addEventListener("click", () => runCrawler("/api/admin/crawler/run-brands", t("runBrandCrawler")));
 runBrandLogoCrawlerBtn.addEventListener("click", () => runCrawler("/api/admin/crawler/run-brand-logos", t("runLogoCrawler")));
+if (postSelectedStagedBtn) {
+  postSelectedStagedBtn.addEventListener("click", postSelectedStagedCoupons);
+}
 saveContentBtn.addEventListener("click", saveContent);
 uploadHeroImageBtn.addEventListener("click", uploadHeroImage);
 saveCouponBtn.addEventListener("click", saveCoupon);
@@ -1221,6 +1786,9 @@ clearBlogBtn.addEventListener("click", clearBlogForm);
 saveAllBlogsBtn.addEventListener("click", saveAllBlogs);
 uploadImageBtn.addEventListener("click", uploadBlogImage);
 saveAdsBtn.addEventListener("click", saveAds);
+if (saveThemeBtn) saveThemeBtn.addEventListener("click", saveTheme);
+if (uploadSiteLogoBtn) uploadSiteLogoBtn.addEventListener("click", uploadSiteLogo);
+if (saveSeoBtn) saveSeoBtn.addEventListener("click", saveSeo);
 logoutBtn.addEventListener("click", event => { event.preventDefault(); logout(); });
 if (logLang) {
   logLang.addEventListener("change", () => {
@@ -1235,6 +1803,7 @@ if (logLang) {
     renderBrandRows(cachedBrands);
     renderBlogRows(cachedBlogs);
     renderCrawlerSites(cachedCrawlerSites);
+    renderStagedCouponRows(cachedStagedCoupons);
   });
 }
 if (adminLang) {
@@ -1251,6 +1820,7 @@ if (adminLang) {
     renderBrandRows(cachedBrands);
     renderBlogRows(cachedBlogs);
     renderCrawlerSites(cachedCrawlerSites);
+    renderStagedCouponRows(cachedStagedCoupons);
   });
 }
 if (quickThemePreset) {
@@ -1272,10 +1842,12 @@ activateInlineEditing(blogTable, dirtyBlogIds);
 
 (async function init() {
   applyCheckboxLabelLayout();
+  showCrawlerTab("schedule");
+  initBlogEditor();
   applyAdminLanguage();
   const ok = await checkAuth();
   if (!ok) return;
-  await Promise.all([loadCrawler(), loadContent(), loadCoupons(), loadBrands(), loadBlogs(), loadAds()]);
+  await Promise.all([loadCrawler(), loadContent(), loadCoupons(), loadBrands(), loadBlogs(), loadAds(), loadSeo(), loadDashboard()]);
   clearCrawlerSiteForm();
   applyAdminLanguage();
 })();
