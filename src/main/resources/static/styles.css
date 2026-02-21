@@ -503,7 +503,7 @@ h1 {
     z-index: 200;
 }
 
-.hidden { display: none; }
+.hidden { display: none !important; }
 
 .modal-card {
     width: min(460px, 92vw);
