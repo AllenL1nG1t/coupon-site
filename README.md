@@ -59,8 +59,11 @@ Notes:
   - Background image (upload supported)
 - Crawler management:
   - Enable/disable scheduled crawler
+  - Enable/disable scheduled brand/logo crawler
+  - Set crawler interval (minutes) from admin panel
   - Manual run
   - Log viewing
+  - Brand logos are crawled and stored in DB (`brand_profile.logo_image`)
 
 ## Coupon Flow
 - Coupon code is hidden on list view.
@@ -81,6 +84,10 @@ Notes:
 - `GET /api/coupons?category=all&q=`
 - `POST /api/coupons/{id}/reveal`
 - `GET /api/blogs`
+- `GET /api/brands`
+- `GET /api/brands/detail?slug=`
+- `GET /api/brands/by-store?store=`
+- `GET /api/brands/logo?slug=`
 - `GET /api/ads/public`
 - `GET /api/content/public`
 

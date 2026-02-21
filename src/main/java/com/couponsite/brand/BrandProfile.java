@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import java.time.LocalDateTime;
@@ -36,6 +37,13 @@ public class BrandProfile {
 
     @Column(nullable = false)
     private String logoUrl;
+
+    @Lob
+    @Column(columnDefinition = "LONGBLOB")
+    private byte[] logoImage;
+
+    @Column
+    private String logoImageContentType;
 
     @Column(nullable = false)
     private String officialUrl;
@@ -74,6 +82,10 @@ public class BrandProfile {
     public void setHeroImageUrl(String heroImageUrl) { this.heroImageUrl = heroImageUrl; }
     public String getLogoUrl() { return logoUrl; }
     public void setLogoUrl(String logoUrl) { this.logoUrl = logoUrl; }
+    public byte[] getLogoImage() { return logoImage; }
+    public void setLogoImage(byte[] logoImage) { this.logoImage = logoImage; }
+    public String getLogoImageContentType() { return logoImageContentType; }
+    public void setLogoImageContentType(String logoImageContentType) { this.logoImageContentType = logoImageContentType; }
     public String getOfficialUrl() { return officialUrl; }
     public void setOfficialUrl(String officialUrl) { this.officialUrl = officialUrl; }
     public LocalDateTime getCreatedAt() { return createdAt; }

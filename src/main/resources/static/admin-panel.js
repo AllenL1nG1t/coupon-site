@@ -1,4 +1,6 @@
 ﻿const crawlerEnabled = document.getElementById("crawlerEnabled");
+const brandCrawlerEnabled = document.getElementById("brandCrawlerEnabled");
+const crawlerIntervalMinutes = document.getElementById("crawlerIntervalMinutes");
 const saveCrawlerBtn = document.getElementById("saveCrawlerBtn");
 const runCrawlerBtn = document.getElementById("runCrawlerBtn");
 const crawlerStatus = document.getElementById("crawlerStatus");
@@ -174,9 +176,11 @@ function readRowData(row, fields) {
 async function loadCrawler() {
   const settings = await (await adminFetch("/api/admin/settings")).json();
   crawlerEnabled.checked = settings.crawlerEnabled;
+  brandCrawlerEnabled.checked = settings.brandCrawlerEnabled ?? true;
+  crawlerIntervalMinutes.value = Math.max(1, Number(settings.crawlerIntervalMinutes || 30));
   const logs = await (await adminFetch("/api/admin/logs")).json();
   logPanel.textContent = (logs || []).map(log => `[${log.createdAt}] [${log.level}] ${log.message}`).join("\n") || "No logs yet";
-  statCrawler.textContent = settings.crawlerEnabled ? "Enabled" : "Disabled";
+  statCrawler.textContent = settings.crawlerEnabled ? `Enabled / ${crawlerIntervalMinutes.value}m` : "Disabled";
 }
 
 async function loadContent() {
@@ -225,10 +229,15 @@ async function uploadHeroImage() {
 
 async function saveCrawler() {
   crawlerStatus.textContent = "Saving...";
+  const minutes = Math.max(1, Number(crawlerIntervalMinutes.value || 30));
   const response = await adminFetch("/api/admin/settings", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ crawlerEnabled: crawlerEnabled.checked })
+    body: JSON.stringify({
+      crawlerEnabled: crawlerEnabled.checked,
+      brandCrawlerEnabled: brandCrawlerEnabled.checked,
+      crawlerIntervalMinutes: minutes
+    })
   });
   crawlerStatus.textContent = response.ok ? "Saved" : "Save failed";
   await loadCrawler();
@@ -238,7 +247,7 @@ async function runCrawler() {
   crawlerStatus.textContent = "Running...";
   const response = await adminFetch("/api/admin/crawler/run", { method: "POST" });
   crawlerStatus.textContent = await response.text();
-  await Promise.all([loadCrawler(), loadCoupons()]);
+  await Promise.all([loadCrawler(), loadCoupons(), loadBrands()]);
 }
 
 function clearCouponForm() {
@@ -590,3 +599,5 @@ activateInlineEditing(blogTable, dirtyBlogIds);
   if (!ok) return;
   await Promise.all([loadCrawler(), loadContent(), loadCoupons(), loadBrands(), loadBlogs(), loadAds()]);
 })();
+
+

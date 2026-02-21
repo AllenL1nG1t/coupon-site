@@ -32,6 +32,8 @@ CREATE TABLE IF NOT EXISTS brand_profile (
   description VARCHAR(8000) NOT NULL,
   hero_image_url VARCHAR(255) NOT NULL,
   logo_url VARCHAR(255) NOT NULL,
+  logo_image LONGBLOB,
+  logo_image_content_type VARCHAR(255),
   official_url VARCHAR(255) NOT NULL,
   slug VARCHAR(255) NOT NULL,
   store_name VARCHAR(255) NOT NULL,
@@ -82,3 +84,15 @@ SELECT 'admin', 'admin123', NOW(6), NOW(6)
 WHERE NOT EXISTS (
   SELECT 1 FROM admin_user WHERE LOWER(username) = 'admin'
 );
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'crawler.enabled', 'false', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'crawler.enabled');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'crawler.brand.enabled', 'true', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'crawler.brand.enabled');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'crawler.interval-ms', '1800000', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'crawler.interval-ms');

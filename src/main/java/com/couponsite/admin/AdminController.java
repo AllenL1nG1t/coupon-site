@@ -33,6 +33,7 @@ public class AdminController {
     private final CrawlerLogService crawlerLogService;
     private final RetailMeNotCrawlerService retailMeNotCrawlerService;
     private final SimplyCodesCrawlerService simplyCodesCrawlerService;
+    private final BrandCrawlerService brandCrawlerService;
     private final AdSettingsService adSettingsService;
     private final ContentSettingsService contentSettingsService;
     private final CouponService couponService;
@@ -44,6 +45,7 @@ public class AdminController {
         CrawlerLogService crawlerLogService,
         RetailMeNotCrawlerService retailMeNotCrawlerService,
         SimplyCodesCrawlerService simplyCodesCrawlerService,
+        BrandCrawlerService brandCrawlerService,
         AdSettingsService adSettingsService,
         ContentSettingsService contentSettingsService,
         CouponService couponService,
@@ -54,6 +56,7 @@ public class AdminController {
         this.crawlerLogService = crawlerLogService;
         this.retailMeNotCrawlerService = retailMeNotCrawlerService;
         this.simplyCodesCrawlerService = simplyCodesCrawlerService;
+        this.brandCrawlerService = brandCrawlerService;
         this.adSettingsService = adSettingsService;
         this.contentSettingsService = contentSettingsService;
         this.couponService = couponService;
@@ -68,12 +71,20 @@ public class AdminController {
 
     @GetMapping("/settings")
     public CrawlerSettingsDto settings() {
-        return new CrawlerSettingsDto(appSettingService.isCrawlerEnabled());
+        return new CrawlerSettingsDto(
+            appSettingService.isCrawlerEnabled(),
+            appSettingService.isBrandCrawlerEnabled(),
+            Math.max(1, appSettingService.getCrawlerIntervalMs() / 60_000)
+        );
     }
 
     @PutMapping("/settings")
     public CrawlerSettingsDto updateSettings(@RequestBody CrawlerSettingsDto body) {
-        return new CrawlerSettingsDto(appSettingService.setCrawlerEnabled(body.crawlerEnabled()));
+        boolean crawlerEnabled = appSettingService.setCrawlerEnabled(body.crawlerEnabled());
+        boolean brandCrawlerEnabled = appSettingService.setBrandCrawlerEnabled(body.brandCrawlerEnabled());
+        long minutes = body.crawlerIntervalMinutes() <= 0 ? 30 : body.crawlerIntervalMinutes();
+        long intervalMs = appSettingService.setCrawlerIntervalMs(minutes * 60_000);
+        return new CrawlerSettingsDto(crawlerEnabled, brandCrawlerEnabled, Math.max(1, intervalMs / 60_000));
     }
 
     @GetMapping("/logs")
@@ -85,8 +96,9 @@ public class AdminController {
     public ResponseEntity<String> runCrawler() {
         int retailCount = retailMeNotCrawlerService.crawlLatest();
         int simplyCodesCount = simplyCodesCrawlerService.crawlLatest();
-        int total = retailCount + simplyCodesCount;
-        return ResponseEntity.ok("Crawler done, retailmenot=" + retailCount + ", simplycodes=" + simplyCodesCount + ", total=" + total);
+        int brandCount = brandCrawlerService.crawlLatest();
+        int total = retailCount + simplyCodesCount + brandCount;
+        return ResponseEntity.ok("Crawler done, retailmenot=" + retailCount + ", simplycodes=" + simplyCodesCount + ", brands=" + brandCount + ", total=" + total);
     }
 
     @GetMapping("/coupons")

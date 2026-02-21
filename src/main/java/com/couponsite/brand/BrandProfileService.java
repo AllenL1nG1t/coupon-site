@@ -2,6 +2,9 @@ package com.couponsite.brand;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +31,16 @@ public class BrandProfileService {
         BrandProfile profile = brandProfileRepository.findByStoreNameIgnoreCase(store)
             .orElseThrow(() -> new IllegalArgumentException("Brand not found"));
         return toDto(profile);
+    }
+
+    public Optional<BrandLogoPayload> findLogoBySlug(String slug) {
+        return brandProfileRepository.findBySlugIgnoreCase(slug)
+            .flatMap(this::toLogoPayload);
+    }
+
+    public Optional<BrandLogoPayload> findLogoByStore(String store) {
+        return brandProfileRepository.findByStoreNameIgnoreCase(store)
+            .flatMap(this::toLogoPayload);
     }
 
     @Transactional
@@ -60,6 +73,15 @@ public class BrandProfileService {
         return brandProfileRepository.count();
     }
 
+    @Transactional
+    public BrandProfile save(BrandProfile profile) {
+        return brandProfileRepository.save(profile);
+    }
+
+    public Optional<BrandProfile> findEntityByStore(String store) {
+        return brandProfileRepository.findByStoreNameIgnoreCase(store);
+    }
+
     public String normalizeSlug(String raw) {
         String value = raw == null ? "brand" : raw.trim().toLowerCase(Locale.ROOT);
         value = value.replaceAll("[^a-z0-9]+", "-");
@@ -68,6 +90,9 @@ public class BrandProfileService {
     }
 
     private BrandProfileDto toDto(BrandProfile profile) {
+        String logoUrl = hasStoredLogo(profile)
+            ? "/api/brands/logo?slug=" + URLEncoder.encode(profile.getSlug(), StandardCharsets.UTF_8)
+            : profile.getLogoUrl();
         return new BrandProfileDto(
             profile.getId(),
             profile.getSlug(),
@@ -76,9 +101,21 @@ public class BrandProfileService {
             profile.getSummary(),
             profile.getDescription(),
             profile.getHeroImageUrl(),
-            profile.getLogoUrl(),
+            logoUrl,
             profile.getOfficialUrl()
         );
+    }
+
+    private Optional<BrandLogoPayload> toLogoPayload(BrandProfile profile) {
+        if (!hasStoredLogo(profile)) {
+            return Optional.empty();
+        }
+        String contentType = nonBlankOrDefault(profile.getLogoImageContentType(), "image/png");
+        return Optional.of(new BrandLogoPayload(profile.getLogoImage(), contentType));
+    }
+
+    private boolean hasStoredLogo(BrandProfile profile) {
+        return profile.getLogoImage() != null && profile.getLogoImage().length > 0;
     }
 
     private String nonBlankOrDefault(String value, String fallback) {
@@ -86,5 +123,8 @@ public class BrandProfileService {
             return fallback;
         }
         return value.trim();
+    }
+
+    public record BrandLogoPayload(byte[] bytes, String contentType) {
     }
 }

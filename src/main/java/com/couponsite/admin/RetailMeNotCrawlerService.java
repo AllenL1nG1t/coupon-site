@@ -8,6 +8,7 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicLong;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -26,6 +27,7 @@ public class RetailMeNotCrawlerService {
     private final CouponService couponService;
     private final AppSettingService appSettingService;
     private final CrawlerLogService crawlerLogService;
+    private final AtomicLong lastScheduledRunAt = new AtomicLong(0L);
 
     public RetailMeNotCrawlerService(
         CouponService couponService,
@@ -37,9 +39,18 @@ public class RetailMeNotCrawlerService {
         this.crawlerLogService = crawlerLogService;
     }
 
-    @Scheduled(fixedDelayString = "${crawler.fixed-delay-ms:1800000}")
+    @Scheduled(fixedDelay = 30_000)
     public void scheduledRun() {
         if (!appSettingService.isCrawlerEnabled()) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        long intervalMs = appSettingService.getCrawlerIntervalMs();
+        long lastRun = lastScheduledRunAt.get();
+        if (now - lastRun < intervalMs) {
+            return;
+        }
+        if (!lastScheduledRunAt.compareAndSet(lastRun, now)) {
             return;
         }
         crawlLatest();

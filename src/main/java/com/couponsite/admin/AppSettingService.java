@@ -2,26 +2,58 @@ package com.couponsite.admin;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 public class AppSettingService {
 
     private static final String CRAWLER_ENABLED_KEY = "crawler.enabled";
+    private static final String BRAND_CRAWLER_ENABLED_KEY = "crawler.brand.enabled";
+    private static final String CRAWLER_INTERVAL_MS_KEY = "crawler.interval-ms";
+    private static final long MIN_CRAWLER_INTERVAL_MS = 60_000L;
+    private static final long MAX_CRAWLER_INTERVAL_MS = 86_400_000L;
 
     private final AppSettingRepository appSettingRepository;
+    private final long defaultCrawlerIntervalMs;
 
-    public AppSettingService(AppSettingRepository appSettingRepository) {
+    public AppSettingService(
+        AppSettingRepository appSettingRepository,
+        @Value("${crawler.fixed-delay-ms:1800000}") long defaultCrawlerIntervalMs
+    ) {
         this.appSettingRepository = appSettingRepository;
+        this.defaultCrawlerIntervalMs = clampCrawlerInterval(defaultCrawlerIntervalMs);
     }
 
     public boolean isCrawlerEnabled() {
         return getBoolean(CRAWLER_ENABLED_KEY, false);
     }
 
+    public boolean isBrandCrawlerEnabled() {
+        return getBoolean(BRAND_CRAWLER_ENABLED_KEY, true);
+    }
+
+    public long getCrawlerIntervalMs() {
+        long raw = getLong(CRAWLER_INTERVAL_MS_KEY, defaultCrawlerIntervalMs);
+        return clampCrawlerInterval(raw);
+    }
+
     @Transactional
     public boolean setCrawlerEnabled(boolean enabled) {
         setBoolean(CRAWLER_ENABLED_KEY, enabled);
         return enabled;
+    }
+
+    @Transactional
+    public boolean setBrandCrawlerEnabled(boolean enabled) {
+        setBoolean(BRAND_CRAWLER_ENABLED_KEY, enabled);
+        return enabled;
+    }
+
+    @Transactional
+    public long setCrawlerIntervalMs(long intervalMs) {
+        long normalized = clampCrawlerInterval(intervalMs);
+        setLong(CRAWLER_INTERVAL_MS_KEY, normalized);
+        return normalized;
     }
 
     public boolean getBoolean(String key, boolean defaultValue) {
@@ -37,6 +69,19 @@ public class AppSettingService {
             .orElse(defaultValue);
     }
 
+    public long getLong(String key, long defaultValue) {
+        return appSettingRepository.findById(key)
+            .map(AppSetting::getSettingValue)
+            .map(value -> {
+                try {
+                    return Long.parseLong(value.trim());
+                } catch (NumberFormatException ex) {
+                    return defaultValue;
+                }
+            })
+            .orElse(defaultValue);
+    }
+
     @Transactional
     public void setBoolean(String key, boolean value) {
         setString(key, Boolean.toString(value));
@@ -48,6 +93,21 @@ public class AppSettingService {
         setting.setSettingKey(key);
         setting.setSettingValue(value == null ? "" : value);
         appSettingRepository.save(setting);
+    }
+
+    @Transactional
+    public void setLong(String key, long value) {
+        setString(key, Long.toString(value));
+    }
+
+    private long clampCrawlerInterval(long intervalMs) {
+        if (intervalMs < MIN_CRAWLER_INTERVAL_MS) {
+            return MIN_CRAWLER_INTERVAL_MS;
+        }
+        if (intervalMs > MAX_CRAWLER_INTERVAL_MS) {
+            return MAX_CRAWLER_INTERVAL_MS;
+        }
+        return intervalMs;
     }
 }
 

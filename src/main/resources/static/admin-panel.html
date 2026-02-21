@@ -191,10 +191,14 @@
     <section class="admin-section hidden" data-section="crawler">
         <div class="section-head-admin">
             <h3>Crawler</h3>
-            <span>RetailMeNot + SimplyCodes + fallback mode</span>
+            <span>RetailMeNot + SimplyCodes + Brand crawler</span>
         </div>
         <div class="admin-row">
             <label><input type="checkbox" id="crawlerEnabled"> Enable scheduled crawler</label>
+            <label><input type="checkbox" id="brandCrawlerEnabled"> Enable scheduled brand/logo crawler</label>
+            <label>Interval (minutes)
+                <input id="crawlerIntervalMinutes" type="number" min="1" step="1" value="30" style="width:100px;">
+            </label>
             <button id="saveCrawlerBtn" class="primary-btn">Save</button>
             <button id="runCrawlerBtn" class="primary-btn">Run Now</button>
             <span id="crawlerStatus"></span>
