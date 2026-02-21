@@ -5,6 +5,23 @@ const searchForm = document.getElementById("searchForm");
 
 let query = "";
 
+function normalizeTheme(theme) {
+  const value = (theme || "").toLowerCase();
+  if (value === "scheme-b" || value === "scheme-c") return value;
+  return "scheme-a";
+}
+
+async function applyThemeFromContent() {
+  try {
+    const response = await fetch("/api/content/public");
+    if (!response.ok) return;
+    const content = await response.json();
+    document.body.dataset.theme = normalizeTheme(content.themePreset);
+  } catch (_) {
+    // keep default theme
+  }
+}
+
 async function fetchCoupons(category = "all") {
   const params = new URLSearchParams({ category, q: query });
   const response = await fetch(`/api/coupons?${params.toString()}`);
@@ -197,6 +214,7 @@ searchForm.addEventListener("submit", async event => {
 
 (async function init() {
   try {
+    await applyThemeFromContent();
     if (pageMode === "stores") await renderStoresPage();
     if (pageMode === "categories") await renderCategoriesPage();
     if (pageMode === "cashback") await renderCashbackPage();

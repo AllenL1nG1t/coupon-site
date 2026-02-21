@@ -1,166 +1,194 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dotiki Coupon - Coupons, Promo Codes & Cash Back</title>
+    <title>Dotiki Coupon - Verified Coupons & Real Savings</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet">
-        <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/litera/bootstrap.min.css" rel="stylesheet" >
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="./styles.css">
 </head>
-<body>
-<header class="topbar">
-    <div class="container topbar-inner topbar-layout">
-        <a class="brand" href="/"><i class="bi bi-stars"></i> Dotiki Coupon</a>
+<body data-home="1" data-theme="scheme-a">
+<header class="home-topbar">
+    <div class="container home-topbar-inner">
+        <a class="home-brand" href="/">
+            <span class="home-brand-logo">D</span>
+            <span>
+                <strong>Dotiki Coupon</strong>
+                <small>Smart Coupons. Real Savings.</small>
+            </span>
+        </a>
 
-        <form class="top-search" id="searchForm">
-            <input id="searchInput" type="text" placeholder="Search stores, categories, or brands">
+        <form class="home-search" id="searchForm">
+            <i class="bi bi-search"></i>
+            <input id="searchInput" type="text" placeholder="Search stores like Amazon, Walmart...">
             <button type="submit">Search</button>
         </form>
 
-        <nav class="nav">
-            <a href="/categories.html">Categories</a>
-            <a href="/stores.html">Stores</a>
-            <a href="/cashback.html">Cash Back</a>
+        <nav class="home-nav">
+            <a href="#categoryBrowse">Categories</a>
+            <a href="#trendingStores">Trending</a>
             <a href="/admin-login.html">Login</a>
         </nav>
     </div>
 </header>
 
-<section id="adStrip" class="ad-strip hidden">
-    <a id="adStripLink" href="#" target="_blank" rel="noopener noreferrer">
-        <div class="ad-strip-track" id="adStripText"></div>
-    </a>
-</section>
-
 <main>
-    <section class="container section ad-section hidden" id="homeAdTop"></section>
-
-    <section class="hero" id="heroSection">
-        <div class="container hero-single">
-            <p class="eyebrow" id="heroEyebrow">SIMPLYCODES STYLE DEALS</p>
-            <h1 id="heroTitle">Find verified promo codes that actually work</h1>
-            <p class="subtitle" id="heroSubtitle">Instant savings, clean checkout flow, and transparent code quality from real-time verification.</p>
-            <div class="chips" id="filterChips">
-                <button data-filter="all" class="active">All</button>
-                <button data-filter="fashion">Fashion</button>
-                <button data-filter="travel">Travel</button>
-                <button data-filter="electronics">Electronics</button>
-                <button data-filter="food">Food</button>
+    <section class="home-hero" id="heroSection">
+        <div class="container home-hero-grid">
+            <div>
+                <p class="home-eyebrow" id="heroEyebrow">TRUSTED SAVINGS ENGINE</p>
+                <h1 id="heroTitle">Find Verified Coupons Instantly</h1>
+                <p class="home-subtitle" id="heroSubtitle">We scan and verify deals daily so you do not waste time.</p>
+                <div class="home-cta-row">
+                    <a class="home-btn home-btn-primary" href="#bestDeals">Browse Deals</a>
+                    <a class="home-btn home-btn-light" href="/stores.html">Explore Stores</a>
+                </div>
+            </div>
+            <div class="hero-visual" aria-hidden="true">
+                <div class="ticket-card">
+                    <p>Verified Today</p>
+                    <h3>+42 Working Codes</h3>
+                    <span>Fast copy, clean checkout, less trial and error.</span>
+                </div>
+                <div class="wallet-orb orb-a"></div>
+                <div class="wallet-orb orb-b"></div>
             </div>
         </div>
     </section>
 
-    <section class="container section" id="stores">
+    <section class="container home-section" id="trendingStores">
         <div class="section-head">
             <h2>Trending Stores</h2>
-            <span class="muted-inline">Click a store for brand intro</span>
+            <span class="muted-inline">Updated from live coupons</span>
         </div>
-        <div class="store-grid" id="storeGrid"></div>
+        <div class="home-store-grid" id="storeGrid"></div>
     </section>
 
-    <section class="container section ad-section hidden" id="homeAdMid"></section>
-
-    <section class="container section" id="categories">
+    <section class="container home-section" id="bestDeals">
         <div class="section-head">
-            <h2>Top Coupons Right Now</h2>
-            <span class="muted-inline">Latest available offers</span>
+            <h2>Today's Best Deals</h2>
+            <span class="muted-inline">Verified and ready to copy</span>
         </div>
-        <div class="coupon-main-layout" id="couponMainLayout">
-            <section class="ad-section hidden home-side-ad" id="homeAdSideLeft"></section>
-            <div class="coupon-list" id="couponList"></div>
-            <section class="ad-section hidden home-side-ad" id="homeAdSideRight"></section>
+        <div class="home-filter-row" id="filterChips"></div>
+        <div class="home-coupon-list" id="couponList"></div>
+    </section>
+
+    <section class="container home-section" id="categoryBrowse">
+        <div class="section-head">
+            <h2>Browse by Category</h2>
+            <span class="muted-inline">Find offers faster</span>
+        </div>
+        <div class="home-category-grid" id="categoryGrid"></div>
+    </section>
+
+    <section class="container home-section">
+        <div class="section-head">
+            <h2>Why Choose Dotiki</h2>
+        </div>
+        <div class="home-why-grid">
+            <article>
+                <h3><i class="bi bi-patch-check"></i> Verified Daily</h3>
+                <p>Coupons are refreshed and checked to reduce invalid code attempts.</p>
+            </article>
+            <article>
+                <h3><i class="bi bi-lightning-charge"></i> Fast Search</h3>
+                <p>Store-first lookup gets you to valid discounts in seconds.</p>
+            </article>
+            <article>
+                <h3><i class="bi bi-cash-coin"></i> Real Working Codes</h3>
+                <p>Copy flow is optimized so users can complete checkout in under 3 steps.</p>
+            </article>
         </div>
     </section>
 
-    <section class="container section" id="cashback">
+    <section class="container home-section" id="seoGuides">
         <div class="section-head">
-            <h2>Cash Back</h2>
-            <span class="muted-inline">Featured cash back paths</span>
+            <h2>Latest Saving Guides</h2>
+            <span class="muted-inline">SEO-friendly tips and monthly deal roundups</span>
         </div>
-        <div class="cashback-grid">
-            <article class="cashback-card"><h3>Travel</h3><p>Up to 8% with selected booking platforms.</p></article>
-            <article class="cashback-card"><h3>Electronics</h3><p>Up to 6% with selected tech retailers.</p></article>
-            <article class="cashback-card"><h3>Food</h3><p>Up to 5% with popular delivery apps.</p></article>
-        </div>
-    </section>
-
-    <section class="container section ad-section hidden" id="homeAdBottom"></section>
-
-    <section class="container section">
-        <div class="section-head">
-            <h2>Latest Blog</h2>
-            <a href="/admin-login.html">Write from Admin</a>
-        </div>
-        <section class="ad-section hidden" id="blogAdTop"></section>
-        <div class="blog-grid" id="blogList"></div>
-        <section class="ad-section hidden" id="blogAdBottom"></section>
+        <div class="home-blog-grid" id="blogList"></div>
     </section>
 </main>
 
-<footer class="footer">
-    <div class="container footer-inner">
+<footer class="home-footer">
+    <div class="container home-footer-inner">
         <div>
             <p id="footerCopyright">Dotiki Coupon (c) 2026</p>
             <p id="footerTagline">Deals are user-submitted and manually reviewed.</p>
+            <div class="home-footer-links">
+                <a id="footerAboutLink" href="/about">About</a>
+                <a id="footerPrivacyLink" href="/privacy">Privacy</a>
+                <a id="footerContactLink" href="/contact">Contact</a>
+                <a id="footerSubmitCouponLink" href="/submit-coupon">Submit Coupon</a>
+                <a id="footerAffiliateDisclosureLink" href="/affiliate-disclosure">Affiliate Disclosure</a>
+            </div>
         </div>
         <div class="footer-social">
-            <a id="footerTwitterLink" href="https://twitter.com/" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
-                <i class="bi bi-twitter-x"></i>
-            </a>
-            <a id="footerInstagramLink" href="https://instagram.com/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-                <i class="bi bi-instagram"></i>
-            </a>
-            <a id="footerFacebookLink" href="https://facebook.com/" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-                <i class="bi bi-facebook"></i>
-            </a>
-            <a id="footerYoutubeLink" href="https://youtube.com/" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
-                <i class="bi bi-youtube"></i>
-            </a>
+            <a id="footerTwitterLink" href="https://twitter.com/" target="_blank" rel="noopener noreferrer" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
+            <a id="footerInstagramLink" href="https://instagram.com/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+            <a id="footerFacebookLink" href="https://facebook.com/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+            <a id="footerYoutubeLink" href="https://youtube.com/" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
         </div>
     </div>
 </footer>
 
+<a class="mobile-browse-cta" href="#bestDeals">Browse Deals</a>
+
+<div class="copy-toast" id="copyToast">Coupon copied</div>
+
+<div class="coupon-modal hidden" id="couponModal" role="dialog" aria-modal="true" aria-label="Coupon code">
+    <div class="coupon-modal-card">
+        <p class="coupon-modal-title" id="modalStoreName">Store</p>
+        <h3 id="modalCouponCode">CODE</h3>
+        <p class="coupon-modal-sub" id="modalCouponTitle">Your code has been copied. Continue checkout in the new tab.</p>
+        <div class="coupon-modal-actions">
+            <a id="modalGoStoreBtn" class="home-btn home-btn-primary" target="_blank" rel="noopener noreferrer">Open Store</a>
+            <button id="modalCloseBtn" class="home-btn home-btn-light" type="button">Close</button>
+        </div>
+    </div>
+</div>
+
 <template id="couponCardTemplate">
-    <article class="coupon-card">
-        <div>
+    <article class="home-coupon-card">
+        <div class="home-coupon-main">
             <p class="coupon-store"></p>
             <h3 class="coupon-title"></h3>
+            <div class="home-badges">
+                <span class="badge-verified">Verified</span>
+                <span class="badge-hot hidden">Hot</span>
+                <span class="badge-timer"></span>
+            </div>
             <p class="coupon-meta"></p>
         </div>
         <div class="coupon-actions">
-            <button class="reveal-btn">Show Coupon Code</button>
+            <button class="home-btn home-btn-primary reveal-btn">Copy Code</button>
         </div>
     </article>
 </template>
 
 <template id="storeTileTemplate">
-    <a class="store-link" href="#">
-        <article class="store-tile">
-            <img class="store-logo" alt="">
-            <p class="store-name"></p>
-        </article>
-    </a>
+    <article class="home-store-card">
+        <img class="store-logo" alt="">
+        <p class="store-name"></p>
+        <p class="store-discount"></p>
+        <p class="store-count"></p>
+        <a class="home-btn home-btn-light store-link" href="#">View Coupons</a>
+    </article>
 </template>
 
 <template id="blogCardTemplate">
-    <article class="blog-card">
+    <article class="home-blog-card">
         <img class="blog-cover" alt="">
         <div class="blog-content">
             <h3 class="blog-title"></h3>
             <p class="blog-summary"></p>
-            <article class="blog-body"></article>
         </div>
     </article>
 </template>
 
 <script src="./app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>
-
-
-

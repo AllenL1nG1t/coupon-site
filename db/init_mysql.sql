@@ -129,3 +129,27 @@ WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.footer.
 INSERT INTO app_setting (setting_key, setting_value, updated_at)
 SELECT 'content.footer.youtubeUrl', 'https://youtube.com/', NOW(6)
 WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.footer.youtubeUrl');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'content.theme.preset', 'scheme-a', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.theme.preset');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'content.footer.aboutUrl', '/about', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.footer.aboutUrl');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'content.footer.privacyUrl', '/privacy', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.footer.privacyUrl');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'content.footer.contactUrl', '/contact', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.footer.contactUrl');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'content.footer.submitCouponUrl', '/submit-coupon', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.footer.submitCouponUrl');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'content.footer.affiliateDisclosureUrl', '/affiliate-disclosure', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.footer.affiliateDisclosureUrl');

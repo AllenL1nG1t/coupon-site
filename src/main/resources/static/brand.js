@@ -15,6 +15,23 @@ const brandTopCategory = document.getElementById("brandTopCategory");
 const brandStoreName = document.getElementById("brandStoreName");
 const brandCouponHint = document.getElementById("brandCouponHint");
 
+function normalizeTheme(theme) {
+  const value = (theme || "").toLowerCase();
+  if (value === "scheme-b" || value === "scheme-c") return value;
+  return "scheme-a";
+}
+
+async function applyThemeFromContent() {
+  try {
+    const response = await fetch("/api/content/public");
+    if (!response.ok) return;
+    const content = await response.json();
+    document.body.dataset.theme = normalizeTheme(content.themePreset);
+  } catch (_) {
+    // ignore
+  }
+}
+
 function fallbackView() {
   const label = store || slug || "Brand";
   brandTitle.textContent = label;
@@ -162,8 +179,13 @@ async function loadBrand() {
   renderCoupons(coupons);
 }
 
-loadBrand().catch(async () => {
-  fallbackView();
-  const coupons = await fetchCouponsByCandidates([store, slug]);
-  renderCoupons(coupons);
-});
+(async function init() {
+  await applyThemeFromContent();
+  try {
+    await loadBrand();
+  } catch (_) {
+    fallbackView();
+    const coupons = await fetchCouponsByCandidates([store, slug]);
+    renderCoupons(coupons);
+  }
+})();

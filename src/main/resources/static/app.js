@@ -1,44 +1,116 @@
-﻿const couponList = document.getElementById("couponList");
+const couponList = document.getElementById("couponList");
 const couponTemplate = document.getElementById("couponCardTemplate");
 const storeGrid = document.getElementById("storeGrid");
 const storeTemplate = document.getElementById("storeTileTemplate");
 const blogList = document.getElementById("blogList");
 const blogTemplate = document.getElementById("blogCardTemplate");
+const categoryGrid = document.getElementById("categoryGrid");
+
 const searchInput = document.getElementById("searchInput");
 const searchForm = document.getElementById("searchForm");
 const filterChips = document.getElementById("filterChips");
+
 const heroSection = document.getElementById("heroSection");
 const heroEyebrow = document.getElementById("heroEyebrow");
 const heroTitle = document.getElementById("heroTitle");
 const heroSubtitle = document.getElementById("heroSubtitle");
 
-const adStrip = document.getElementById("adStrip");
-const adStripLink = document.getElementById("adStripLink");
-const adStripText = document.getElementById("adStripText");
-
-const homeAdTop = document.getElementById("homeAdTop");
-const homeAdMid = document.getElementById("homeAdMid");
-const homeAdSideLeft = document.getElementById("homeAdSideLeft");
-const homeAdSideRight = document.getElementById("homeAdSideRight");
-const homeAdBottom = document.getElementById("homeAdBottom");
-const couponMainLayout = document.getElementById("couponMainLayout");
-const blogAdTop = document.getElementById("blogAdTop");
-const blogAdBottom = document.getElementById("blogAdBottom");
 const footerTagline = document.getElementById("footerTagline");
 const footerTwitterLink = document.getElementById("footerTwitterLink");
 const footerInstagramLink = document.getElementById("footerInstagramLink");
 const footerFacebookLink = document.getElementById("footerFacebookLink");
 const footerYoutubeLink = document.getElementById("footerYoutubeLink");
+const footerAboutLink = document.getElementById("footerAboutLink");
+const footerPrivacyLink = document.getElementById("footerPrivacyLink");
+const footerContactLink = document.getElementById("footerContactLink");
+const footerSubmitCouponLink = document.getElementById("footerSubmitCouponLink");
+const footerAffiliateDisclosureLink = document.getElementById("footerAffiliateDisclosureLink");
+
+const couponModal = document.getElementById("couponModal");
+const modalStoreName = document.getElementById("modalStoreName");
+const modalCouponCode = document.getElementById("modalCouponCode");
+const modalCouponTitle = document.getElementById("modalCouponTitle");
+const modalGoStoreBtn = document.getElementById("modalGoStoreBtn");
+const modalCloseBtn = document.getElementById("modalCloseBtn");
+const copyToast = document.getElementById("copyToast");
 
 let activeFilter = "all";
 let searchTerm = "";
-let adSettings = null;
-let adsenseLoaded = false;
+
+const categoryIcons = {
+  electronics: "bi-phone",
+  fashion: "bi-bag",
+  travel: "bi-airplane",
+  beauty: "bi-stars",
+  home: "bi-house-door",
+  food: "bi-cup-hot"
+};
 
 function normalizeColor(value) {
-  if (!value) return "#f7f9fd";
+  if (!value) return "#F8FAFC";
   const color = value.trim();
-  return /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#f7f9fd";
+  return /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#F8FAFC";
+}
+
+function normalizeTheme(theme) {
+  const value = (theme || "").toLowerCase();
+  if (value === "scheme-b" || value === "scheme-c") return value;
+  return "scheme-a";
+}
+
+function toSafeText(value, fallback = "") {
+  if (value == null || value === "") return fallback;
+  return String(value);
+}
+
+function extractDiscount(title) {
+  const match = toSafeText(title).match(/(\d{1,2})\s*%/);
+  if (match) return Number(match[1]);
+  return null;
+}
+
+function humanTimer(expires) {
+  const text = toSafeText(expires, "Ends soon");
+  const lower = text.toLowerCase();
+  if (lower.includes("today") || lower.includes("tonight")) return "Expires today";
+  const dayMatch = lower.match(/(\d+)\s*day/);
+  if (dayMatch) return `Expires in ${dayMatch[1]} days`;
+  return "Limited time";
+}
+
+function isHotCoupon(coupon) {
+  const clicks = Number(coupon.clickCount || 0);
+  if (clicks >= 10) return true;
+  const title = toSafeText(coupon.title).toLowerCase();
+  return title.includes("hot") || title.includes("flash") || title.includes("limited");
+}
+
+async function copyCode(code) {
+  if (!code) return;
+  try {
+    await navigator.clipboard.writeText(code);
+    showToast("Coupon copied");
+  } catch (_) {
+    showToast("Copy failed, please copy manually");
+  }
+}
+
+function showToast(message) {
+  copyToast.textContent = message;
+  copyToast.classList.add("show");
+  setTimeout(() => copyToast.classList.remove("show"), 1800);
+}
+
+function openModal(store, title, code, affiliateUrl) {
+  modalStoreName.textContent = store;
+  modalCouponTitle.textContent = title;
+  modalCouponCode.textContent = code || "NO-CODE";
+  modalGoStoreBtn.href = affiliateUrl || "#";
+  couponModal.classList.remove("hidden");
+}
+
+function closeModal() {
+  couponModal.classList.add("hidden");
 }
 
 async function fetchCoupons() {
@@ -54,12 +126,6 @@ async function fetchBlogs() {
   return response.json();
 }
 
-async function fetchAds() {
-  const response = await fetch("/api/ads/public");
-  if (!response.ok) throw new Error("Failed to fetch ads");
-  return response.json();
-}
-
 async function fetchContent() {
   const response = await fetch("/api/content/public");
   if (!response.ok) throw new Error("Failed to fetch content");
@@ -72,188 +138,136 @@ async function revealCoupon(id) {
   return response.json();
 }
 
-function openCodePageAndRedirectCurrent(data, coupon) {
-  const codePage = `/coupon-code.html?store=${encodeURIComponent(coupon.store)}&title=${encodeURIComponent(coupon.title)}&code=${encodeURIComponent(data.couponCode)}`;
-  window.open(codePage, "_blank", "noopener");
-  window.location.assign(data.affiliateUrl);
-}
-
-function renderStores(coupons) {
-  const stores = [];
-  const seen = new Set();
-
-  coupons.forEach(coupon => {
-    if (seen.has(coupon.store)) return;
-    seen.add(coupon.store);
-    stores.push(coupon);
-  });
-
-  storeGrid.innerHTML = "";
-  stores.slice(0, 8).forEach(store => {
-    const node = storeTemplate.content.cloneNode(true);
-    const link = node.querySelector(".store-link");
-    const logo = node.querySelector(".store-logo");
-    link.href = `/brand.html?store=${encodeURIComponent(store.store)}`;
-    logo.src = store.logoUrl;
-    logo.alt = `${store.store} logo`;
-    logo.addEventListener("error", () => { logo.src = "/logos/default.svg"; }, { once: true });
-    node.querySelector(".store-name").textContent = store.store;
-    storeGrid.appendChild(node);
-  });
-}
-
-function ensureAdsenseScript(clientId) {
-  if (!clientId || adsenseLoaded) return;
-  const script = document.createElement("script");
-  script.async = true;
-  script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(clientId)}`;
-  script.crossOrigin = "anonymous";
-  document.head.appendChild(script);
-  adsenseLoaded = true;
-}
-
-function renderAdsenseBlock(container, clientId, slotId) {
-  const block = document.createElement("div");
-  block.className = "ad-box";
-  block.innerHTML = `
-    <ins class="adsbygoogle"
-      style="display:block"
-      data-ad-client="${clientId}"
-      data-ad-slot="${slotId}"
-      data-ad-format="auto"
-      data-full-width-responsive="true"></ins>
-  `;
-  container.appendChild(block);
-  try {
-    (window.adsbygoogle = window.adsbygoogle || []).push({});
-  } catch (_) {
-    // ignore runtime adsense push errors
-  }
-}
-
-function applyHeroContent(content) {
+function applyContent(content) {
   if (!content) return;
+
+  document.body.dataset.theme = normalizeTheme(content.themePreset);
+
   heroEyebrow.textContent = content.heroEyebrow || heroEyebrow.textContent;
   heroTitle.textContent = content.heroTitle || heroTitle.textContent;
   heroSubtitle.textContent = content.heroSubtitle || heroSubtitle.textContent;
 
   const bgColor = normalizeColor(content.heroBgColor);
-
   if (content.heroBgImageUrl) {
     heroSection.style.background = `${bgColor} url('${content.heroBgImageUrl}') center / cover no-repeat`;
   } else {
     heroSection.style.background = bgColor;
   }
 
-  if (footerTagline) footerTagline.textContent = content.footerTagline || footerTagline.textContent;
-  if (footerTwitterLink) footerTwitterLink.href = content.footerTwitterUrl || footerTwitterLink.href;
-  if (footerInstagramLink) footerInstagramLink.href = content.footerInstagramUrl || footerInstagramLink.href;
-  if (footerFacebookLink) footerFacebookLink.href = content.footerFacebookUrl || footerFacebookLink.href;
-  if (footerYoutubeLink) footerYoutubeLink.href = content.footerYoutubeUrl || footerYoutubeLink.href;
+  footerTagline.textContent = content.footerTagline || footerTagline.textContent;
+  footerTwitterLink.href = content.footerTwitterUrl || footerTwitterLink.href;
+  footerInstagramLink.href = content.footerInstagramUrl || footerInstagramLink.href;
+  footerFacebookLink.href = content.footerFacebookUrl || footerFacebookLink.href;
+  footerYoutubeLink.href = content.footerYoutubeUrl || footerYoutubeLink.href;
+
+  footerAboutLink.href = content.footerAboutUrl || footerAboutLink.href;
+  footerPrivacyLink.href = content.footerPrivacyUrl || footerPrivacyLink.href;
+  footerContactLink.href = content.footerContactUrl || footerContactLink.href;
+  footerSubmitCouponLink.href = content.footerSubmitCouponUrl || footerSubmitCouponLink.href;
+  footerAffiliateDisclosureLink.href = content.footerAffiliateDisclosureUrl || footerAffiliateDisclosureLink.href;
 }
 
-function renderFallbackAdBlock(container, label) {
-  const block = document.createElement("div");
-  block.className = "ad-box ad-box-fallback";
-  block.textContent = label;
-  container.appendChild(block);
+function renderCategoryGrid(coupons) {
+  const categories = Array.from(new Set(coupons.map(coupon => toSafeText(coupon.category).toLowerCase()))).filter(Boolean);
+  if (!categories.length) return;
+
+  categoryGrid.innerHTML = categories.map(category => `
+    <a class="home-category-tile" href="/categories.html">
+      <i class="bi ${categoryIcons[category] || "bi-grid"}"></i>
+      <span>${category}</span>
+    </a>
+  `).join("");
 }
 
-function configureStrip(settings) {
-  if (!settings.stripEnabled || !settings.stripText || !settings.stripLink) {
-    adStrip.classList.add("hidden");
-    return;
-  }
+function renderFilterChips(coupons) {
+  const categories = Array.from(new Set(coupons.map(coupon => toSafeText(coupon.category).toLowerCase()))).filter(Boolean);
+  const all = ["all", ...categories];
 
-  const repeated = Array(8).fill(settings.stripText).join("    •    ");
-  adStripText.textContent = repeated;
-  adStripLink.href = settings.stripLink;
-  adStrip.classList.remove("hidden");
+  filterChips.innerHTML = all.map(category => `
+    <button class="home-chip ${category === activeFilter ? "active" : ""}" data-filter="${category}">${category}</button>
+  `).join("");
 }
 
-function renderPlacement(container, enabled, adsenseClientId, slotId, fallbackLabel) {
-  container.innerHTML = "";
-  container.classList.toggle("hidden", !enabled);
-  if (!enabled) return;
-
-  if (adsenseClientId && slotId) {
-    ensureAdsenseScript(adsenseClientId);
-    renderAdsenseBlock(container, adsenseClientId, slotId);
-  } else {
-    renderFallbackAdBlock(container, fallbackLabel);
-  }
-}
-
-function applyHomeAds() {
-  if (!adSettings) return;
-  renderPlacement(homeAdTop, adSettings.homeTopEnabled, adSettings.adsenseClientId, adSettings.homeAdsenseSlot, "Home Top Ad");
-  renderPlacement(homeAdMid, adSettings.homeMidEnabled, adSettings.adsenseClientId, adSettings.homeAdsenseSlot, "Home Mid Ad");
-  renderPlacement(homeAdSideLeft, adSettings.homeSideLeftEnabled, adSettings.adsenseClientId, adSettings.homeAdsenseSlot, "Home Left Ad");
-  renderPlacement(homeAdSideRight, adSettings.homeSideRightEnabled, adSettings.adsenseClientId, adSettings.homeAdsenseSlot, "Home Right Ad");
-  renderPlacement(homeAdBottom, adSettings.homeBottomEnabled, adSettings.adsenseClientId, adSettings.homeAdsenseSlot, "Home Bottom Ad");
-  renderPlacement(blogAdTop, adSettings.blogTopEnabled, adSettings.adsenseClientId, adSettings.blogAdsenseSlot, "Blog Top Ad");
-  renderPlacement(blogAdBottom, adSettings.blogBottomEnabled, adSettings.adsenseClientId, adSettings.blogAdsenseSlot, "Blog Bottom Ad");
-  configureStrip(adSettings);
-  couponMainLayout.classList.toggle("with-side-left", !!adSettings.homeSideLeftEnabled);
-  couponMainLayout.classList.toggle("with-side-right", !!adSettings.homeSideRightEnabled);
-}
-
-function renderBlogs(blogs) {
-  blogList.innerHTML = "";
-  if (!blogs.length) {
-    blogList.innerHTML = `<article class="blog-card"><div class="blog-content"><h3>No blog posts yet</h3></div></article>`;
-    return;
-  }
-
-  blogs.slice(0, 6).forEach((blog, index) => {
-    const node = blogTemplate.content.cloneNode(true);
-    const cover = node.querySelector(".blog-cover");
-    cover.src = blog.coverImageUrl || "/logos/default.svg";
-    cover.alt = blog.title;
-    cover.addEventListener("error", () => { cover.src = "/logos/default.svg"; }, { once: true });
-    node.querySelector(".blog-title").textContent = blog.title;
-    node.querySelector(".blog-summary").textContent = blog.summary;
-    node.querySelector(".blog-body").textContent = blog.content;
-    blogList.appendChild(node);
-
-    if (adSettings?.blogInlineEnabled && index === 1) {
-      const inlineAd = document.createElement("section");
-      inlineAd.className = "ad-section inline-blog-ad";
-      if (adSettings.adsenseClientId && adSettings.blogAdsenseSlot) {
-        ensureAdsenseScript(adSettings.adsenseClientId);
-        renderAdsenseBlock(inlineAd, adSettings.adsenseClientId, adSettings.blogAdsenseSlot);
-      } else {
-        renderFallbackAdBlock(inlineAd, "Blog Inline Ad");
-      }
-      blogList.appendChild(inlineAd);
+function renderStores(coupons) {
+  const map = new Map();
+  coupons.forEach(coupon => {
+    const key = toSafeText(coupon.store);
+    if (!key) return;
+    if (!map.has(key)) {
+      map.set(key, { store: key, logoUrl: coupon.logoUrl, coupons: [], maxDiscount: null });
     }
+    const entry = map.get(key);
+    entry.coupons.push(coupon);
+    const d = extractDiscount(coupon.title);
+    if (d != null) {
+      entry.maxDiscount = entry.maxDiscount == null ? d : Math.max(entry.maxDiscount, d);
+    }
+  });
+
+  const stores = Array.from(map.values())
+    .sort((a, b) => b.coupons.length - a.coupons.length || a.store.localeCompare(b.store))
+    .slice(0, 12);
+
+  storeGrid.innerHTML = "";
+  stores.forEach(item => {
+    const node = storeTemplate.content.cloneNode(true);
+    const logo = node.querySelector(".store-logo");
+    const link = node.querySelector(".store-link");
+    node.querySelector(".store-name").textContent = item.store;
+    node.querySelector(".store-discount").textContent = `Up to ${item.maxDiscount ?? Math.min(55, 10 + item.coupons.length * 5)}% Off`;
+    node.querySelector(".store-count").textContent = `${item.coupons.length} active coupons`;
+
+    logo.src = item.logoUrl || "/logos/default.svg";
+    logo.alt = `${item.store} logo`;
+    logo.addEventListener("error", () => { logo.src = "/logos/default.svg"; }, { once: true });
+
+    link.href = `/brand.html?store=${encodeURIComponent(item.store)}`;
+    storeGrid.appendChild(node);
+  });
+}
+
+function sortDeals(coupons) {
+  return [...coupons].sort((a, b) => {
+    const hotDiff = Number(isHotCoupon(b)) - Number(isHotCoupon(a));
+    if (hotDiff !== 0) return hotDiff;
+    return Number(b.clickCount || 0) - Number(a.clickCount || 0);
   });
 }
 
 function renderCoupons(coupons) {
   couponList.innerHTML = "";
-
   if (!coupons.length) {
-    couponList.innerHTML = `<article class="coupon-card"><p>No coupons match your search.</p></article>`;
+    couponList.innerHTML = `<article class="home-coupon-card"><p>No coupons match your search.</p></article>`;
     return;
   }
 
-  coupons.forEach(coupon => {
+  sortDeals(coupons).slice(0, 18).forEach(coupon => {
     const node = couponTemplate.content.cloneNode(true);
-    node.querySelector(".coupon-store").textContent = coupon.store;
-    node.querySelector(".coupon-title").textContent = coupon.title;
-    node.querySelector(".coupon-meta").textContent = `${coupon.expires} · ${coupon.category} · clicks: ${coupon.clickCount ?? 0}`;
+    node.querySelector(".coupon-store").textContent = toSafeText(coupon.store);
+    node.querySelector(".coupon-title").textContent = toSafeText(coupon.title);
+    node.querySelector(".coupon-meta").textContent = `${toSafeText(coupon.category)} | ${toSafeText(coupon.expires)} | ${Number(coupon.clickCount || 0)} clicks`;
+    node.querySelector(".badge-timer").textContent = humanTimer(coupon.expires);
+
+    const hotBadge = node.querySelector(".badge-hot");
+    if (isHotCoupon(coupon)) {
+      hotBadge.classList.remove("hidden");
+      hotBadge.textContent = "Hot";
+    }
 
     const btn = node.querySelector(".reveal-btn");
     btn.addEventListener("click", async () => {
       btn.disabled = true;
-      btn.textContent = "Loading...";
+      btn.textContent = "Checking...";
       try {
         const data = await revealCoupon(coupon.id);
-        btn.textContent = "Redirecting...";
-        openCodePageAndRedirectCurrent(data, coupon);
+        await copyCode(data.couponCode);
+        openModal(coupon.store, coupon.title, data.couponCode, data.affiliateUrl);
+        if (data.affiliateUrl) {
+          window.open(data.affiliateUrl, "_blank", "noopener");
+        }
+        btn.textContent = "Copied";
       } catch (_) {
-        btn.textContent = "Try again";
+        btn.textContent = "Try Again";
         btn.disabled = false;
       }
     });
@@ -262,13 +276,34 @@ function renderCoupons(coupons) {
   });
 }
 
+function renderBlogs(blogs) {
+  blogList.innerHTML = "";
+  if (!blogs.length) {
+    blogList.innerHTML = `<article class="home-blog-card"><div class="blog-content"><h3>No guides yet</h3></div></article>`;
+    return;
+  }
+
+  blogs.slice(0, 6).forEach(blog => {
+    const node = blogTemplate.content.cloneNode(true);
+    const cover = node.querySelector(".blog-cover");
+    cover.src = blog.coverImageUrl || "/logos/default.svg";
+    cover.alt = blog.title;
+    cover.addEventListener("error", () => { cover.src = "/logos/default.svg"; }, { once: true });
+    node.querySelector(".blog-title").textContent = toSafeText(blog.title);
+    node.querySelector(".blog-summary").textContent = toSafeText(blog.summary);
+    blogList.appendChild(node);
+  });
+}
+
 async function refreshCoupons() {
   try {
     const coupons = await fetchCoupons();
+    renderFilterChips(coupons);
     renderCoupons(coupons);
     renderStores(coupons);
+    renderCategoryGrid(coupons);
   } catch (_) {
-    couponList.innerHTML = `<article class="coupon-card"><p>Unable to load coupons right now.</p></article>`;
+    couponList.innerHTML = `<article class="home-coupon-card"><p>Unable to load coupons right now.</p></article>`;
   }
 }
 
@@ -277,7 +312,7 @@ async function refreshBlogs() {
     const blogs = await fetchBlogs();
     renderBlogs(blogs);
   } catch (_) {
-    blogList.innerHTML = `<article class="blog-card"><div class="blog-content"><h3>Unable to load blogs right now.</h3></div></article>`;
+    blogList.innerHTML = `<article class="home-blog-card"><div class="blog-content"><h3>Unable to load guides right now.</h3></div></article>`;
   }
 }
 
@@ -285,7 +320,6 @@ filterChips.addEventListener("click", event => {
   const chip = event.target.closest("button[data-filter]");
   if (!chip) return;
   activeFilter = chip.dataset.filter;
-  filterChips.querySelectorAll("button").forEach(button => button.classList.toggle("active", button === chip));
   refreshCoupons();
 });
 
@@ -295,18 +329,19 @@ searchForm.addEventListener("submit", event => {
   refreshCoupons();
 });
 
+modalCloseBtn.addEventListener("click", closeModal);
+couponModal.addEventListener("click", event => {
+  if (event.target === couponModal) {
+    closeModal();
+  }
+});
+
 (async function init() {
   try {
-    adSettings = await fetchAds();
-  } catch (_) {
-    adSettings = null;
-  }
-  try {
     const content = await fetchContent();
-    applyHeroContent(content);
+    applyContent(content);
   } catch (_) {
-    // keep defaults
+    document.body.dataset.theme = "scheme-a";
   }
-  applyHomeAds();
   await Promise.all([refreshCoupons(), refreshBlogs()]);
 })();

@@ -27,7 +27,13 @@ const contentHeroSubtitle = document.getElementById("contentHeroSubtitle");
 const contentHeroBgColor = document.getElementById("contentHeroBgColor");
 const contentHeroBgColorPicker = document.getElementById("contentHeroBgColorPicker");
 const contentHeroBgImageUrl = document.getElementById("contentHeroBgImageUrl");
+const contentThemePreset = document.getElementById("contentThemePreset");
 const contentFooterTagline = document.getElementById("contentFooterTagline");
+const contentFooterAboutUrl = document.getElementById("contentFooterAboutUrl");
+const contentFooterPrivacyUrl = document.getElementById("contentFooterPrivacyUrl");
+const contentFooterContactUrl = document.getElementById("contentFooterContactUrl");
+const contentFooterSubmitCouponUrl = document.getElementById("contentFooterSubmitCouponUrl");
+const contentFooterAffiliateDisclosureUrl = document.getElementById("contentFooterAffiliateDisclosureUrl");
 const contentFooterTwitterUrl = document.getElementById("contentFooterTwitterUrl");
 const contentFooterInstagramUrl = document.getElementById("contentFooterInstagramUrl");
 const contentFooterFacebookUrl = document.getElementById("contentFooterFacebookUrl");
@@ -243,6 +249,7 @@ async function loadCrawler() {
 
 async function loadContent() {
   const data = await (await adminFetch("/api/admin/content")).json();
+  contentThemePreset.value = data.themePreset || "scheme-a";
   contentHeroEyebrow.value = data.heroEyebrow || "";
   contentHeroTitle.value = data.heroTitle || "";
   contentHeroSubtitle.value = data.heroSubtitle || "";
@@ -250,6 +257,11 @@ async function loadContent() {
   contentHeroBgColorPicker.value = normalizeColor(contentHeroBgColor.value);
   contentHeroBgImageUrl.value = data.heroBgImageUrl || "";
   contentFooterTagline.value = data.footerTagline || "";
+  contentFooterAboutUrl.value = data.footerAboutUrl || "";
+  contentFooterPrivacyUrl.value = data.footerPrivacyUrl || "";
+  contentFooterContactUrl.value = data.footerContactUrl || "";
+  contentFooterSubmitCouponUrl.value = data.footerSubmitCouponUrl || "";
+  contentFooterAffiliateDisclosureUrl.value = data.footerAffiliateDisclosureUrl || "";
   contentFooterTwitterUrl.value = data.footerTwitterUrl || "";
   contentFooterInstagramUrl.value = data.footerInstagramUrl || "";
   contentFooterFacebookUrl.value = data.footerFacebookUrl || "";
@@ -259,12 +271,18 @@ async function loadContent() {
 async function saveContent() {
   contentStatus.textContent = "Saving...";
   const body = {
+    themePreset: contentThemePreset.value || "scheme-a",
     heroEyebrow: contentHeroEyebrow.value,
     heroTitle: contentHeroTitle.value,
     heroSubtitle: contentHeroSubtitle.value,
     heroBgColor: normalizeColor(contentHeroBgColor.value),
     heroBgImageUrl: contentHeroBgImageUrl.value,
     footerTagline: contentFooterTagline.value,
+    footerAboutUrl: contentFooterAboutUrl.value,
+    footerPrivacyUrl: contentFooterPrivacyUrl.value,
+    footerContactUrl: contentFooterContactUrl.value,
+    footerSubmitCouponUrl: contentFooterSubmitCouponUrl.value,
+    footerAffiliateDisclosureUrl: contentFooterAffiliateDisclosureUrl.value,
     footerTwitterUrl: contentFooterTwitterUrl.value,
     footerInstagramUrl: contentFooterInstagramUrl.value,
     footerFacebookUrl: contentFooterFacebookUrl.value,
