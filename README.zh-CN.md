@@ -1,4 +1,5 @@
 # Dotiki Coupon
+最后更新：2026-02-21 00:43:42 -05:00
 
 Dotiki Coupon 是一个基于 Java + Spring Boot + Maven 的优惠券网站项目。
 
