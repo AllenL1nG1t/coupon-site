@@ -7,7 +7,6 @@ public record CouponSummaryDto(
     String category,
     String expires,
     String logoUrl,
-    String source,
     int clickCount
 ) {
 }

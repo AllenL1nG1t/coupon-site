@@ -1,5 +1,7 @@
 package com.couponsite.brand;
 
+import java.time.LocalDateTime;
+
 public record BrandProfileDto(
     Long id,
     String slug,
@@ -10,6 +12,8 @@ public record BrandProfileDto(
     String heroImageUrl,
     String logoUrl,
     String officialUrl,
-    String affiliateUrl
+    String affiliateUrl,
+    LocalDateTime createdAt,
+    LocalDateTime updatedAt
 ) {
 }

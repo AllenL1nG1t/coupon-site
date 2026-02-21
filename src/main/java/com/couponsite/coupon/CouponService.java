@@ -131,8 +131,9 @@ public class CouponService {
                 coupon.getCouponCode(),
                 coupon.getAffiliateUrl(),
                 coupon.getLogoUrl(),
-                coupon.getSource(),
-                coupon.getClickCount()
+                coupon.getClickCount(),
+                coupon.getCreatedAt(),
+                coupon.getUpdatedAt()
             )).toList();
     }
 
@@ -149,7 +150,7 @@ public class CouponService {
         coupon.setCouponCode(nonBlankOrDefault(request.couponCode(), "SEEDEAL"));
         coupon.setAffiliateUrl(nonBlankOrDefault(request.affiliateUrl(), ""));
         coupon.setLogoUrl(nonBlankOrDefault(request.logoUrl(), LogoCatalog.forStore(coupon.getStore())));
-        coupon.setSource(nonBlankOrDefault(request.source(), "admin"));
+        coupon.setSource("admin");
         if (request.clickCount() != null && request.clickCount() >= 0) {
             coupon.setClickCount(request.clickCount());
         } else if (coupon.getClickCount() == null) {
@@ -166,8 +167,9 @@ public class CouponService {
             saved.getCouponCode(),
             saved.getAffiliateUrl(),
             saved.getLogoUrl(),
-            saved.getSource(),
-            saved.getClickCount()
+            saved.getClickCount(),
+            saved.getCreatedAt(),
+            saved.getUpdatedAt()
         );
     }
 
@@ -191,7 +193,6 @@ public class CouponService {
             coupon.getCategory(),
             coupon.getExpires(),
             coupon.getLogoUrl(),
-            coupon.getSource(),
             coupon.getClickCount()
         );
     }

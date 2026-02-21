@@ -109,3 +109,23 @@ WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'crawler.brand.i
 INSERT INTO app_setting (setting_key, setting_value, updated_at)
 SELECT 'crawler.brand-logo.interval-ms', '1800000', NOW(6)
 WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'crawler.brand-logo.interval-ms');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'content.footer.tagline', 'Deals are user-submitted and manually reviewed.', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.footer.tagline');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'content.footer.twitterUrl', 'https://twitter.com/', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.footer.twitterUrl');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'content.footer.instagramUrl', 'https://instagram.com/', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.footer.instagramUrl');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'content.footer.facebookUrl', 'https://facebook.com/', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.footer.facebookUrl');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'content.footer.youtubeUrl', 'https://youtube.com/', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.footer.youtubeUrl');

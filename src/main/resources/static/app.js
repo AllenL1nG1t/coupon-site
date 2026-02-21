@@ -24,6 +24,11 @@ const homeAdBottom = document.getElementById("homeAdBottom");
 const couponMainLayout = document.getElementById("couponMainLayout");
 const blogAdTop = document.getElementById("blogAdTop");
 const blogAdBottom = document.getElementById("blogAdBottom");
+const footerTagline = document.getElementById("footerTagline");
+const footerTwitterLink = document.getElementById("footerTwitterLink");
+const footerInstagramLink = document.getElementById("footerInstagramLink");
+const footerFacebookLink = document.getElementById("footerFacebookLink");
+const footerYoutubeLink = document.getElementById("footerYoutubeLink");
 
 let activeFilter = "all";
 let searchTerm = "";
@@ -139,6 +144,12 @@ function applyHeroContent(content) {
   } else {
     heroSection.style.background = bgColor;
   }
+
+  if (footerTagline) footerTagline.textContent = content.footerTagline || footerTagline.textContent;
+  if (footerTwitterLink) footerTwitterLink.href = content.footerTwitterUrl || footerTwitterLink.href;
+  if (footerInstagramLink) footerInstagramLink.href = content.footerInstagramUrl || footerInstagramLink.href;
+  if (footerFacebookLink) footerFacebookLink.href = content.footerFacebookUrl || footerFacebookLink.href;
+  if (footerYoutubeLink) footerYoutubeLink.href = content.footerYoutubeUrl || footerYoutubeLink.href;
 }
 
 function renderFallbackAdBlock(container, label) {
@@ -231,7 +242,7 @@ function renderCoupons(coupons) {
     const node = couponTemplate.content.cloneNode(true);
     node.querySelector(".coupon-store").textContent = coupon.store;
     node.querySelector(".coupon-title").textContent = coupon.title;
-    node.querySelector(".coupon-meta").textContent = `${coupon.expires} · ${coupon.category} · clicks: ${coupon.clickCount ?? 0} · source: ${coupon.source}`;
+    node.querySelector(".coupon-meta").textContent = `${coupon.expires} · ${coupon.category} · clicks: ${coupon.clickCount ?? 0}`;
 
     const btn = node.querySelector(".reveal-btn");
     btn.addEventListener("click", async () => {

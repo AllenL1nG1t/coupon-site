@@ -27,6 +27,11 @@ const contentHeroSubtitle = document.getElementById("contentHeroSubtitle");
 const contentHeroBgColor = document.getElementById("contentHeroBgColor");
 const contentHeroBgColorPicker = document.getElementById("contentHeroBgColorPicker");
 const contentHeroBgImageUrl = document.getElementById("contentHeroBgImageUrl");
+const contentFooterTagline = document.getElementById("contentFooterTagline");
+const contentFooterTwitterUrl = document.getElementById("contentFooterTwitterUrl");
+const contentFooterInstagramUrl = document.getElementById("contentFooterInstagramUrl");
+const contentFooterFacebookUrl = document.getElementById("contentFooterFacebookUrl");
+const contentFooterYoutubeUrl = document.getElementById("contentFooterYoutubeUrl");
 const heroImageFile = document.getElementById("heroImageFile");
 const uploadHeroImageBtn = document.getElementById("uploadHeroImageBtn");
 const saveContentBtn = document.getElementById("saveContentBtn");
@@ -39,7 +44,6 @@ const couponExpires = document.getElementById("couponExpires");
 const couponCode = document.getElementById("couponCode");
 const couponAffiliate = document.getElementById("couponAffiliate");
 const couponLogo = document.getElementById("couponLogo");
-const couponSource = document.getElementById("couponSource");
 const saveCouponBtn = document.getElementById("saveCouponBtn");
 const clearCouponBtn = document.getElementById("clearCouponBtn");
 const saveAllCouponsBtn = document.getElementById("saveAllCouponsBtn");
@@ -89,6 +93,11 @@ const adsStatus = document.getElementById("adsStatus");
 let cachedCoupons = [];
 let cachedBlogs = [];
 let cachedBrands = [];
+const sortState = {
+  coupons: { key: "id", dir: "asc" },
+  brands: { key: "id", dir: "asc" },
+  blogs: { key: "id", dir: "asc" }
+};
 
 const dirtyCouponIds = new Set();
 const dirtyBrandIds = new Set();
@@ -179,6 +188,42 @@ function readRowData(row, fields) {
   return data;
 }
 
+function toTimestamp(value) {
+  if (!value) return 0;
+  const t = new Date(value).getTime();
+  return Number.isNaN(t) ? 0 : t;
+}
+
+function formatDateTime(value) {
+  if (!value) return "-";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "-";
+  return d.toLocaleString();
+}
+
+function sortedCopy(list, state, comparators = {}) {
+  const arr = [...(list || [])];
+  const { key, dir } = state;
+  const factor = dir === "asc" ? 1 : -1;
+  const custom = comparators[key];
+  arr.sort((a, b) => {
+    if (custom) {
+      return custom(a, b) * factor;
+    }
+    const av = (a?.[key] ?? "").toString().toLowerCase();
+    const bv = (b?.[key] ?? "").toString().toLowerCase();
+    if (av < bv) return -1 * factor;
+    if (av > bv) return 1 * factor;
+    return 0;
+  });
+  return arr;
+}
+
+function sortLabel(base, state, key) {
+  if (state.key !== key) return base;
+  return `${base} ${state.dir === "asc" ? "▲" : "▼"}`;
+}
+
 async function loadCrawler() {
   const settings = await (await adminFetch("/api/admin/settings")).json();
   couponCrawlerEnabled.checked = settings.couponCrawlerEnabled ?? false;
@@ -204,6 +249,11 @@ async function loadContent() {
   contentHeroBgColor.value = data.heroBgColor || "#f7f9fd";
   contentHeroBgColorPicker.value = normalizeColor(contentHeroBgColor.value);
   contentHeroBgImageUrl.value = data.heroBgImageUrl || "";
+  contentFooterTagline.value = data.footerTagline || "";
+  contentFooterTwitterUrl.value = data.footerTwitterUrl || "";
+  contentFooterInstagramUrl.value = data.footerInstagramUrl || "";
+  contentFooterFacebookUrl.value = data.footerFacebookUrl || "";
+  contentFooterYoutubeUrl.value = data.footerYoutubeUrl || "";
 }
 
 async function saveContent() {
@@ -213,7 +263,12 @@ async function saveContent() {
     heroTitle: contentHeroTitle.value,
     heroSubtitle: contentHeroSubtitle.value,
     heroBgColor: normalizeColor(contentHeroBgColor.value),
-    heroBgImageUrl: contentHeroBgImageUrl.value
+    heroBgImageUrl: contentHeroBgImageUrl.value,
+    footerTagline: contentFooterTagline.value,
+    footerTwitterUrl: contentFooterTwitterUrl.value,
+    footerInstagramUrl: contentFooterInstagramUrl.value,
+    footerFacebookUrl: contentFooterFacebookUrl.value,
+    footerYoutubeUrl: contentFooterYoutubeUrl.value
   };
   const response = await adminFetch("/api/admin/content", {
     method: "PUT",
@@ -271,7 +326,7 @@ async function runCrawler(endpoint, title) {
 function clearCouponForm() {
   saveCouponBtn.dataset.editId = "";
   saveCouponBtn.textContent = "Add Coupon";
-  [couponStore, couponTitle, couponCategory, couponExpires, couponCode, couponAffiliate, couponLogo, couponSource].forEach(el => el.value = "");
+  [couponStore, couponTitle, couponCategory, couponExpires, couponCode, couponAffiliate, couponLogo].forEach(el => el.value = "");
 }
 
 async function saveCouponRowById(id) {
@@ -279,7 +334,7 @@ async function saveCouponRowById(id) {
   if (!row) return;
   const fields = [
     { name: "store" }, { name: "title" }, { name: "category" }, { name: "expires" },
-    { name: "couponCode" }, { name: "affiliateUrl" }, { name: "logoUrl" }, { name: "source" }, { name: "clickCount" }
+    { name: "couponCode" }, { name: "affiliateUrl" }, { name: "logoUrl" }, { name: "clickCount" }
   ];
   const payload = { id, ...readRowData(row, fields) };
   await adminFetch("/api/admin/coupons", {
@@ -292,9 +347,25 @@ async function saveCouponRowById(id) {
 }
 
 function renderCouponRows(coupons) {
+  const state = sortState.coupons;
+  const rows = sortedCopy(coupons, state, {
+    id: (a, b) => Number(a.id || 0) - Number(b.id || 0),
+    clickCount: (a, b) => Number(a.clickCount || 0) - Number(b.clickCount || 0),
+    createdAt: (a, b) => toTimestamp(a.createdAt) - toTimestamp(b.createdAt),
+    updatedAt: (a, b) => toTimestamp(a.updatedAt) - toTimestamp(b.updatedAt)
+  });
   couponTable.innerHTML = `<thead><tr>
-    <th>ID</th><th>Store</th><th>Title</th><th>Category</th><th>Expires</th><th>Code</th><th>Clicks</th><th>Affiliate URL</th><th>Logo</th><th>Source</th><th>Actions</th>
-  </tr></thead><tbody>${coupons.map(c => `
+    <th data-sort="id">${sortLabel("ID", state, "id")}</th>
+    <th data-sort="store">${sortLabel("Store", state, "store")}</th>
+    <th data-sort="title">${sortLabel("Title", state, "title")}</th>
+    <th data-sort="category">${sortLabel("Category", state, "category")}</th>
+    <th data-sort="expires">${sortLabel("Expires", state, "expires")}</th>
+    <th data-sort="couponCode">${sortLabel("Code", state, "couponCode")}</th>
+    <th data-sort="clickCount">${sortLabel("Clicks", state, "clickCount")}</th>
+    <th data-sort="createdAt">${sortLabel("Created", state, "createdAt")}</th>
+    <th data-sort="updatedAt">${sortLabel("Updated", state, "updatedAt")}</th>
+    <th>Affiliate URL</th><th>Logo</th><th>Actions</th>
+  </tr></thead><tbody>${rows.map(c => `
     <tr data-id='${c.id}'>
       <td>${c.id}</td>
       <td class='editable-cell' data-field='store'>${c.store || ""}</td>
@@ -303,9 +374,10 @@ function renderCouponRows(coupons) {
       <td class='editable-cell' data-field='expires'>${c.expires || ""}</td>
       <td class='editable-cell' data-field='couponCode'>${c.couponCode || ""}</td>
       <td class='editable-cell' data-field='clickCount'>${c.clickCount ?? 0}</td>
+      <td>${formatDateTime(c.createdAt)}</td>
+      <td>${formatDateTime(c.updatedAt)}</td>
       <td class='editable-cell cut-cell' data-field='affiliateUrl'>${c.affiliateUrl || ""}</td>
       <td class='editable-cell cut-cell' data-field='logoUrl'>${c.logoUrl || ""}</td>
-      <td class='editable-cell' data-field='source'>${c.source || ""}</td>
       <td><button class='admin-mini-btn' data-save-coupon='${c.id}'>Save</button> <button class='admin-mini-btn' data-del-coupon='${c.id}'>Delete</button></td>
     </tr>`).join("")}</tbody>`;
 }
@@ -325,8 +397,7 @@ async function saveCoupon() {
     expires: couponExpires.value,
     couponCode: couponCode.value,
     affiliateUrl: couponAffiliate.value,
-    logoUrl: couponLogo.value,
-    source: couponSource.value || "admin"
+    logoUrl: couponLogo.value
   };
   await adminFetch("/api/admin/coupons", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   clearCouponForm();
@@ -357,14 +428,28 @@ async function saveBrandRowById(id) {
 }
 
 function renderBrandRows(brands) {
+  const state = sortState.brands;
+  const rows = sortedCopy(brands, state, {
+    id: (a, b) => Number(a.id || 0) - Number(b.id || 0),
+    createdAt: (a, b) => toTimestamp(a.createdAt) - toTimestamp(b.createdAt),
+    updatedAt: (a, b) => toTimestamp(a.updatedAt) - toTimestamp(b.updatedAt)
+  });
   brandTable.innerHTML = `<thead><tr>
-    <th>ID</th><th>Store</th><th>Slug</th><th>Title</th><th>Summary</th><th>Official URL</th><th>Affiliate URL</th><th>Logo</th><th>Hero Image</th><th>Description</th><th>Actions</th>
-  </tr></thead><tbody>${brands.map(b => `
+    <th data-sort="id">${sortLabel("ID", state, "id")}</th>
+    <th data-sort="storeName">${sortLabel("Store", state, "storeName")}</th>
+    <th data-sort="slug">${sortLabel("Slug", state, "slug")}</th>
+    <th data-sort="title">${sortLabel("Title", state, "title")}</th>
+    <th data-sort="createdAt">${sortLabel("Created", state, "createdAt")}</th>
+    <th data-sort="updatedAt">${sortLabel("Updated", state, "updatedAt")}</th>
+    <th>Summary</th><th>Official URL</th><th>Affiliate URL</th><th>Logo</th><th>Hero Image</th><th>Description</th><th>Actions</th>
+  </tr></thead><tbody>${rows.map(b => `
     <tr data-id='${b.id}'>
       <td>${b.id}</td>
       <td class='editable-cell' data-field='storeName'>${b.storeName || ""}</td>
       <td class='editable-cell' data-field='slug'>${b.slug || ""}</td>
       <td class='editable-cell' data-field='title'>${b.title || ""}</td>
+      <td>${formatDateTime(b.createdAt)}</td>
+      <td>${formatDateTime(b.updatedAt)}</td>
       <td class='editable-cell' data-field='summary'>${b.summary || ""}</td>
       <td class='editable-cell cut-cell' data-field='officialUrl'>${b.officialUrl || ""}</td>
       <td class='editable-cell cut-cell' data-field='affiliateUrl'>${b.affiliateUrl || ""}</td>
@@ -423,12 +508,24 @@ async function saveBlogRowById(id) {
 }
 
 function renderBlogRows(blogs) {
+  const state = sortState.blogs;
+  const rows = sortedCopy(blogs, state, {
+    id: (a, b) => Number(a.id || 0) - Number(b.id || 0),
+    createdAt: (a, b) => toTimestamp(a.createdAt) - toTimestamp(b.createdAt),
+    updatedAt: (a, b) => toTimestamp(a.updatedAt) - toTimestamp(b.updatedAt)
+  });
   blogTable.innerHTML = `<thead><tr>
-    <th>ID</th><th>Title</th><th>Summary</th><th>Content</th><th>Cover</th><th>Published</th><th>Actions</th>
-  </tr></thead><tbody>${blogs.map(b => `
+    <th data-sort="id">${sortLabel("ID", state, "id")}</th>
+    <th data-sort="title">${sortLabel("Title", state, "title")}</th>
+    <th data-sort="createdAt">${sortLabel("Created", state, "createdAt")}</th>
+    <th data-sort="updatedAt">${sortLabel("Updated", state, "updatedAt")}</th>
+    <th>Summary</th><th>Content</th><th>Cover</th><th>Published</th><th>Actions</th>
+  </tr></thead><tbody>${rows.map(b => `
     <tr data-id='${b.id}'>
       <td>${b.id}</td>
       <td class='editable-cell' data-field='title'>${b.title || ""}</td>
+      <td>${formatDateTime(b.createdAt)}</td>
+      <td>${formatDateTime(b.updatedAt)}</td>
       <td class='editable-cell' data-field='summary'>${b.summary || ""}</td>
       <td class='editable-cell cut-cell' data-field='content'>${b.content || ""}</td>
       <td class='editable-cell cut-cell' data-field='coverImageUrl'>${b.coverImageUrl || ""}</td>
@@ -524,6 +621,15 @@ async function logout() {
 }
 
 couponTable.addEventListener("click", async event => {
+  const sortTh = event.target.closest("th[data-sort]");
+  if (sortTh) {
+    const key = sortTh.dataset.sort;
+    const state = sortState.coupons;
+    state.dir = state.key === key ? (state.dir === "asc" ? "desc" : "asc") : "asc";
+    state.key = key;
+    renderCouponRows(cachedCoupons);
+    return;
+  }
   const saveBtn = event.target.closest("[data-save-coupon]");
   if (saveBtn) {
     await saveCouponRowById(Number(saveBtn.dataset.saveCoupon));
@@ -538,6 +644,15 @@ couponTable.addEventListener("click", async event => {
 });
 
 brandTable.addEventListener("click", async event => {
+  const sortTh = event.target.closest("th[data-sort]");
+  if (sortTh) {
+    const key = sortTh.dataset.sort;
+    const state = sortState.brands;
+    state.dir = state.key === key ? (state.dir === "asc" ? "desc" : "asc") : "asc";
+    state.key = key;
+    renderBrandRows(cachedBrands);
+    return;
+  }
   const saveBtn = event.target.closest("[data-save-brand]");
   if (saveBtn) {
     await saveBrandRowById(Number(saveBtn.dataset.saveBrand));
@@ -552,6 +667,15 @@ brandTable.addEventListener("click", async event => {
 });
 
 blogTable.addEventListener("click", async event => {
+  const sortTh = event.target.closest("th[data-sort]");
+  if (sortTh) {
+    const key = sortTh.dataset.sort;
+    const state = sortState.blogs;
+    state.dir = state.key === key ? (state.dir === "asc" ? "desc" : "asc") : "asc";
+    state.key = key;
+    renderBlogRows(cachedBlogs);
+    return;
+  }
   const saveBtn = event.target.closest("[data-save-blog]");
   if (saveBtn) {
     await saveBlogRowById(Number(saveBtn.dataset.saveBlog));

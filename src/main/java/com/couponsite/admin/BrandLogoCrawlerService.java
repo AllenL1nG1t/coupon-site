@@ -13,6 +13,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicLong;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -59,7 +62,7 @@ public class BrandLogoCrawlerService {
 
         for (BrandProfile profile : brandProfileService.findAllEntities()) {
             try {
-                if (profile.getLogoImage() != null && profile.getLogoImage().length > 0) {
+                if (hasUsableLogo(profile)) {
                     continue;
                 }
                 DownloadedLogo downloaded = resolveLogo(profile);
@@ -85,10 +88,20 @@ public class BrandLogoCrawlerService {
         if (!domain.isBlank()) {
             downloaded = downloadLogo("https://logo.clearbit.com/" + domain);
             if (downloaded == null) {
+                downloaded = downloadLogo("https://api.faviconkit.com/" + domain + "/256");
+            }
+            if (downloaded == null) {
+                downloaded = downloadLogo("https://icons.duckduckgo.com/ip3/" + domain + ".ico");
+            }
+            if (downloaded == null) {
                 String faviconUrl = "https://www.google.com/s2/favicons?sz=256&domain_url=" +
                     URLEncoder.encode("https://" + domain, StandardCharsets.UTF_8);
                 downloaded = downloadLogo(faviconUrl);
             }
+        }
+
+        if (downloaded == null) {
+            downloaded = downloadFromOfficialSite(profile.getOfficialUrl());
         }
 
         if (downloaded == null && isRemoteImageUrl(profile.getLogoUrl())) {
@@ -98,6 +111,39 @@ public class BrandLogoCrawlerService {
             downloaded = loadLocalLogo(profile.getLogoUrl());
         }
         return downloaded;
+    }
+
+    private DownloadedLogo downloadFromOfficialSite(String officialUrl) {
+        String url = safe(officialUrl);
+        if (url.isBlank()) {
+            return null;
+        }
+        try {
+            Document doc = Jsoup.connect(url)
+                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                .timeout(8000)
+                .get();
+            for (Element link : doc.select("link[rel~=(?i)^(icon|shortcut icon|apple-touch-icon)]")) {
+                String href = link.absUrl("href");
+                if (href == null || href.isBlank()) {
+                    href = link.attr("href");
+                }
+                if (href == null || href.isBlank()) {
+                    continue;
+                }
+                if (href.startsWith("/")) {
+                    URI base = URI.create(url);
+                    href = base.getScheme() + "://" + base.getHost() + href;
+                }
+                DownloadedLogo candidate = downloadLogo(href);
+                if (candidate != null) {
+                    return candidate;
+                }
+            }
+        } catch (Exception ignored) {
+            return null;
+        }
+        return null;
     }
 
     private DownloadedLogo downloadLogo(String url) {
@@ -242,6 +288,10 @@ public class BrandLogoCrawlerService {
 
     private String safe(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private boolean hasUsableLogo(BrandProfile profile) {
+        return profile.getLogoImage() != null && profile.getLogoImage().length > 0;
     }
 
     private record DownloadedLogo(byte[] bytes, String contentType) {

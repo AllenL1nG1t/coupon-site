@@ -11,6 +11,11 @@ public class ContentSettingsService {
     private static final String HERO_SUBTITLE = "content.hero.subtitle";
     private static final String HERO_BG_COLOR = "content.hero.bg.color";
     private static final String HERO_BG_IMAGE_URL = "content.hero.bg.imageUrl";
+    private static final String FOOTER_TAGLINE = "content.footer.tagline";
+    private static final String FOOTER_TWITTER_URL = "content.footer.twitterUrl";
+    private static final String FOOTER_INSTAGRAM_URL = "content.footer.instagramUrl";
+    private static final String FOOTER_FACEBOOK_URL = "content.footer.facebookUrl";
+    private static final String FOOTER_YOUTUBE_URL = "content.footer.youtubeUrl";
 
     private final AppSettingService appSettingService;
 
@@ -24,7 +29,12 @@ public class ContentSettingsService {
             appSettingService.getString(HERO_TITLE, "Find verified promo codes that actually work"),
             appSettingService.getString(HERO_SUBTITLE, "Instant savings, clean checkout flow, and transparent code quality from real-time verification."),
             appSettingService.getString(HERO_BG_COLOR, "#f7f9fd"),
-            appSettingService.getString(HERO_BG_IMAGE_URL, "")
+            appSettingService.getString(HERO_BG_IMAGE_URL, ""),
+            appSettingService.getString(FOOTER_TAGLINE, "Deals are user-submitted and manually reviewed."),
+            appSettingService.getString(FOOTER_TWITTER_URL, "https://twitter.com/"),
+            appSettingService.getString(FOOTER_INSTAGRAM_URL, "https://instagram.com/"),
+            appSettingService.getString(FOOTER_FACEBOOK_URL, "https://facebook.com/"),
+            appSettingService.getString(FOOTER_YOUTUBE_URL, "https://youtube.com/")
         );
     }
 
@@ -35,6 +45,11 @@ public class ContentSettingsService {
         appSettingService.setString(HERO_SUBTITLE, request.heroSubtitle());
         appSettingService.setString(HERO_BG_COLOR, request.heroBgColor());
         appSettingService.setString(HERO_BG_IMAGE_URL, request.heroBgImageUrl());
+        appSettingService.setString(FOOTER_TAGLINE, request.footerTagline());
+        appSettingService.setString(FOOTER_TWITTER_URL, request.footerTwitterUrl());
+        appSettingService.setString(FOOTER_INSTAGRAM_URL, request.footerInstagramUrl());
+        appSettingService.setString(FOOTER_FACEBOOK_URL, request.footerFacebookUrl());
+        appSettingService.setString(FOOTER_YOUTUBE_URL, request.footerYoutubeUrl());
         return get();
     }
 }

@@ -5,6 +5,11 @@ public record ContentSettingsDto(
     String heroTitle,
     String heroSubtitle,
     String heroBgColor,
-    String heroBgImageUrl
+    String heroBgImageUrl,
+    String footerTagline,
+    String footerTwitterUrl,
+    String footerInstagramUrl,
+    String footerFacebookUrl,
+    String footerYoutubeUrl
 ) {
 }

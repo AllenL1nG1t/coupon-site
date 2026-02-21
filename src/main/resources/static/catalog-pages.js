@@ -43,7 +43,7 @@ function couponCard(coupon) {
       <div>
         <p class="coupon-store">${coupon.store}</p>
         <h3 class="coupon-title">${coupon.title}</h3>
-        <p class="coupon-meta">${coupon.expires} · ${coupon.category} · source: ${coupon.source}</p>
+        <p class="coupon-meta">${coupon.expires} · ${coupon.category}</p>
       </div>
       <div class="coupon-actions">
         <button class="reveal-btn" data-reveal-id="${coupon.id}" data-store="${coupon.store}" data-title="${coupon.title}">Show Coupon Code</button>
@@ -73,22 +73,51 @@ async function bindRevealButtons() {
 
 async function renderStoresPage() {
   const coupons = await fetchCoupons("all");
-  const stores = uniqueStores(coupons);
+  const stores = uniqueStores(coupons)
+    .sort((a, b) => (a.store || "").localeCompare(b.store || "", undefined, { sensitivity: "base" }));
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+  const groups = new Map(letters.map(letter => [letter, []]));
+  const others = [];
+
+  stores.forEach(store => {
+    const first = (store.store || "").trim().charAt(0).toUpperCase();
+    if (groups.has(first)) {
+      groups.get(first).push(store);
+    } else {
+      others.push(store);
+    }
+  });
+
+  const nav = `
+    <div class="alpha-nav">
+      ${letters.map(letter => `<a href="#letter-${letter}" class="alpha-link ${groups.get(letter).length ? "" : "disabled"}">${letter}</a>`).join("")}
+    </div>
+  `;
+
+  const sections = letters.map(letter => `
+    <section id="letter-${letter}" class="letter-section">
+      <div class="section-head"><h3>${letter}</h3><span class="muted-inline">${groups.get(letter).length} stores</span></div>
+      <div class="store-grid">
+        ${groups.get(letter).map(store => `
+          <a class="store-link" href="/brand.html?store=${encodeURIComponent(store.store)}">
+            <article class="store-tile">
+              <img class="store-logo" src="${store.logoUrl}" alt="${store.store} logo" onerror="this.src='/logos/default.svg'">
+              <p class="store-name">${store.store}</p>
+            </article>
+          </a>
+        `).join("") || "<p class='muted-inline'>No stores</p>"}
+      </div>
+    </section>
+  `).join("");
+
   container.innerHTML = `
     <section class="section-head">
       <h2>All Stores</h2>
       <span class="muted-inline">${stores.length} stores</span>
     </section>
-    <div class="store-grid">
-      ${stores.map(store => `
-        <a class="store-link" href="/brand.html?store=${encodeURIComponent(store.store)}">
-          <article class="store-tile">
-            <img class="store-logo" src="${store.logoUrl}" alt="${store.store} logo" onerror="this.src='/logos/default.svg'">
-            <p class="store-name">${store.store}</p>
-          </article>
-        </a>
-      `).join("")}
-    </div>
+    ${nav}
+    ${sections}
+    ${others.length ? `<section id="letter-other" class="letter-section"><div class="section-head"><h3>#</h3><span class="muted-inline">${others.length} stores</span></div><div class="store-grid">${others.map(store => `<a class="store-link" href="/brand.html?store=${encodeURIComponent(store.store)}"><article class="store-tile"><img class="store-logo" src="${store.logoUrl}" alt="${store.store} logo" onerror="this.src='/logos/default.svg'"><p class="store-name">${store.store}</p></article></a>`).join("")}</div></section>` : ""}
   `;
 }
 

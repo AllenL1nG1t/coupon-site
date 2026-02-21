@@ -108,7 +108,9 @@ public class BrandProfileService {
             profile.getHeroImageUrl(),
             logoUrl,
             profile.getOfficialUrl(),
-            nonBlankOrDefault(profile.getAffiliateUrl(), profile.getOfficialUrl())
+            nonBlankOrDefault(profile.getAffiliateUrl(), profile.getOfficialUrl()),
+            profile.getCreatedAt(),
+            profile.getUpdatedAt()
         );
     }
 

@@ -52,7 +52,8 @@ public class BlogService {
             post.getContent(),
             post.getCoverImageUrl(),
             post.isPublished(),
-            post.getCreatedAt()
+            post.getCreatedAt(),
+            post.getUpdatedAt()
         );
     }
 

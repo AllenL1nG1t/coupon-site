@@ -1,5 +1,7 @@
 package com.couponsite.admin;
 
+import java.time.LocalDateTime;
+
 public record AdminCouponDto(
     Long id,
     String store,
@@ -9,7 +11,8 @@ public record AdminCouponDto(
     String couponCode,
     String affiliateUrl,
     String logoUrl,
-    String source,
-    int clickCount
+    int clickCount,
+    LocalDateTime createdAt,
+    LocalDateTime updatedAt
 ) {
 }

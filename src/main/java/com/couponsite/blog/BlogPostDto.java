@@ -9,6 +9,7 @@ public record BlogPostDto(
     String content,
     String coverImageUrl,
     boolean published,
-    LocalDateTime createdAt
+    LocalDateTime createdAt,
+    LocalDateTime updatedAt
 ) {
 }
