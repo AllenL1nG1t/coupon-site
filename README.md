@@ -6,7 +6,7 @@ Coupon site built with Java + Spring Boot + Maven.
 - Java 17
 - Spring Boot 3.5
 - Spring Web + Spring Data JPA
-- H2 file database
+- MySQL
 - Frontend: static HTML/CSS/JavaScript
 
 ## Run
@@ -21,17 +21,16 @@ Default URLs:
 - Cash Back page: `http://localhost:8081/cashback.html`
 - Admin Login: `http://localhost:8081/admin-login.html`
 - Admin Panel: `http://localhost:8081/admin-panel.html`
-- H2 Console: `http://localhost:8081/h2-console`
 
 ## Configuration
 `src/main/resources/application.properties`:
 
 ```properties
 server.port=8081
-spring.datasource.url=jdbc:h2:file:./data/coupondb;AUTO_SERVER=TRUE
-spring.datasource.driverClassName=org.h2.Driver
-spring.datasource.username=sa
-spring.datasource.password=
+spring.datasource.url=jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:coupon_site}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=utf8
+spring.datasource.driverClassName=com.mysql.cj.jdbc.Driver
+spring.datasource.username=${DB_USERNAME:root}
+spring.datasource.password=${DB_PASSWORD:root}
 spring.jpa.hibernate.ddl-auto=update
 crawler.fixed-delay-ms=1800000
 admin.username=admin
@@ -39,7 +38,7 @@ admin.password=admin123
 ```
 
 Notes:
-- Database is persisted in `./data/coupondb*`
+- Configure DB host/port/name/user/password directly in `application.properties`, or override with env vars (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`)
 - Uploaded images are stored under `./data/uploads`
 
 ## Admin Features
