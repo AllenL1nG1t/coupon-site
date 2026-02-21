@@ -2,13 +2,19 @@
 
 - 语言： [English (Default)](README.md) | [Chinese (Simplified)](README.zh-CN.md)
 - 项目版本：0.0.1-SNAPSHOT
-- 最后更新：2026-02-21 00:43:42 -05:00
+- 最后更新：2026-02-21 01:04:17 -05:00
 
 Dotiki Coupon 是一个基于 Java + Spring Boot + Maven 的优惠券网站项目。
 
 ## 版本管理
 - 当前版本保存在 VERSION 文件。
 - 后续每次更新都要同步修改版本号，并同步到 README.md 和 README.zh-CN.md。
+
+## 最近更新
+- 已统一首页、品牌页、分类/商家页的优惠券跳转逻辑：
+  - 当前页面跳转到 `coupon-code.html`
+  - 联盟链接在新标签页打开
+- 已为首页脚本增加缓存版本参数，避免浏览器继续加载旧 `app.js`。
 
 ## 技术栈
 - Java 17
