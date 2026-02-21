@@ -186,13 +186,14 @@ public class CouponService {
     }
 
     private CouponSummaryDto toSummary(Coupon coupon) {
+        String logoUrl = brandProfileService.resolvePublicLogoUrlByStore(coupon.getStore(), coupon.getLogoUrl());
         return new CouponSummaryDto(
             coupon.getId(),
             coupon.getStore(),
             coupon.getTitle(),
             coupon.getCategory(),
             coupon.getExpires(),
-            coupon.getLogoUrl(),
+            logoUrl,
             coupon.getClickCount()
         );
     }

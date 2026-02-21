@@ -43,6 +43,20 @@ public class BrandProfileService {
             .flatMap(this::toLogoPayload);
     }
 
+    public String resolvePublicLogoUrlByStore(String store, String fallbackLogoUrl) {
+        return brandProfileRepository.findByStoreNameIgnoreCase(store)
+            .map(profile -> {
+                if (hasStoredLogo(profile)) {
+                    return "/api/brands/logo?slug=" + URLEncoder.encode(profile.getSlug(), StandardCharsets.UTF_8);
+                }
+                if (!isBlank(profile.getLogoUrl())) {
+                    return profile.getLogoUrl();
+                }
+                return fallbackLogoUrl;
+            })
+            .orElse(fallbackLogoUrl);
+    }
+
     @Transactional
     public BrandProfileDto upsert(BrandProfileUpsertRequest request) {
         BrandProfile profile = request.id() == null
@@ -131,6 +145,10 @@ public class BrandProfileService {
             return fallback;
         }
         return value.trim();
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 
     public record BrandLogoPayload(byte[] bytes, String contentType) {

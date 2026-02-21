@@ -1,6 +1,7 @@
 package com.couponsite.config;
 
 import com.couponsite.admin.CrawlerLogService;
+import com.couponsite.admin.CrawlerSiteService;
 import com.couponsite.admin.AdminUser;
 import com.couponsite.admin.AdminUserRepository;
 import com.couponsite.blog.BlogPostUpsertRequest;
@@ -24,11 +25,13 @@ public class SeedDataConfig {
         CrawlerLogService crawlerLogService,
         BlogService blogService,
         BrandProfileService brandProfileService,
+        CrawlerSiteService crawlerSiteService,
         AdminUserRepository adminUserRepository,
         @Value("${admin.default.username:admin}") String defaultAdminUsername,
         @Value("${admin.default.password:admin123}") String defaultAdminPassword
     ) {
         return args -> {
+            crawlerSiteService.ensureDefaults();
             ensureDefaultAdmin(adminUserRepository, defaultAdminUsername, defaultAdminPassword);
 
             if (couponService.count() > 0) {

@@ -70,6 +70,21 @@ CREATE TABLE IF NOT EXISTS crawler_log (
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS crawler_site (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  site_key VARCHAR(120) NOT NULL,
+  site_name VARCHAR(255) NOT NULL,
+  base_url VARCHAR(1200) NOT NULL,
+  active BIT(1) NOT NULL,
+  coupon_enabled BIT(1) NOT NULL,
+  brand_enabled BIT(1) NOT NULL,
+  logo_enabled BIT(1) NOT NULL,
+  created_at DATETIME(6) NOT NULL,
+  updated_at DATETIME(6) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_crawler_site_site_key (site_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS admin_user (
   id BIGINT NOT NULL AUTO_INCREMENT,
   username VARCHAR(255) NOT NULL,
@@ -153,3 +168,11 @@ WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.footer.
 INSERT INTO app_setting (setting_key, setting_value, updated_at)
 SELECT 'content.footer.affiliateDisclosureUrl', '/affiliate-disclosure', NOW(6)
 WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.footer.affiliateDisclosureUrl');
+
+INSERT INTO crawler_site (site_key, site_name, base_url, active, coupon_enabled, brand_enabled, logo_enabled, created_at, updated_at)
+SELECT 'retailmenot', 'RetailMeNot', 'https://www.retailmenot.com/', b'1', b'1', b'0', b'0', NOW(6), NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM crawler_site WHERE site_key = 'retailmenot');
+
+INSERT INTO crawler_site (site_key, site_name, base_url, active, coupon_enabled, brand_enabled, logo_enabled, created_at, updated_at)
+SELECT 'simplycodes', 'SimplyCodes', 'https://simplycodes.com/', b'1', b'1', b'0', b'0', NOW(6), NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM crawler_site WHERE site_key = 'simplycodes');

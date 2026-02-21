@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicLong;
 import org.jsoup.Jsoup;
@@ -62,17 +63,9 @@ public class BrandLogoCrawlerService {
 
         for (BrandProfile profile : brandProfileService.findAllEntities()) {
             try {
-                if (hasUsableLogo(profile)) {
-                    continue;
+                if (crawlSingle(profile)) {
+                    updated++;
                 }
-                DownloadedLogo downloaded = resolveLogo(profile);
-                if (downloaded == null) {
-                    continue;
-                }
-                profile.setLogoImage(downloaded.bytes());
-                profile.setLogoImageContentType(downloaded.contentType());
-                brandProfileService.save(profile);
-                updated++;
             } catch (Exception ex) {
                 crawlerLogService.warn("Brand logo crawl failed for " + safe(profile.getStoreName()) + ": " + ex.getClass().getSimpleName());
             }
@@ -82,8 +75,22 @@ public class BrandLogoCrawlerService {
         return updated;
     }
 
+    public boolean crawlSingle(BrandProfile profile) {
+        if (profile == null || hasUsableLogo(profile)) {
+            return false;
+        }
+        DownloadedLogo downloaded = resolveLogo(profile);
+        if (downloaded == null) {
+            return false;
+        }
+        profile.setLogoImage(downloaded.bytes());
+        profile.setLogoImageContentType(downloaded.contentType());
+        brandProfileService.save(profile);
+        return true;
+    }
+
     private DownloadedLogo resolveLogo(BrandProfile profile) {
-        String domain = extractDomain(profile.getOfficialUrl());
+        String domain = extractDomain(profile.getOfficialUrl(), profile.getStoreName());
         DownloadedLogo downloaded = null;
         if (!domain.isBlank()) {
             downloaded = downloadLogo("https://logo.clearbit.com/" + domain);
@@ -238,16 +245,26 @@ public class BrandLogoCrawlerService {
         }
     }
 
-    private String extractDomain(String officialUrl) {
+    private String extractDomain(String officialUrl, String storeName) {
         try {
-            if (safe(officialUrl).isBlank()) {
-                return "";
+            String input = safe(officialUrl);
+            if (input.isBlank() && !safe(storeName).isBlank()) {
+                String guess = safe(storeName).toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "");
+                if (!guess.isBlank()) {
+                    return guess + ".com";
+                }
             }
-            String host = safe(URI.create(officialUrl).getHost()).toLowerCase(Locale.ROOT);
+            String host = safe(URI.create(input).getHost()).toLowerCase(Locale.ROOT);
             if (host.isBlank()) {
                 return "";
             }
+            if (host.startsWith("www.")) {
+                host = host.substring(4);
+            }
             String[] parts = host.split("\\.");
+            if (parts.length >= 3 && isSecondLevelSuffix(parts[parts.length - 2])) {
+                return parts[parts.length - 3] + "." + parts[parts.length - 2] + "." + parts[parts.length - 1];
+            }
             if (parts.length >= 2) {
                 return parts[parts.length - 2] + "." + parts[parts.length - 1];
             }
@@ -255,6 +272,10 @@ public class BrandLogoCrawlerService {
         } catch (Exception ex) {
             return "";
         }
+    }
+
+    private boolean isSecondLevelSuffix(String part) {
+        return List.of("co", "com", "org", "net", "gov", "edu").contains(part);
     }
 
     private boolean isRemoteImageUrl(String url) {

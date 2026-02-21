@@ -9,6 +9,14 @@ const runCouponCrawlerBtn = document.getElementById("runCouponCrawlerBtn");
 const runBrandCrawlerBtn = document.getElementById("runBrandCrawlerBtn");
 const runBrandLogoCrawlerBtn = document.getElementById("runBrandLogoCrawlerBtn");
 const crawlerStatus = document.getElementById("crawlerStatus");
+const crawlerSiteName = document.getElementById("crawlerSiteName");
+const crawlerSiteBaseUrl = document.getElementById("crawlerSiteBaseUrl");
+const crawlerSiteActive = document.getElementById("crawlerSiteActive");
+const crawlerSiteCouponEnabled = document.getElementById("crawlerSiteCouponEnabled");
+const crawlerSiteBrandEnabled = document.getElementById("crawlerSiteBrandEnabled");
+const crawlerSiteLogoEnabled = document.getElementById("crawlerSiteLogoEnabled");
+const saveCrawlerSiteBtn = document.getElementById("saveCrawlerSiteBtn");
+const crawlerSiteTable = document.getElementById("crawlerSiteTable");
 const logPanel = document.getElementById("logPanel");
 const couponTable = document.getElementById("couponTable");
 const blogTable = document.getElementById("blogTable");
@@ -99,6 +107,7 @@ const adsStatus = document.getElementById("adsStatus");
 let cachedCoupons = [];
 let cachedBlogs = [];
 let cachedBrands = [];
+let cachedCrawlerSites = [];
 const sortState = {
   coupons: { key: "id", dir: "asc" },
   brands: { key: "id", dir: "asc" },
@@ -245,6 +254,65 @@ async function loadCrawler() {
     `B:${brandCrawlerEnabled.checked ? "on" : "off"}(${brandCrawlerIntervalMinutes.value}m)`,
     `L:${brandLogoCrawlerEnabled.checked ? "on" : "off"}(${brandLogoCrawlerIntervalMinutes.value}m)`
   ].join(" ");
+  await loadCrawlerSites();
+}
+
+function clearCrawlerSiteForm() {
+  crawlerSiteName.value = "";
+  crawlerSiteBaseUrl.value = "";
+  crawlerSiteActive.checked = true;
+  crawlerSiteCouponEnabled.checked = true;
+  crawlerSiteBrandEnabled.checked = true;
+  crawlerSiteLogoEnabled.checked = true;
+  saveCrawlerSiteBtn.dataset.editId = "";
+  saveCrawlerSiteBtn.textContent = "Add Crawler Site";
+}
+
+function renderCrawlerSites(rows) {
+  crawlerSiteTable.innerHTML = `<thead><tr>
+    <th>ID</th><th>Key</th><th>Name</th><th>Base URL</th><th>Active</th><th>Coupon</th><th>Brand</th><th>Logo</th><th>Actions</th>
+  </tr></thead><tbody>${rows.map(site => `
+    <tr data-id="${site.id}">
+      <td>${site.id}</td>
+      <td>${site.siteKey}</td>
+      <td>${site.siteName}</td>
+      <td class="cut-cell">${site.baseUrl}</td>
+      <td><input type="checkbox" data-toggle="active" ${site.active ? "checked" : ""}></td>
+      <td><input type="checkbox" data-toggle="couponEnabled" ${site.couponEnabled ? "checked" : ""}></td>
+      <td><input type="checkbox" data-toggle="brandEnabled" ${site.brandEnabled ? "checked" : ""}></td>
+      <td><input type="checkbox" data-toggle="logoEnabled" ${site.logoEnabled ? "checked" : ""}></td>
+      <td><button class="admin-mini-btn" data-edit-site="${site.id}">Edit</button> <button class="admin-mini-btn" data-del-site="${site.id}">Delete</button></td>
+    </tr>
+  `).join("")}</tbody>`;
+}
+
+async function loadCrawlerSites() {
+  cachedCrawlerSites = await (await adminFetch("/api/admin/crawler/sites")).json();
+  renderCrawlerSites(cachedCrawlerSites);
+}
+
+async function saveCrawlerSite() {
+  const body = {
+    id: saveCrawlerSiteBtn.dataset.editId ? Number(saveCrawlerSiteBtn.dataset.editId) : null,
+    siteName: crawlerSiteName.value.trim(),
+    baseUrl: crawlerSiteBaseUrl.value.trim(),
+    active: crawlerSiteActive.checked,
+    couponEnabled: crawlerSiteCouponEnabled.checked,
+    brandEnabled: crawlerSiteBrandEnabled.checked,
+    logoEnabled: crawlerSiteLogoEnabled.checked
+  };
+  const response = await adminFetch("/api/admin/crawler/sites", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  if (!response.ok) {
+    crawlerStatus.textContent = "Crawler site save failed";
+    return;
+  }
+  clearCrawlerSiteForm();
+  await loadCrawlerSites();
+  crawlerStatus.textContent = "Crawler site saved";
 }
 
 async function loadContent() {
@@ -707,6 +775,46 @@ blogTable.addEventListener("click", async event => {
   }
 });
 
+crawlerSiteTable.addEventListener("click", async event => {
+  const editBtn = event.target.closest("[data-edit-site]");
+  if (editBtn) {
+    const id = Number(editBtn.dataset.editSite);
+    const site = cachedCrawlerSites.find(item => item.id === id);
+    if (!site) return;
+    crawlerSiteName.value = site.siteName || "";
+    crawlerSiteBaseUrl.value = site.baseUrl || "";
+    crawlerSiteActive.checked = !!site.active;
+    crawlerSiteCouponEnabled.checked = !!site.couponEnabled;
+    crawlerSiteBrandEnabled.checked = !!site.brandEnabled;
+    crawlerSiteLogoEnabled.checked = !!site.logoEnabled;
+    saveCrawlerSiteBtn.dataset.editId = String(site.id);
+    saveCrawlerSiteBtn.textContent = "Update Crawler Site";
+    return;
+  }
+
+  const delBtn = event.target.closest("[data-del-site]");
+  if (delBtn) {
+    await adminFetch(`/api/admin/crawler/sites?id=${delBtn.dataset.delSite}`, { method: "DELETE" });
+    await loadCrawlerSites();
+    return;
+  }
+
+  const checkbox = event.target.closest("input[data-toggle]");
+  if (!checkbox) return;
+  const row = checkbox.closest("tr[data-id]");
+  if (!row) return;
+  const id = Number(row.dataset.id);
+  const site = cachedCrawlerSites.find(item => item.id === id);
+  if (!site) return;
+  site[checkbox.dataset.toggle] = checkbox.checked;
+  await adminFetch("/api/admin/crawler/sites", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(site)
+  });
+  await loadCrawlerSites();
+});
+
 async function saveAllCoupons() {
   for (const id of Array.from(dirtyCouponIds)) {
     await saveCouponRowById(id);
@@ -729,6 +837,7 @@ async function saveAllBlogs() {
 }
 
 saveCrawlerBtn.addEventListener("click", saveCrawler);
+saveCrawlerSiteBtn.addEventListener("click", saveCrawlerSite);
 runCouponCrawlerBtn.addEventListener("click", () => runCrawler("/api/admin/crawler/run-coupons", "coupon crawler"));
 runBrandCrawlerBtn.addEventListener("click", () => runCrawler("/api/admin/crawler/run-brands", "brand crawler"));
 runBrandLogoCrawlerBtn.addEventListener("click", () => runCrawler("/api/admin/crawler/run-brand-logos", "brand logo crawler"));
@@ -762,6 +871,7 @@ activateInlineEditing(blogTable, dirtyBlogIds);
   const ok = await checkAuth();
   if (!ok) return;
   await Promise.all([loadCrawler(), loadContent(), loadCoupons(), loadBrands(), loadBlogs(), loadAds()]);
+  clearCrawlerSiteForm();
 })();
 
 

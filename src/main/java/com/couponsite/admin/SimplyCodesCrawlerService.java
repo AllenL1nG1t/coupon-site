@@ -40,16 +40,19 @@ public class SimplyCodesCrawlerService {
 
     private final CouponService couponService;
     private final AppSettingService appSettingService;
+    private final CrawlerSiteService crawlerSiteService;
     private final CrawlerLogService crawlerLogService;
     private final AtomicLong lastScheduledRunAt = new AtomicLong(0L);
 
     public SimplyCodesCrawlerService(
         CouponService couponService,
         AppSettingService appSettingService,
+        CrawlerSiteService crawlerSiteService,
         CrawlerLogService crawlerLogService
     ) {
         this.couponService = couponService;
         this.appSettingService = appSettingService;
+        this.crawlerSiteService = crawlerSiteService;
         this.crawlerLogService = crawlerLogService;
     }
 
@@ -71,6 +74,10 @@ public class SimplyCodesCrawlerService {
     }
 
     public synchronized int crawlLatest() {
+        if (!crawlerSiteService.isEnabled("simplycodes", CrawlerSiteService.DataType.COUPON)) {
+            crawlerLogService.info("SimplyCodes crawler skipped by site switch.");
+            return 0;
+        }
         crawlerLogService.info("SimplyCodes crawler started.");
         int upserts = 0;
         int duplicates = 0;

@@ -37,16 +37,19 @@ public class RetailMeNotCrawlerService {
 
     private final CouponService couponService;
     private final AppSettingService appSettingService;
+    private final CrawlerSiteService crawlerSiteService;
     private final CrawlerLogService crawlerLogService;
     private final AtomicLong lastScheduledRunAt = new AtomicLong(0L);
 
     public RetailMeNotCrawlerService(
         CouponService couponService,
         AppSettingService appSettingService,
+        CrawlerSiteService crawlerSiteService,
         CrawlerLogService crawlerLogService
     ) {
         this.couponService = couponService;
         this.appSettingService = appSettingService;
+        this.crawlerSiteService = crawlerSiteService;
         this.crawlerLogService = crawlerLogService;
     }
 
@@ -68,6 +71,10 @@ public class RetailMeNotCrawlerService {
     }
 
     public synchronized int crawlLatest() {
+        if (!crawlerSiteService.isEnabled("retailmenot", CrawlerSiteService.DataType.COUPON)) {
+            crawlerLogService.info("RetailMeNot crawler skipped by site switch.");
+            return 0;
+        }
         crawlerLogService.info("RetailMeNot crawler started.");
         int upserts = 0;
         int duplicates = 0;

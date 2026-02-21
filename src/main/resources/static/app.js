@@ -36,6 +36,10 @@ const copyToast = document.getElementById("copyToast");
 
 let activeFilter = "all";
 let searchTerm = "";
+let allCouponsCache = [];
+let displayedCouponCount = 0;
+const couponPageSize = 12;
+let couponObserver = null;
 
 const categoryIcons = {
   electronics: "bi-phone",
@@ -234,46 +238,84 @@ function sortDeals(coupons) {
   });
 }
 
+function buildCouponNode(coupon) {
+  const node = couponTemplate.content.cloneNode(true);
+  node.querySelector(".coupon-store").textContent = toSafeText(coupon.store);
+  node.querySelector(".coupon-title").textContent = toSafeText(coupon.title);
+  node.querySelector(".coupon-meta").textContent = `${toSafeText(coupon.category)} | ${toSafeText(coupon.expires)} | ${Number(coupon.clickCount || 0)} clicks`;
+  node.querySelector(".badge-timer").textContent = humanTimer(coupon.expires);
+
+  const hotBadge = node.querySelector(".badge-hot");
+  if (isHotCoupon(coupon)) {
+    hotBadge.classList.remove("hidden");
+    hotBadge.textContent = "Hot";
+  }
+
+  const btn = node.querySelector(".reveal-btn");
+  btn.addEventListener("click", async () => {
+    btn.disabled = true;
+    btn.textContent = "Checking...";
+    try {
+      const data = await revealCoupon(coupon.id);
+      await copyCode(data.couponCode);
+      openModal(coupon.store, coupon.title, data.couponCode, data.affiliateUrl);
+      if (data.affiliateUrl) {
+        window.open(data.affiliateUrl, "_blank", "noopener");
+      }
+      btn.textContent = "Copied";
+    } catch (_) {
+      btn.textContent = "Try Again";
+      btn.disabled = false;
+    }
+  });
+  return node;
+}
+
+function renderMoreCoupons() {
+  const next = allCouponsCache.slice(displayedCouponCount, displayedCouponCount + couponPageSize);
+  next.forEach(coupon => couponList.appendChild(buildCouponNode(coupon)));
+  displayedCouponCount += next.length;
+  const sentinel = document.getElementById("couponListSentinel");
+  if (sentinel) {
+    sentinel.classList.toggle("hidden", displayedCouponCount >= allCouponsCache.length);
+  }
+}
+
+function setupCouponInfiniteScroll() {
+  if (couponObserver) {
+    couponObserver.disconnect();
+    couponObserver = null;
+  }
+  let sentinel = document.getElementById("couponListSentinel");
+  if (!sentinel) {
+    sentinel = document.createElement("div");
+    sentinel.id = "couponListSentinel";
+    sentinel.className = "coupon-sentinel";
+    sentinel.textContent = "Loading more deals...";
+    couponList.appendChild(sentinel);
+  }
+  couponObserver = new IntersectionObserver(entries => {
+    const first = entries[0];
+    if (!first || !first.isIntersecting) return;
+    renderMoreCoupons();
+  }, { rootMargin: "260px 0px" });
+  couponObserver.observe(sentinel);
+  renderMoreCoupons();
+}
+
 function renderCoupons(coupons) {
   couponList.innerHTML = "";
+  if (couponObserver) {
+    couponObserver.disconnect();
+    couponObserver = null;
+  }
   if (!coupons.length) {
     couponList.innerHTML = `<article class="home-coupon-card"><p>No coupons match your search.</p></article>`;
     return;
   }
-
-  sortDeals(coupons).slice(0, 18).forEach(coupon => {
-    const node = couponTemplate.content.cloneNode(true);
-    node.querySelector(".coupon-store").textContent = toSafeText(coupon.store);
-    node.querySelector(".coupon-title").textContent = toSafeText(coupon.title);
-    node.querySelector(".coupon-meta").textContent = `${toSafeText(coupon.category)} | ${toSafeText(coupon.expires)} | ${Number(coupon.clickCount || 0)} clicks`;
-    node.querySelector(".badge-timer").textContent = humanTimer(coupon.expires);
-
-    const hotBadge = node.querySelector(".badge-hot");
-    if (isHotCoupon(coupon)) {
-      hotBadge.classList.remove("hidden");
-      hotBadge.textContent = "Hot";
-    }
-
-    const btn = node.querySelector(".reveal-btn");
-    btn.addEventListener("click", async () => {
-      btn.disabled = true;
-      btn.textContent = "Checking...";
-      try {
-        const data = await revealCoupon(coupon.id);
-        await copyCode(data.couponCode);
-        openModal(coupon.store, coupon.title, data.couponCode, data.affiliateUrl);
-        if (data.affiliateUrl) {
-          window.open(data.affiliateUrl, "_blank", "noopener");
-        }
-        btn.textContent = "Copied";
-      } catch (_) {
-        btn.textContent = "Try Again";
-        btn.disabled = false;
-      }
-    });
-
-    couponList.appendChild(node);
-  });
+  allCouponsCache = sortDeals(coupons);
+  displayedCouponCount = 0;
+  setupCouponInfiniteScroll();
 }
 
 function renderBlogs(blogs) {

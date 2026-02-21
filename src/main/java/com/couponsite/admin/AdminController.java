@@ -35,6 +35,8 @@ public class AdminController {
     private final SimplyCodesCrawlerService simplyCodesCrawlerService;
     private final BrandCrawlerService brandCrawlerService;
     private final BrandLogoCrawlerService brandLogoCrawlerService;
+    private final GenericSiteCrawlerService genericSiteCrawlerService;
+    private final CrawlerSiteService crawlerSiteService;
     private final AdSettingsService adSettingsService;
     private final ContentSettingsService contentSettingsService;
     private final CouponService couponService;
@@ -48,6 +50,8 @@ public class AdminController {
         SimplyCodesCrawlerService simplyCodesCrawlerService,
         BrandCrawlerService brandCrawlerService,
         BrandLogoCrawlerService brandLogoCrawlerService,
+        GenericSiteCrawlerService genericSiteCrawlerService,
+        CrawlerSiteService crawlerSiteService,
         AdSettingsService adSettingsService,
         ContentSettingsService contentSettingsService,
         CouponService couponService,
@@ -60,6 +64,8 @@ public class AdminController {
         this.simplyCodesCrawlerService = simplyCodesCrawlerService;
         this.brandCrawlerService = brandCrawlerService;
         this.brandLogoCrawlerService = brandLogoCrawlerService;
+        this.genericSiteCrawlerService = genericSiteCrawlerService;
+        this.crawlerSiteService = crawlerSiteService;
         this.adSettingsService = adSettingsService;
         this.contentSettingsService = contentSettingsService;
         this.couponService = couponService;
@@ -114,8 +120,8 @@ public class AdminController {
     @PostMapping("/crawler/run")
     public ResponseEntity<String> runCrawler() {
         int couponCount = runCouponCrawlerInternal();
-        int brandCount = brandCrawlerService.crawlLatest();
-        int logoCount = brandLogoCrawlerService.crawlLatest();
+        int brandCount = brandCrawlerService.crawlLatest() + genericSiteCrawlerService.crawlBrandsFromEnabledSites();
+        int logoCount = brandLogoCrawlerService.crawlLatest() + genericSiteCrawlerService.crawlLogosFromEnabledSites();
         int total = couponCount + brandCount + logoCount;
         return ResponseEntity.ok("Crawler done, coupons=" + couponCount + ", brands=" + brandCount + ", brandLogos=" + logoCount + ", total=" + total);
     }
@@ -128,20 +134,37 @@ public class AdminController {
 
     @PostMapping("/crawler/run-brands")
     public ResponseEntity<String> runBrandCrawler() {
-        int brandCount = brandCrawlerService.crawlLatest();
+        int brandCount = brandCrawlerService.crawlLatest() + genericSiteCrawlerService.crawlBrandsFromEnabledSites();
         return ResponseEntity.ok("Brand crawler done, total=" + brandCount);
     }
 
     @PostMapping("/crawler/run-brand-logos")
     public ResponseEntity<String> runBrandLogoCrawler() {
-        int logoCount = brandLogoCrawlerService.crawlLatest();
+        int logoCount = brandLogoCrawlerService.crawlLatest() + genericSiteCrawlerService.crawlLogosFromEnabledSites();
         return ResponseEntity.ok("Brand logo crawler done, total=" + logoCount);
     }
 
     private int runCouponCrawlerInternal() {
         int retailCount = retailMeNotCrawlerService.crawlLatest();
         int simplyCodesCount = simplyCodesCrawlerService.crawlLatest();
-        return retailCount + simplyCodesCount;
+        int customCount = genericSiteCrawlerService.crawlCouponsFromEnabledSites();
+        return retailCount + simplyCodesCount + customCount;
+    }
+
+    @GetMapping("/crawler/sites")
+    public List<CrawlerSiteDto> crawlerSites() {
+        return crawlerSiteService.listAll();
+    }
+
+    @PutMapping("/crawler/sites")
+    public CrawlerSiteDto upsertCrawlerSite(@RequestBody CrawlerSiteUpsertRequest request) {
+        return crawlerSiteService.upsert(request);
+    }
+
+    @DeleteMapping("/crawler/sites")
+    public ResponseEntity<Void> deleteCrawlerSite(@RequestParam Long id) {
+        crawlerSiteService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/coupons")

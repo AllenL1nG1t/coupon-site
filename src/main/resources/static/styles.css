@@ -1066,6 +1066,12 @@ body[data-home="1"] h1 {
 }
 
 .home-coupon-list { display: grid; gap: 10px; }
+.coupon-sentinel {
+    text-align: center;
+    padding: 10px;
+    color: var(--home-muted);
+    font-size: 13px;
+}
 
 .home-coupon-card {
     padding: 14px;
