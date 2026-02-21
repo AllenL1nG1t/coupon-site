@@ -1,7 +1,8 @@
 # Dotiki Coupon
 
-项目版本：0.0.1-SNAPSHOT
-最后更新：2026-02-21 00:43:42 -05:00
+- 语言： [English (Default)](README.md) | [Chinese (Simplified)](README.zh-CN.md)
+- 项目版本：0.0.1-SNAPSHOT
+- 最后更新：2026-02-21 00:43:42 -05:00
 
 Dotiki Coupon 是一个基于 Java + Spring Boot + Maven 的优惠券网站项目。
 

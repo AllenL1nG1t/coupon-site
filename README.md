@@ -1,8 +1,8 @@
 ﻿# Dotiki Coupon
 
-Language: [English (Default)](README.md) | [Chinese (Simplified)](README.zh-CN.md)
-Version: 0.0.1-SNAPSHOT
-Last Updated: 2026-02-21 00:42:44 -05:00
+- Language: [English (Default)](README.md) | [Chinese (Simplified)](README.zh-CN.md)
+- Version: 0.0.1-SNAPSHOT
+- Last Updated: 2026-02-21 00:42:44 -05:00
 
 Dotiki Coupon site built with Java + Spring Boot + Maven.
 
