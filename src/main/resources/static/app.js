@@ -141,13 +141,10 @@ async function revealCoupon(id) {
   return response.json();
 }
 
-function buildCodePageUrl(coupon, couponCode) {
-  const params = new URLSearchParams({
-    store: toSafeText(coupon?.store, "Store"),
-    title: toSafeText(coupon?.title, "Offer"),
-    code: toSafeText(couponCode, "SEEDEAL")
-  });
-  return `/coupon-code.html?${params.toString()}`;
+function openCodePageAndRedirectCurrent(data, coupon) {
+  const codePage = `/coupon-code.html?store=${encodeURIComponent(coupon.store)}&title=${encodeURIComponent(coupon.title)}&code=${encodeURIComponent(data.couponCode)}`;
+  window.open(codePage, "_blank", "noopener");
+  window.location.assign(data.affiliateUrl);
 }
 
 function applyContent(content) {
@@ -262,29 +259,13 @@ function buildCouponNode(coupon) {
   const btn = node.querySelector(".reveal-btn");
   btn.addEventListener("click", async () => {
     btn.disabled = true;
-    btn.textContent = "Checking...";
-    const codeTab = window.open("about:blank", "_blank", "noopener");
+    btn.textContent = "Loading...";
     try {
       const data = await revealCoupon(coupon.id);
-      const codePageUrl = buildCodePageUrl(coupon, data.couponCode);
-
-      if (codeTab) {
-        codeTab.location.href = codePageUrl;
-      } else {
-        window.open(codePageUrl, "_blank", "noopener");
-      }
-
-      if (data.affiliateUrl) {
-        window.location.assign(data.affiliateUrl);
-      } else if (!codeTab) {
-        window.location.assign(codePageUrl);
-      }
       btn.textContent = "Redirecting...";
+      openCodePageAndRedirectCurrent(data, coupon);
     } catch (_) {
-      if (codeTab) {
-        codeTab.close();
-      }
-      btn.textContent = "Try Again";
+      btn.textContent = "Try again";
       btn.disabled = false;
     }
   });
