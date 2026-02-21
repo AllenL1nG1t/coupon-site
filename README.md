@@ -1,8 +1,8 @@
 ﻿# Dotiki Coupon
 
 - Language: [English (Default)](README.md) | [Chinese (Simplified)](README.zh-CN.md)
-- Version: 0.0.1-SNAPSHOT
-- Last Updated: 2026-02-21 01:04:17 -05:00
+- Version: 0.0.2-SNAPSHOT
+- Last Updated: 2026-02-21 01:17:42 -05:00
 
 Dotiki Coupon site built with Java + Spring Boot + Maven.
 
@@ -12,8 +12,8 @@ Dotiki Coupon site built with Java + Spring Boot + Maven.
 
 ## Recent Updates
 - Unified coupon click redirect flow across home, brand, and catalog pages:
-  - Current tab navigates to `coupon-code.html`
-  - Affiliate URL opens in a new tab
+  - Current tab navigates to affiliate URL
+  - New tab opens `coupon-code.html`
 - Added cache-busting for homepage script loading to avoid stale `app.js` behavior.
 
 ## Tech Stack
