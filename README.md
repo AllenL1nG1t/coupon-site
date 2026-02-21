@@ -1,4 +1,4 @@
-﻿# coupon-site
+﻿# Dotiki Coupon
 
 Dotiki Coupon site built with Java + Spring Boot + Maven.
 
@@ -124,3 +124,4 @@ Notes:
 
 ## Known Limitation
 - RetailMeNot can return `403` due to anti-bot protection. Fallback coupon seeding is in place when crawling is blocked.
+
