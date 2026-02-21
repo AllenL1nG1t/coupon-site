@@ -150,6 +150,26 @@ SELECT 'content.theme.preset', 'scheme-a', NOW(6)
 WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.theme.preset');
 
 INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'content.hero.eyebrow', 'SIMPLYCODES STYLE DEALS', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.hero.eyebrow');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'content.hero.title', 'Find verified promo codes that actually work', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.hero.title');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'content.hero.subtitle', 'Instant savings, clean checkout flow, and transparent code quality from real-time verification.', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.hero.subtitle');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'content.hero.bg.color', '#f7f9fd', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.hero.bg.color');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'content.hero.bg.imageUrl', '', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.hero.bg.imageUrl');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
 SELECT 'content.footer.aboutUrl', '/about', NOW(6)
 WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.footer.aboutUrl');
 
@@ -168,6 +188,62 @@ WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.footer.
 INSERT INTO app_setting (setting_key, setting_value, updated_at)
 SELECT 'content.footer.affiliateDisclosureUrl', '/affiliate-disclosure', NOW(6)
 WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'content.footer.affiliateDisclosureUrl');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'ads.strip.enabled', 'true', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'ads.strip.enabled');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'ads.strip.text', 'Flash Sale: Save up to 70% today', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'ads.strip.text');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'ads.strip.link', 'https://example-affiliate.com/flash', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'ads.strip.link');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'ads.home.top.enabled', 'true', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'ads.home.top.enabled');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'ads.home.mid.enabled', 'true', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'ads.home.mid.enabled');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'ads.home.side.left.enabled', 'false', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'ads.home.side.left.enabled');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'ads.home.side.right.enabled', 'false', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'ads.home.side.right.enabled');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'ads.home.bottom.enabled', 'false', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'ads.home.bottom.enabled');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'ads.blog.top.enabled', 'false', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'ads.blog.top.enabled');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'ads.blog.inline.enabled', 'true', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'ads.blog.inline.enabled');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'ads.blog.bottom.enabled', 'false', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'ads.blog.bottom.enabled');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'ads.adsense.clientId', '', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'ads.adsense.clientId');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'ads.adsense.home.slot', '', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'ads.adsense.home.slot');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'ads.adsense.blog.slot', '', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'ads.adsense.blog.slot');
 
 INSERT INTO crawler_site (site_key, site_name, base_url, active, coupon_enabled, brand_enabled, logo_enabled, created_at, updated_at)
 SELECT 'retailmenot', 'RetailMeNot', 'https://www.retailmenot.com/', b'1', b'1', b'0', b'0', NOW(6), NOW(6)
