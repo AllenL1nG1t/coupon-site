@@ -37,6 +37,24 @@ public class GenericSiteCrawlerService {
     private static final Pattern CODE_PATTERN = Pattern.compile("(?i)(?:code|coupon|promo)\\s*[:#\\-]?\\s*([A-Za-z0-9]{4,16})");
     private static final Pattern RAW_CODE_PATTERN = Pattern.compile("\\b[A-Z0-9]{5,14}\\b");
     private static final Pattern DATE_HINT_PATTERN = Pattern.compile("(?i)(expires?|valid\\s+until|ends?)\\s*[:\\-]?\\s*([A-Za-z0-9,\\s]{3,40})");
+    private static final List<String> COUPON_TITLE_BLOCKLIST = List.of(
+        "recommended stores",
+        "featured shops",
+        "see all stores",
+        "newly added stores",
+        "gift card shop",
+        "our rating",
+        "how it works",
+        "buy online, pick up in-store",
+        "members",
+        "top stores"
+    );
+    private static final List<String> STORE_NAME_BLOCKLIST = List.of(
+        "cash back",
+        "recommended stores",
+        "see all stores",
+        "featured shops"
+    );
 
     private final CrawlerSiteService crawlerSiteService;
     private final AppSettingService appSettingService;
@@ -305,12 +323,17 @@ public class GenericSiteCrawlerService {
 
         String fallbackStore = deriveStoreName(site);
         String source = "custom-" + safe(site.getSiteKey()).toLowerCase(Locale.ROOT);
+        boolean aggregatorSite = isAggregatorDomain(site.getBaseUrl());
 
         for (Map.Entry<String, Document> entry : pages.entrySet()) {
             String pageUrl = entry.getKey();
             Document doc = entry.getValue();
 
-            List<Element> nodes = doc.select("article, section, div, li");
+            List<Element> nodes = doc.select(
+                "article, section, li, " +
+                    "div[class*=coupon], div[class*=deal], div[class*=offer], div[class*=promo], " +
+                    "div[data-testid*=coupon], div[data-testid*=offer], div[data-testid*=deal]"
+            );
             for (Element node : nodes) {
                 if (coupons.size() >= MAX_COUPONS_PER_SITE) {
                     return coupons;
@@ -325,7 +348,17 @@ public class GenericSiteCrawlerService {
                 }
 
                 String store = extractStoreName(node, pageUrl, fallbackStore);
+                String storeFromTitle = inferStoreFromTitle(title);
+                if (isUsableBrandName(storeFromTitle)) {
+                    store = storeFromTitle;
+                }
                 String code = extractCouponCode(node.text(), title, store, pageUrl);
+                if (aggregatorSite && normalizeKey(store).equals(normalizeKey(fallbackStore))) {
+                    continue;
+                }
+                if (isDirtyCoupon(store, title, code, fallbackStore)) {
+                    continue;
+                }
                 String dedupe = normalizeKey(store) + "|" + normalizeKey(code);
                 if (!seenKeys.add(dedupe)) {
                     continue;
@@ -444,7 +477,7 @@ public class GenericSiteCrawlerService {
 
     private boolean looksLikeCouponNode(Element node) {
         String text = safe(node.text()).toLowerCase(Locale.ROOT);
-        if (text.length() < 14 || text.length() > 500) {
+        if (text.length() < 14 || text.length() > 320) {
             return false;
         }
 
@@ -489,7 +522,7 @@ public class GenericSiteCrawlerService {
         Matcher raw = RAW_CODE_PATTERN.matcher(upperText);
         while (raw.find()) {
             String candidate = normalizeCode(raw.group());
-            if (isLikelyCode(candidate)) {
+            if (isLikelyCode(candidate) && containsDigit(candidate)) {
                 return candidate;
             }
         }
@@ -564,14 +597,34 @@ public class GenericSiteCrawlerService {
         return fallbackStore;
     }
 
+    private String inferStoreFromTitle(String title) {
+        String text = safe(title);
+        if (text.isBlank()) {
+            return "";
+        }
+        Matcher matcher = Pattern.compile("(?i)see\\s+all\\s+(.{2,60}?)\\s+coupons").matcher(text);
+        if (matcher.find()) {
+            String value = cleanName(matcher.group(1));
+            if (isUsableBrandName(value)) {
+                return value;
+            }
+        }
+        return "";
+    }
+
     private String extractStoreFromUrl(String rawUrl) {
         String url = normalizeUrl(rawUrl);
         if (url.isBlank()) {
             return "";
         }
 
+        String fromQuery = queryParam(url, "store");
+        if (isUsableBrandName(fromQuery)) {
+            return slugToName(fromQuery);
+        }
+
         String lower = url.toLowerCase(Locale.ROOT);
-        for (String marker : List.of("/store/", "/stores/", "/brand/", "/brands/", "/merchant/", "/shop/", "/shops/")) {
+        for (String marker : List.of("/coupon/", "/store/", "/stores/", "/brand/", "/brands/", "/merchant/", "/shop/", "/shops/")) {
             int idx = lower.indexOf(marker);
             if (idx >= 0) {
                 String segment = url.substring(idx + marker.length());
@@ -604,6 +657,34 @@ public class GenericSiteCrawlerService {
             return "";
         }
 
+        return "";
+    }
+
+    private String queryParam(String url, String key) {
+        try {
+            URI uri = URI.create(url);
+            String query = safe(uri.getQuery());
+            if (query.isBlank()) {
+                return "";
+            }
+            String lowerKey = key.toLowerCase(Locale.ROOT);
+            for (String pair : query.split("&")) {
+                int eq = pair.indexOf('=');
+                if (eq <= 0) {
+                    continue;
+                }
+                String k = pair.substring(0, eq).trim().toLowerCase(Locale.ROOT);
+                if (!k.equals(lowerKey)) {
+                    continue;
+                }
+                String value = pair.substring(eq + 1).replace('+', ' ').trim();
+                if (!value.isBlank()) {
+                    return value;
+                }
+            }
+        } catch (Exception ignored) {
+            return "";
+        }
         return "";
     }
 
@@ -722,6 +803,49 @@ public class GenericSiteCrawlerService {
         return slugToName(raw);
     }
 
+    private boolean isDirtyCoupon(String store, String title, String code, String fallbackStore) {
+        String normalizedStore = safe(store).toLowerCase(Locale.ROOT);
+        String normalizedTitle = safe(title).toLowerCase(Locale.ROOT);
+        String normalizedCode = safe(code).toLowerCase(Locale.ROOT);
+        String normalizedFallbackStore = safe(fallbackStore).toLowerCase(Locale.ROOT);
+
+        if (!isUsableBrandName(store)) {
+            return true;
+        }
+        if (normalizedTitle.length() < 8 || normalizedTitle.length() > 170) {
+            return true;
+        }
+        if (wordCount(normalizedTitle) > 24 || wordCount(normalizedStore) > 6) {
+            return true;
+        }
+        if (containsAny(normalizedStore, STORE_NAME_BLOCKLIST.toArray(new String[0]))) {
+            return true;
+        }
+        if (containsAny(normalizedTitle, COUPON_TITLE_BLOCKLIST.toArray(new String[0]))) {
+            return true;
+        }
+        if (normalizedTitle.contains("coupons only") || normalizedTitle.contains("verification activity")) {
+            return true;
+        }
+        if (normalizedTitle.contains("shop your favourite stores")
+            || normalizedTitle.contains("earn cash back")
+            || normalizedTitle.contains("all deals and coupons")
+            || normalizedTitle.contains("copy code")
+            || normalizedTitle.contains("shop now")) {
+            return true;
+        }
+        if (normalizedTitle.contains("about this code")) {
+            return true;
+        }
+        if ((normalizedStore.equals(normalizedFallbackStore) || normalizedStore.contains("rakuten"))
+            && (normalizedTitle.contains("cash back")
+            || normalizedTitle.contains("see details")
+            || normalizedTitle.contains("shop now"))) {
+            return true;
+        }
+        return normalizedCode.matches("^(featured|recommended|travel|sports|garden|gifts|financial|awesome|every|works)$");
+    }
+
     private boolean isUsableBrandName(String raw) {
         String value = safe(raw);
         if (value.length() < 2 || value.length() > 60) {
@@ -752,6 +876,23 @@ public class GenericSiteCrawlerService {
         return !containsAny(lower, "coupon", "promo", "offer", "store");
     }
 
+    private boolean containsDigit(String code) {
+        for (int i = 0; i < code.length(); i++) {
+            if (Character.isDigit(code.charAt(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private int wordCount(String text) {
+        String value = safe(text);
+        if (value.isBlank()) {
+            return 0;
+        }
+        return value.split("\\s+").length;
+    }
+
     private String capLength(String value, int maxLength) {
         String text = safe(value);
         if (text.length() <= maxLength) {
@@ -771,6 +912,11 @@ public class GenericSiteCrawlerService {
     private boolean isBuiltinSite(String siteKey) {
         String key = safe(siteKey).toLowerCase(Locale.ROOT);
         return "retailmenot".equals(key) || "simplycodes".equals(key);
+    }
+
+    private boolean isAggregatorDomain(String baseUrl) {
+        String url = normalizeUrl(baseUrl).toLowerCase(Locale.ROOT);
+        return url.contains("rakuten.");
     }
 
     private boolean tryAcquire(AtomicLong slot, long intervalMs) {
