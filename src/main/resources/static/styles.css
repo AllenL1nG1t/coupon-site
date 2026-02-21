@@ -96,6 +96,10 @@ body[data-admin="1"] .admin-topbar-inner {
     padding: 0 8px;
     background: #fff;
 }
+.admin-lang-switch #quickThemePreset {
+    width: 72px;
+    text-align: center;
+}
 
 .topbar-layout {
     display: grid;
@@ -686,6 +690,17 @@ h1 {
     gap: 6px;
     color: #395378;
     font-weight: 600;
+}
+.admin-grid label.checkbox-label,
+.admin-row label.checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.2;
+}
+.admin-grid label.checkbox-label input[type="checkbox"],
+.admin-row label.checkbox-label input[type="checkbox"] {
+    margin: 0;
 }
 .admin-grid input[type="color"] {
     padding: 4px;

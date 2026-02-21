@@ -13,7 +13,15 @@
     <div class="container topbar-inner admin-topbar-inner">
         <a class="brand" href="/"><i class="bi bi-shield-check"></i> Dotiki Coupon Admin</a>
         <nav class="nav">
-            <a href="/">Site</a>
+            <a href="/" id="navSiteLink">Site</a>
+            <label class="admin-lang-switch">
+                <span id="adminThemeLabel">Theme</span>
+                <select id="quickThemePreset">
+                    <option value="scheme-a">A</option>
+                    <option value="scheme-b">B</option>
+                    <option value="scheme-c">C</option>
+                </select>
+            </label>
             <label class="admin-lang-switch">
                 <span id="adminLangLabel">Language</span>
                 <select id="adminLang">
@@ -92,7 +100,7 @@
     <section class="admin-section hidden" data-section="coupons">
         <div class="section-head-admin">
             <h3>Coupon Management</h3>
-            <span>Manage coupon info and affiliate URL</span>
+            <span id="couponSectionDesc">Manage coupon info and affiliate URL</span>
         </div>
         <div class="admin-grid coupon-form-grid">
             <input id="couponStore" placeholder="Store">
@@ -115,7 +123,7 @@
     <section class="admin-section hidden" data-section="brands">
         <div class="section-head-admin">
             <h3>Brand Introduction Management</h3>
-            <span>Used by Trending Stores detail pages</span>
+            <span id="brandSectionDesc">Used by Trending Stores detail pages</span>
         </div>
         <div class="admin-grid brand-form-grid">
             <input id="brandStoreName" placeholder="Store Name">
@@ -140,7 +148,7 @@
     <section class="admin-section hidden" data-section="blogs">
         <div class="section-head-admin">
             <h3>Blog Management</h3>
-            <span>Create/edit homepage blog content</span>
+            <span id="blogSectionDesc">Create/edit homepage blog content</span>
         </div>
         <div class="admin-grid blog-form-grid">
             <input id="blogTitle" placeholder="Blog title">
@@ -163,41 +171,41 @@
     <section class="admin-section hidden" data-section="ads">
         <div class="section-head-admin">
             <h3>Ads Management</h3>
-            <span>Configure strip ad, homepage/blog placements, and AdSense IDs</span>
+            <span id="adsSectionDesc">Configure strip ad, homepage/blog placements, and AdSense IDs</span>
         </div>
 
         <div class="admin-subcard-grid">
             <article class="admin-subcard">
-                <h4>Scrolling Strip</h4>
+                <h4 id="adsCardStripTitle">Scrolling Strip</h4>
                 <div class="admin-grid">
-                    <label><input type="checkbox" id="adsStripEnabled"> Enable scrolling strip ad</label>
+                    <label id="adsStripEnabledLabel"><input type="checkbox" id="adsStripEnabled"> Enable scrolling strip ad</label>
                     <input id="adsStripText" placeholder="Strip ad text">
                     <input id="adsStripLink" placeholder="Strip ad link">
                 </div>
             </article>
 
             <article class="admin-subcard">
-                <h4>Homepage Placements</h4>
+                <h4 id="adsCardHomeTitle">Homepage Placements</h4>
                 <div class="admin-grid">
-                    <label><input type="checkbox" id="adsHomeTopEnabled"> Home top ad</label>
-                    <label><input type="checkbox" id="adsHomeMidEnabled"> Home mid ad</label>
-                    <label><input type="checkbox" id="adsHomeSideLeftEnabled"> Home middle left ad</label>
-                    <label><input type="checkbox" id="adsHomeSideRightEnabled"> Home middle right ad</label>
-                    <label><input type="checkbox" id="adsHomeBottomEnabled"> Home bottom ad</label>
+                    <label id="adsHomeTopEnabledLabel"><input type="checkbox" id="adsHomeTopEnabled"> Home top ad</label>
+                    <label id="adsHomeMidEnabledLabel"><input type="checkbox" id="adsHomeMidEnabled"> Home mid ad</label>
+                    <label id="adsHomeSideLeftEnabledLabel"><input type="checkbox" id="adsHomeSideLeftEnabled"> Home middle left ad</label>
+                    <label id="adsHomeSideRightEnabledLabel"><input type="checkbox" id="adsHomeSideRightEnabled"> Home middle right ad</label>
+                    <label id="adsHomeBottomEnabledLabel"><input type="checkbox" id="adsHomeBottomEnabled"> Home bottom ad</label>
                 </div>
             </article>
 
             <article class="admin-subcard">
-                <h4>Blog Placements</h4>
+                <h4 id="adsCardBlogTitle">Blog Placements</h4>
                 <div class="admin-grid">
-                    <label><input type="checkbox" id="adsBlogTopEnabled"> Blog top ad</label>
-                    <label><input type="checkbox" id="adsBlogInlineEnabled"> Blog inline ad</label>
-                    <label><input type="checkbox" id="adsBlogBottomEnabled"> Blog bottom ad</label>
+                    <label id="adsBlogTopEnabledLabel"><input type="checkbox" id="adsBlogTopEnabled"> Blog top ad</label>
+                    <label id="adsBlogInlineEnabledLabel"><input type="checkbox" id="adsBlogInlineEnabled"> Blog inline ad</label>
+                    <label id="adsBlogBottomEnabledLabel"><input type="checkbox" id="adsBlogBottomEnabled"> Blog bottom ad</label>
                 </div>
             </article>
 
             <article class="admin-subcard">
-                <h4>Google AdSense</h4>
+                <h4 id="adsCardSenseTitle">Google AdSense</h4>
                 <div class="admin-grid">
                     <input id="adsenseClientId" placeholder="Google AdSense Client ID (ca-pub-xxxx)">
                     <input id="adsenseHomeSlot" placeholder="Home AdSense Slot ID">
@@ -215,25 +223,25 @@
     <section class="admin-section hidden" data-section="crawler">
         <div class="section-head-admin">
             <h3>Crawler</h3>
-            <span>Coupon / Brand / Logo crawler split controls</span>
+            <span id="crawlerSectionDesc">Coupon / Brand / Logo crawler split controls</span>
         </div>
         <div class="admin-row">
-            <label><input type="checkbox" id="couponCrawlerEnabled"> Enable scheduled coupon crawler</label>
-            <label>Coupon interval (minutes)
+            <label id="couponCrawlerEnabledLabel"><input type="checkbox" id="couponCrawlerEnabled"> Enable scheduled coupon crawler</label>
+            <label id="couponCrawlerIntervalLabel">Coupon interval (minutes)
                 <input id="couponCrawlerIntervalMinutes" type="number" min="1" step="1" value="30" style="width:90px;">
             </label>
             <button id="runCouponCrawlerBtn" class="primary-btn">Run Coupon Crawler</button>
         </div>
         <div class="admin-row">
-            <label><input type="checkbox" id="brandCrawlerEnabled"> Enable scheduled brand crawler</label>
-            <label>Brand interval (minutes)
+            <label id="brandCrawlerEnabledLabel"><input type="checkbox" id="brandCrawlerEnabled"> Enable scheduled brand crawler</label>
+            <label id="brandCrawlerIntervalLabel">Brand interval (minutes)
                 <input id="brandCrawlerIntervalMinutes" type="number" min="1" step="1" value="30" style="width:90px;">
             </label>
             <button id="runBrandCrawlerBtn" class="primary-btn">Run Brand Crawler</button>
         </div>
         <div class="admin-row">
-            <label><input type="checkbox" id="brandLogoCrawlerEnabled"> Enable scheduled brand logo crawler</label>
-            <label>Logo interval (minutes)
+            <label id="brandLogoCrawlerEnabledLabel"><input type="checkbox" id="brandLogoCrawlerEnabled"> Enable scheduled brand logo crawler</label>
+            <label id="brandLogoCrawlerIntervalLabel">Logo interval (minutes)
                 <input id="brandLogoCrawlerIntervalMinutes" type="number" min="1" step="1" value="30" style="width:90px;">
             </label>
             <button id="saveCrawlerBtn" class="primary-btn">Save</button>
@@ -242,7 +250,7 @@
         </div>
         <div class="section-head-admin" style="margin-top:10px;">
             <h3>Crawler Sites</h3>
-            <span>Add websites and control coupon/brand/logo crawling per site</span>
+            <span id="crawlerSitesDesc">Add websites and control coupon/brand/logo crawling per site</span>
         </div>
         <div class="admin-grid">
             <input id="crawlerSiteName" placeholder="Site name (e.g. Slickdeals)">
@@ -254,11 +262,11 @@
         </div>
         <div class="admin-row">
             <button id="saveCrawlerSiteBtn" class="primary-btn">Add Crawler Site</button>
-            <span class="muted-inline">Built-in: RetailMeNot / SimplyCodes can be toggled below too</span>
+            <span class="muted-inline" id="crawlerBuiltinHint">Built-in: RetailMeNot / SimplyCodes can be toggled below too</span>
         </div>
         <div class="admin-row" style="justify-content:flex-end;">
             <label style="display:flex;gap:8px;align-items:center;font-weight:600;color:#395378;">
-                Log Language
+                <span id="adminLogLangLabel">Log Language</span>
                 <select id="logLang" style="width:140px;">
                     <option value="en">English</option>
                     <option value="zh">中文</option>

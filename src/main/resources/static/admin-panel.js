@@ -20,6 +20,7 @@ const crawlerSiteTable = document.getElementById("crawlerSiteTable");
 const logPanel = document.getElementById("logPanel");
 const logLang = document.getElementById("logLang");
 const adminLang = document.getElementById("adminLang");
+const quickThemePreset = document.getElementById("quickThemePreset");
 const couponTable = document.getElementById("couponTable");
 const blogTable = document.getElementById("blogTable");
 const brandTable = document.getElementById("brandTable");
@@ -115,7 +116,9 @@ let currentLang = localStorage.getItem("admin.lang") || "en";
 
 const I18N = {
   en: {
+    theme: "Theme",
     language: "Language",
+    navSite: "Site",
     tabDashboard: "Dashboard",
     tabContent: "Content",
     tabCoupons: "Coupons",
@@ -131,6 +134,33 @@ const I18N = {
     contentSectionTitle: "Homepage Hero & Footer Content",
     contentSectionDesc: "Edit hero text, background image and footer social links",
     contentThemeLabel: "Theme Preset",
+    couponSectionDesc: "Manage coupon info and affiliate URL",
+    brandSectionDesc: "Used by Trending Stores detail pages",
+    blogSectionDesc: "Create/edit homepage blog content",
+    adsSectionDesc: "Configure strip ad, homepage/blog placements, and AdSense IDs",
+    adsCardStripTitle: "Scrolling Strip",
+    adsCardHomeTitle: "Homepage Placements",
+    adsCardBlogTitle: "Blog Placements",
+    adsCardSenseTitle: "Google AdSense",
+    crawlerSectionDesc: "Coupon / Brand / Logo crawler split controls",
+    crawlerSitesDesc: "Add websites and control coupon/brand/logo crawling per site",
+    crawlerBuiltinHint: "Built-in: RetailMeNot / SimplyCodes can be toggled below too",
+    logLanguage: "Log Language",
+    adsStripEnabledLabel: "Enable scrolling strip ad",
+    adsHomeTopEnabledLabel: "Home top ad",
+    adsHomeMidEnabledLabel: "Home mid ad",
+    adsHomeSideLeftEnabledLabel: "Home middle left ad",
+    adsHomeSideRightEnabledLabel: "Home middle right ad",
+    adsHomeBottomEnabledLabel: "Home bottom ad",
+    adsBlogTopEnabledLabel: "Blog top ad",
+    adsBlogInlineEnabledLabel: "Blog inline ad",
+    adsBlogBottomEnabledLabel: "Blog bottom ad",
+    couponCrawlerEnabledLabel: "Enable scheduled coupon crawler",
+    couponCrawlerIntervalLabel: "Coupon interval (minutes)",
+    brandCrawlerEnabledLabel: "Enable scheduled brand crawler",
+    brandCrawlerIntervalLabel: "Brand interval (minutes)",
+    brandLogoCrawlerEnabledLabel: "Enable scheduled brand logo crawler",
+    brandLogoCrawlerIntervalLabel: "Logo interval (minutes)",
     save: "Save",
     saveFailed: "Save failed",
     saving: "Saving...",
@@ -169,7 +199,9 @@ const I18N = {
     blogHeaders: ["ID", "Title", "Created", "Updated", "Summary", "Content", "Cover", "Published", "Actions"]
   },
   zh: {
+    theme: "主题",
     language: "语言",
+    navSite: "站点",
     tabDashboard: "仪表盘",
     tabContent: "首页内容",
     tabCoupons: "优惠券",
@@ -185,6 +217,33 @@ const I18N = {
     contentSectionTitle: "首页 Hero 与页脚内容",
     contentSectionDesc: "编辑首页文案、背景图和页脚社媒链接",
     contentThemeLabel: "主题方案",
+    couponSectionDesc: "管理优惠券信息与联盟链接",
+    brandSectionDesc: "用于热门店铺详情页展示",
+    blogSectionDesc: "创建/编辑首页博客内容",
+    adsSectionDesc: "配置滚动条广告、首页/博客广告位和 AdSense ID",
+    adsCardStripTitle: "滚动条广告",
+    adsCardHomeTitle: "首页广告位",
+    adsCardBlogTitle: "博客广告位",
+    adsCardSenseTitle: "Google AdSense",
+    crawlerSectionDesc: "优惠券 / 品牌 / Logo 爬虫分模块控制",
+    crawlerSitesDesc: "添加站点并按站点控制 coupon/brand/logo 抓取",
+    crawlerBuiltinHint: "内置站点：RetailMeNot / SimplyCodes 也可在下方开关控制",
+    logLanguage: "日志语言",
+    adsStripEnabledLabel: "启用滚动条广告",
+    adsHomeTopEnabledLabel: "首页顶部广告",
+    adsHomeMidEnabledLabel: "首页中部广告",
+    adsHomeSideLeftEnabledLabel: "首页中部左侧广告",
+    adsHomeSideRightEnabledLabel: "首页中部右侧广告",
+    adsHomeBottomEnabledLabel: "首页底部广告",
+    adsBlogTopEnabledLabel: "博客顶部广告",
+    adsBlogInlineEnabledLabel: "博客文中广告",
+    adsBlogBottomEnabledLabel: "博客底部广告",
+    couponCrawlerEnabledLabel: "启用定时优惠券爬虫",
+    couponCrawlerIntervalLabel: "优惠券间隔（分钟）",
+    brandCrawlerEnabledLabel: "启用定时品牌爬虫",
+    brandCrawlerIntervalLabel: "品牌间隔（分钟）",
+    brandLogoCrawlerEnabledLabel: "启用定时品牌 Logo 爬虫",
+    brandLogoCrawlerIntervalLabel: "Logo 间隔（分钟）",
     save: "保存",
     saveFailed: "保存失败",
     saving: "保存中...",
@@ -233,7 +292,10 @@ function applyAdminLanguage() {
     const el = document.getElementById(id);
     if (el) el.textContent = text;
   };
+  set("adminThemeLabel", t("theme"));
   set("adminLangLabel", t("language"));
+  set("navSiteLink", t("navSite"));
+  set("adminLogLangLabel", t("logLanguage"));
   set("tabDashboard", t("tabDashboard"));
   set("tabContent", t("tabContent"));
   set("tabCoupons", t("tabCoupons"));
@@ -249,6 +311,32 @@ function applyAdminLanguage() {
   set("contentSectionTitle", t("contentSectionTitle"));
   set("contentSectionDesc", t("contentSectionDesc"));
   set("contentThemeLabel", t("contentThemeLabel"));
+  set("couponSectionDesc", t("couponSectionDesc"));
+  set("brandSectionDesc", t("brandSectionDesc"));
+  set("blogSectionDesc", t("blogSectionDesc"));
+  set("adsSectionDesc", t("adsSectionDesc"));
+  set("adsCardStripTitle", t("adsCardStripTitle"));
+  set("adsCardHomeTitle", t("adsCardHomeTitle"));
+  set("adsCardBlogTitle", t("adsCardBlogTitle"));
+  set("adsCardSenseTitle", t("adsCardSenseTitle"));
+  set("crawlerSectionDesc", t("crawlerSectionDesc"));
+  set("crawlerSitesDesc", t("crawlerSitesDesc"));
+  set("crawlerBuiltinHint", t("crawlerBuiltinHint"));
+  set("adsStripEnabledLabel", t("adsStripEnabledLabel"));
+  set("adsHomeTopEnabledLabel", t("adsHomeTopEnabledLabel"));
+  set("adsHomeMidEnabledLabel", t("adsHomeMidEnabledLabel"));
+  set("adsHomeSideLeftEnabledLabel", t("adsHomeSideLeftEnabledLabel"));
+  set("adsHomeSideRightEnabledLabel", t("adsHomeSideRightEnabledLabel"));
+  set("adsHomeBottomEnabledLabel", t("adsHomeBottomEnabledLabel"));
+  set("adsBlogTopEnabledLabel", t("adsBlogTopEnabledLabel"));
+  set("adsBlogInlineEnabledLabel", t("adsBlogInlineEnabledLabel"));
+  set("adsBlogBottomEnabledLabel", t("adsBlogBottomEnabledLabel"));
+  set("couponCrawlerEnabledLabel", t("couponCrawlerEnabledLabel"));
+  set("couponCrawlerIntervalLabel", t("couponCrawlerIntervalLabel"));
+  set("brandCrawlerEnabledLabel", t("brandCrawlerEnabledLabel"));
+  set("brandCrawlerIntervalLabel", t("brandCrawlerIntervalLabel"));
+  set("brandLogoCrawlerEnabledLabel", t("brandLogoCrawlerEnabledLabel"));
+  set("brandLogoCrawlerIntervalLabel", t("brandLogoCrawlerIntervalLabel"));
   const couponTitleEl = document.querySelector('[data-section="coupons"] .section-head-admin h3');
   if (couponTitleEl) couponTitleEl.textContent = t("couponMgmt");
   const brandTitleEl = document.querySelector('[data-section="brands"] .section-head-admin h3');
@@ -285,14 +373,17 @@ function applyAdminLanguage() {
     contentThemePreset.options[1].text = currentLang === "zh" ? "方案 B - 科技深海军蓝 + 青色" : "Scheme B - Tech Navy + Cyan";
     contentThemePreset.options[2].text = currentLang === "zh" ? "方案 C - 高转化电商红" : "Scheme C - High Conversion Red";
   }
+  if (quickThemePreset) {
+    quickThemePreset.value = contentThemePreset?.value || "scheme-a";
+  }
   if (logLang) {
     logLang.value = currentLang;
   }
 }
 const sortState = {
-  coupons: { key: "id", dir: "asc" },
-  brands: { key: "id", dir: "asc" },
-  blogs: { key: "id", dir: "asc" }
+  coupons: { key: "createdAt", dir: "desc" },
+  brands: { key: "createdAt", dir: "desc" },
+  blogs: { key: "createdAt", dir: "desc" }
 };
 
 const dirtyCouponIds = new Set();
@@ -338,6 +429,14 @@ function normalizeColor(value) {
   const hex = value.trim();
   if (/^#[0-9a-fA-F]{6}$/.test(hex)) return hex;
   return "#f7f9fd";
+}
+
+function applyCheckboxLabelLayout() {
+  document.querySelectorAll("label").forEach(label => {
+    if (label.querySelector("input[type='checkbox']")) {
+      label.classList.add("checkbox-label");
+    }
+  });
 }
 
 function activateInlineEditing(table, dirtySet) {
@@ -557,6 +656,9 @@ async function saveCrawlerSite() {
 async function loadContent() {
   const data = await (await adminFetch("/api/admin/content")).json();
   contentThemePreset.value = data.themePreset || "scheme-a";
+  if (quickThemePreset) {
+    quickThemePreset.value = contentThemePreset.value;
+  }
   contentHeroEyebrow.value = data.heroEyebrow || "";
   contentHeroTitle.value = data.heroTitle || "";
   contentHeroSubtitle.value = data.heroSubtitle || "";
@@ -601,6 +703,29 @@ async function saveContent() {
     body: JSON.stringify(body)
   });
   contentStatus.textContent = response.ok ? t("save") : t("saveFailed");
+  if (response.ok && quickThemePreset) {
+    quickThemePreset.value = contentThemePreset.value;
+  }
+}
+
+async function saveThemePresetOnly(themePreset) {
+  contentStatus.textContent = t("saving");
+  const current = await (await adminFetch("/api/admin/content")).json();
+  current.themePreset = themePreset;
+  const response = await adminFetch("/api/admin/content", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(current)
+  });
+  if (response.ok) {
+    contentThemePreset.value = themePreset;
+    if (quickThemePreset) {
+      quickThemePreset.value = themePreset;
+    }
+    contentStatus.textContent = t("save");
+  } else {
+    contentStatus.textContent = t("saveFailed");
+  }
 }
 
 async function uploadHeroImage() {
@@ -1128,6 +1253,11 @@ if (adminLang) {
     renderCrawlerSites(cachedCrawlerSites);
   });
 }
+if (quickThemePreset) {
+  quickThemePreset.addEventListener("change", async () => {
+    await saveThemePresetOnly(quickThemePreset.value || "scheme-a");
+  });
+}
 
 contentHeroBgColorPicker.addEventListener("input", () => {
   contentHeroBgColor.value = contentHeroBgColorPicker.value;
@@ -1141,6 +1271,7 @@ activateInlineEditing(brandTable, dirtyBrandIds);
 activateInlineEditing(blogTable, dirtyBlogIds);
 
 (async function init() {
+  applyCheckboxLabelLayout();
   applyAdminLanguage();
   const ok = await checkAuth();
   if (!ok) return;
