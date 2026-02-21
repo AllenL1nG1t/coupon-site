@@ -52,6 +52,11 @@ body::before {
 }
 
 .container { width: min(1120px, 92vw); margin: 0 auto; }
+body[data-admin="1"] .container {
+    width: 100%;
+    margin: 0;
+    padding: 0 18px;
+}
 
 .topbar {
     border-bottom: 1px solid var(--line);
@@ -67,6 +72,29 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: space-between;
+}
+body[data-admin="1"] .topbar {
+    position: sticky;
+    top: 0;
+}
+body[data-admin="1"] .admin-topbar-inner {
+    padding-left: 6px;
+    padding-right: 8px;
+}
+.admin-lang-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #4b6284;
+    font-weight: 600;
+    margin-right: 4px;
+}
+.admin-lang-switch select {
+    height: 30px;
+    border: 1px solid #c9d9ef;
+    border-radius: 8px;
+    padding: 0 8px;
+    background: #fff;
 }
 
 .topbar-layout {
@@ -574,10 +602,12 @@ h1 {
 .login-status { min-height: 20px; margin-top: 10px; color: #a4362b; }
 
 .admin-container {
-    width: min(1200px, 95vw);
-    margin: 20px auto 40px;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 16px 14px 28px 8px;
     display: grid;
-    grid-template-columns: 220px minmax(0, 1fr);
+    grid-template-columns: 240px minmax(0, 1fr);
     gap: 14px;
     align-items: start;
 }
@@ -799,6 +829,7 @@ h1 {
     .coupon-actions { justify-items: start; }
     .footer-inner { flex-direction: column; gap: 6px; }
     .admin-container {
+        padding: 12px;
         grid-template-columns: 1fr;
     }
     .admin-nav-card {
@@ -844,18 +875,18 @@ body[data-home="1"][data-theme="scheme-b"] {
     --home-ink: #0F172A;
     --home-muted: #475569;
     --home-line: #cfe4ea;
-    --home-success: #0f9f5b;
-    --home-accent: #0891B2;
+    --home-success: #16A34A;
+    --home-accent: #06B6D4;
 }
 
 body[data-home="1"][data-theme="scheme-c"] {
     --home-primary: #DC2626;
-    --home-primary-deep: #B91C1C;
+    --home-primary-deep: #DC2626;
     --home-bg: #FAFAFA;
     --home-surface: #ffffff;
     --home-ink: #171717;
     --home-muted: #525252;
-    --home-line: #f1d2d2;
+    --home-line: #FEE2E2;
     --home-success: #15803D;
     --home-accent: #EA580C;
 }

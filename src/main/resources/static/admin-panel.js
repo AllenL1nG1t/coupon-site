@@ -19,6 +19,7 @@ const saveCrawlerSiteBtn = document.getElementById("saveCrawlerSiteBtn");
 const crawlerSiteTable = document.getElementById("crawlerSiteTable");
 const logPanel = document.getElementById("logPanel");
 const logLang = document.getElementById("logLang");
+const adminLang = document.getElementById("adminLang");
 const couponTable = document.getElementById("couponTable");
 const blogTable = document.getElementById("blogTable");
 const brandTable = document.getElementById("brandTable");
@@ -110,6 +111,184 @@ let cachedBlogs = [];
 let cachedBrands = [];
 let cachedCrawlerSites = [];
 let cachedCrawlerLogs = [];
+let currentLang = localStorage.getItem("admin.lang") || "en";
+
+const I18N = {
+  en: {
+    language: "Language",
+    tabDashboard: "Dashboard",
+    tabContent: "Content",
+    tabCoupons: "Coupons",
+    tabBrands: "Brands",
+    tabBlogs: "Blogs",
+    tabAds: "Ads",
+    tabCrawler: "Crawler",
+    dashboardTitle: "Dashboard",
+    statCouponsLabel: "Total Coupons",
+    statBlogsLabel: "Published Blogs",
+    statBrandsLabel: "Total Brands",
+    statCrawlerLabel: "Crawler Status",
+    contentSectionTitle: "Homepage Hero & Footer Content",
+    contentSectionDesc: "Edit hero text, background image and footer social links",
+    contentThemeLabel: "Theme Preset",
+    save: "Save",
+    saveFailed: "Save failed",
+    saving: "Saving...",
+    running: "Running",
+    noLogs: "No logs yet",
+    crawlerSiteSaved: "Crawler site saved",
+    crawlerSiteSaveFailed: "Crawler site save failed",
+    addCrawlerSite: "Add Crawler Site",
+    updateCrawlerSite: "Update Crawler Site",
+    runCouponCrawler: "coupon crawler",
+    runBrandCrawler: "brand crawler",
+    runLogoCrawler: "brand logo crawler",
+    addCoupon: "Add Coupon",
+    addBrand: "Add Brand",
+    addBlog: "Add Blog",
+    uploadFailed: "Upload failed",
+    chooseImageFirst: "Choose an image file first",
+    chooseHeroFirst: "Choose a hero image first",
+    uploadedPrefix: "Uploaded:",
+    clearForm: "Clear Form",
+    saveAllCoupons: "Save All Edited Coupons",
+    saveAllBrands: "Save All Edited Brands",
+    saveAllBlogs: "Save All Edited Blogs",
+    crawlerSites: "Crawler Sites",
+    crawler: "Crawler",
+    couponMgmt: "Coupon Management",
+    brandMgmt: "Brand Introduction Management",
+    blogMgmt: "Blog Management",
+    adsMgmt: "Ads Management",
+    crawlerHeaders: ["ID", "Key", "Name", "Base URL", "Active", "Coupon", "Brand", "Logo", "Actions"],
+    tableSave: "Save",
+    tableDelete: "Delete",
+    tableEdit: "Edit",
+    couponHeaders: ["ID", "Store", "Title", "Category", "Expires", "Code", "Clicks", "Created", "Updated", "Affiliate URL", "Logo", "Actions"],
+    brandHeaders: ["ID", "Store", "Slug", "Title", "Created", "Updated", "Summary", "Official URL", "Affiliate URL", "Logo", "Hero Image", "Description", "Actions"],
+    blogHeaders: ["ID", "Title", "Created", "Updated", "Summary", "Content", "Cover", "Published", "Actions"]
+  },
+  zh: {
+    language: "语言",
+    tabDashboard: "仪表盘",
+    tabContent: "首页内容",
+    tabCoupons: "优惠券",
+    tabBrands: "品牌",
+    tabBlogs: "博客",
+    tabAds: "广告",
+    tabCrawler: "爬虫",
+    dashboardTitle: "仪表盘",
+    statCouponsLabel: "优惠券总数",
+    statBlogsLabel: "已发布博客",
+    statBrandsLabel: "品牌总数",
+    statCrawlerLabel: "爬虫状态",
+    contentSectionTitle: "首页 Hero 与页脚内容",
+    contentSectionDesc: "编辑首页文案、背景图和页脚社媒链接",
+    contentThemeLabel: "主题方案",
+    save: "保存",
+    saveFailed: "保存失败",
+    saving: "保存中...",
+    running: "运行中",
+    noLogs: "暂无日志",
+    crawlerSiteSaved: "爬虫站点已保存",
+    crawlerSiteSaveFailed: "爬虫站点保存失败",
+    addCrawlerSite: "添加爬虫站点",
+    updateCrawlerSite: "更新爬虫站点",
+    runCouponCrawler: "优惠券爬虫",
+    runBrandCrawler: "品牌爬虫",
+    runLogoCrawler: "品牌 Logo 爬虫",
+    addCoupon: "新增优惠券",
+    addBrand: "新增品牌",
+    addBlog: "新增博客",
+    uploadFailed: "上传失败",
+    chooseImageFirst: "请先选择图片文件",
+    chooseHeroFirst: "请先选择 Hero 图片",
+    uploadedPrefix: "已上传：",
+    clearForm: "清空表单",
+    saveAllCoupons: "保存所有已编辑优惠券",
+    saveAllBrands: "保存所有已编辑品牌",
+    saveAllBlogs: "保存所有已编辑博客",
+    crawlerSites: "爬虫站点",
+    crawler: "爬虫",
+    couponMgmt: "优惠券管理",
+    brandMgmt: "品牌介绍管理",
+    blogMgmt: "博客管理",
+    adsMgmt: "广告管理",
+    crawlerHeaders: ["ID", "标识", "名称", "基础 URL", "启用", "优惠券", "品牌", "Logo", "操作"],
+    tableSave: "保存",
+    tableDelete: "删除",
+    tableEdit: "编辑",
+    couponHeaders: ["ID", "店铺", "标题", "分类", "有效期", "优惠码", "点击", "创建时间", "更新时间", "联盟链接", "Logo", "操作"],
+    brandHeaders: ["ID", "店铺", "Slug", "标题", "创建时间", "更新时间", "摘要", "官网链接", "联盟链接", "Logo", "主图", "描述", "操作"],
+    blogHeaders: ["ID", "标题", "创建时间", "更新时间", "摘要", "内容", "封面", "发布", "操作"]
+  }
+};
+
+function t(key) {
+  return (I18N[currentLang] && I18N[currentLang][key]) || (I18N.en && I18N.en[key]) || key;
+}
+
+function applyAdminLanguage() {
+  const set = (id, text) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  };
+  set("adminLangLabel", t("language"));
+  set("tabDashboard", t("tabDashboard"));
+  set("tabContent", t("tabContent"));
+  set("tabCoupons", t("tabCoupons"));
+  set("tabBrands", t("tabBrands"));
+  set("tabBlogs", t("tabBlogs"));
+  set("tabAds", t("tabAds"));
+  set("tabCrawler", t("tabCrawler"));
+  set("dashboardTitle", t("dashboardTitle"));
+  set("statCouponsLabel", t("statCouponsLabel"));
+  set("statBlogsLabel", t("statBlogsLabel"));
+  set("statBrandsLabel", t("statBrandsLabel"));
+  set("statCrawlerLabel", t("statCrawlerLabel"));
+  set("contentSectionTitle", t("contentSectionTitle"));
+  set("contentSectionDesc", t("contentSectionDesc"));
+  set("contentThemeLabel", t("contentThemeLabel"));
+  const couponTitleEl = document.querySelector('[data-section="coupons"] .section-head-admin h3');
+  if (couponTitleEl) couponTitleEl.textContent = t("couponMgmt");
+  const brandTitleEl = document.querySelector('[data-section="brands"] .section-head-admin h3');
+  if (brandTitleEl) brandTitleEl.textContent = t("brandMgmt");
+  const blogTitleEl = document.querySelector('[data-section="blogs"] .section-head-admin h3');
+  if (blogTitleEl) blogTitleEl.textContent = t("blogMgmt");
+  const adsTitleEl = document.querySelector('[data-section="ads"] .section-head-admin h3');
+  if (adsTitleEl) adsTitleEl.textContent = t("adsMgmt");
+  const crawlerTitleEl = document.querySelector('[data-section="crawler"] .section-head-admin h3');
+  if (crawlerTitleEl) crawlerTitleEl.textContent = t("crawler");
+  const crawlerSitesTitleEl = document.querySelector('[data-section="crawler"] .section-head-admin[style] h3');
+  if (crawlerSitesTitleEl) crawlerSitesTitleEl.textContent = t("crawlerSites");
+  if (saveCrawlerBtn) saveCrawlerBtn.textContent = t("save");
+  if (saveContentBtn) saveContentBtn.textContent = currentLang === "zh" ? "保存首页内容" : "Save Hero Content";
+  if (uploadHeroImageBtn) uploadHeroImageBtn.textContent = currentLang === "zh" ? "上传 Hero 图片" : "Upload Hero Image";
+  if (uploadImageBtn) uploadImageBtn.textContent = currentLang === "zh" ? "上传图片" : "Upload Image";
+  if (saveAdsBtn) saveAdsBtn.textContent = currentLang === "zh" ? "保存广告配置" : "Save Ads Config";
+  if (runCouponCrawlerBtn) runCouponCrawlerBtn.textContent = currentLang === "zh" ? "运行优惠券爬虫" : "Run Coupon Crawler";
+  if (runBrandCrawlerBtn) runBrandCrawlerBtn.textContent = currentLang === "zh" ? "运行品牌爬虫" : "Run Brand Crawler";
+  if (runBrandLogoCrawlerBtn) runBrandLogoCrawlerBtn.textContent = currentLang === "zh" ? "运行品牌 Logo 爬虫" : "Run Brand Logo Crawler";
+  if (saveCrawlerSiteBtn && !saveCrawlerSiteBtn.dataset.editId) saveCrawlerSiteBtn.textContent = t("addCrawlerSite");
+  if (saveCouponBtn && !saveCouponBtn.dataset.editId) saveCouponBtn.textContent = t("addCoupon");
+  if (saveBrandBtn && !saveBrandBtn.dataset.editId) saveBrandBtn.textContent = t("addBrand");
+  if (saveBlogBtn && !saveBlogBtn.dataset.editId) saveBlogBtn.textContent = t("addBlog");
+  if (clearCouponBtn) clearCouponBtn.textContent = t("clearForm");
+  if (clearBrandBtn) clearBrandBtn.textContent = t("clearForm");
+  if (clearBlogBtn) clearBlogBtn.textContent = t("clearForm");
+  if (saveAllCouponsBtn) saveAllCouponsBtn.textContent = t("saveAllCoupons");
+  if (saveAllBrandsBtn) saveAllBrandsBtn.textContent = t("saveAllBrands");
+  if (saveAllBlogsBtn) saveAllBlogsBtn.textContent = t("saveAllBlogs");
+  if (logoutBtn) logoutBtn.textContent = currentLang === "zh" ? "退出登录" : "Logout";
+  if (contentThemePreset && contentThemePreset.options.length >= 3) {
+    contentThemePreset.options[0].text = currentLang === "zh" ? "方案 A - 信任蓝（推荐）" : "Scheme A - Trust Blue (Recommended)";
+    contentThemePreset.options[1].text = currentLang === "zh" ? "方案 B - 科技深海军蓝 + 青色" : "Scheme B - Tech Navy + Cyan";
+    contentThemePreset.options[2].text = currentLang === "zh" ? "方案 C - 高转化电商红" : "Scheme C - High Conversion Red";
+  }
+  if (logLang) {
+    logLang.value = currentLang;
+  }
+}
 const sortState = {
   coupons: { key: "id", dir: "asc" },
   brands: { key: "id", dir: "asc" },
@@ -305,9 +484,9 @@ function translateLogMessage(message) {
 }
 
 function renderCrawlerLogs() {
-  const lang = logLang?.value || "en";
+  const lang = logLang?.value || currentLang;
   if (!cachedCrawlerLogs.length) {
-    logPanel.textContent = lang === "zh" ? "暂无日志" : "No logs yet";
+    logPanel.textContent = lang === "zh" ? "暂无日志" : t("noLogs");
     return;
   }
   logPanel.textContent = cachedCrawlerLogs.map(log => {
@@ -324,12 +503,13 @@ function clearCrawlerSiteForm() {
   crawlerSiteBrandEnabled.checked = true;
   crawlerSiteLogoEnabled.checked = true;
   saveCrawlerSiteBtn.dataset.editId = "";
-  saveCrawlerSiteBtn.textContent = "Add Crawler Site";
+  saveCrawlerSiteBtn.textContent = t("addCrawlerSite");
 }
 
 function renderCrawlerSites(rows) {
+  const headers = t("crawlerHeaders");
   crawlerSiteTable.innerHTML = `<thead><tr>
-    <th>ID</th><th>Key</th><th>Name</th><th>Base URL</th><th>Active</th><th>Coupon</th><th>Brand</th><th>Logo</th><th>Actions</th>
+    <th>${headers[0]}</th><th>${headers[1]}</th><th>${headers[2]}</th><th>${headers[3]}</th><th>${headers[4]}</th><th>${headers[5]}</th><th>${headers[6]}</th><th>${headers[7]}</th><th>${headers[8]}</th>
   </tr></thead><tbody>${rows.map(site => `
     <tr data-id="${site.id}">
       <td>${site.id}</td>
@@ -340,7 +520,7 @@ function renderCrawlerSites(rows) {
       <td><input type="checkbox" data-toggle="couponEnabled" ${site.couponEnabled ? "checked" : ""}></td>
       <td><input type="checkbox" data-toggle="brandEnabled" ${site.brandEnabled ? "checked" : ""}></td>
       <td><input type="checkbox" data-toggle="logoEnabled" ${site.logoEnabled ? "checked" : ""}></td>
-      <td><button class="admin-mini-btn" data-edit-site="${site.id}">Edit</button> <button class="admin-mini-btn" data-del-site="${site.id}">Delete</button></td>
+      <td><button class="admin-mini-btn" data-edit-site="${site.id}">${t("tableEdit")}</button> <button class="admin-mini-btn" data-del-site="${site.id}">${t("tableDelete")}</button></td>
     </tr>
   `).join("")}</tbody>`;
 }
@@ -366,12 +546,12 @@ async function saveCrawlerSite() {
     body: JSON.stringify(body)
   });
   if (!response.ok) {
-    crawlerStatus.textContent = "Crawler site save failed";
+    crawlerStatus.textContent = t("crawlerSiteSaveFailed");
     return;
   }
   clearCrawlerSiteForm();
   await loadCrawlerSites();
-  crawlerStatus.textContent = "Crawler site saved";
+  crawlerStatus.textContent = t("crawlerSiteSaved");
 }
 
 async function loadContent() {
@@ -396,7 +576,7 @@ async function loadContent() {
 }
 
 async function saveContent() {
-  contentStatus.textContent = "Saving...";
+  contentStatus.textContent = t("saving");
   const body = {
     themePreset: contentThemePreset.value || "scheme-a",
     heroEyebrow: contentHeroEyebrow.value,
@@ -420,28 +600,28 @@ async function saveContent() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body)
   });
-  contentStatus.textContent = response.ok ? "Saved" : "Save failed";
+  contentStatus.textContent = response.ok ? t("save") : t("saveFailed");
 }
 
 async function uploadHeroImage() {
   if (!heroImageFile.files.length) {
-    contentStatus.textContent = "Choose a hero image first";
+    contentStatus.textContent = t("chooseHeroFirst");
     return;
   }
   const formData = new FormData();
   formData.append("file", heroImageFile.files[0]);
   const response = await adminFetch("/api/admin/uploads/images", { method: "POST", body: formData });
   if (!response.ok) {
-    contentStatus.textContent = "Upload failed";
+    contentStatus.textContent = t("uploadFailed");
     return;
   }
   const data = await response.json();
   contentHeroBgImageUrl.value = data.url;
-  contentStatus.textContent = `Uploaded: ${data.url}`;
+  contentStatus.textContent = `${t("uploadedPrefix")} ${data.url}`;
 }
 
 async function saveCrawler() {
-  crawlerStatus.textContent = "Saving...";
+  crawlerStatus.textContent = t("saving");
   const couponMinutes = Math.max(1, Number(couponCrawlerIntervalMinutes.value || 30));
   const brandMinutes = Math.max(1, Number(brandCrawlerIntervalMinutes.value || 30));
   const logoMinutes = Math.max(1, Number(brandLogoCrawlerIntervalMinutes.value || 30));
@@ -457,12 +637,12 @@ async function saveCrawler() {
       brandLogoCrawlerIntervalMinutes: logoMinutes
     })
   });
-  crawlerStatus.textContent = response.ok ? "Saved" : "Save failed";
+  crawlerStatus.textContent = response.ok ? t("save") : t("saveFailed");
   await loadCrawler();
 }
 
 async function runCrawler(endpoint, title) {
-  crawlerStatus.textContent = `Running ${title}...`;
+  crawlerStatus.textContent = `${t("running")} ${title}...`;
   const response = await adminFetch(endpoint, { method: "POST" });
   crawlerStatus.textContent = await response.text();
   await Promise.all([loadCrawler(), loadCoupons(), loadBrands()]);
@@ -470,7 +650,7 @@ async function runCrawler(endpoint, title) {
 
 function clearCouponForm() {
   saveCouponBtn.dataset.editId = "";
-  saveCouponBtn.textContent = "Add Coupon";
+  saveCouponBtn.textContent = t("addCoupon");
   [couponStore, couponTitle, couponCategory, couponExpires, couponCode, couponAffiliate, couponLogo].forEach(el => el.value = "");
 }
 
@@ -492,6 +672,7 @@ async function saveCouponRowById(id) {
 }
 
 function renderCouponRows(coupons) {
+  const headers = t("couponHeaders");
   const state = sortState.coupons;
   const rows = sortedCopy(coupons, state, {
     id: (a, b) => Number(a.id || 0) - Number(b.id || 0),
@@ -500,16 +681,16 @@ function renderCouponRows(coupons) {
     updatedAt: (a, b) => toTimestamp(a.updatedAt) - toTimestamp(b.updatedAt)
   });
   couponTable.innerHTML = `<thead><tr>
-    <th data-sort="id">${sortLabel("ID", state, "id")}</th>
-    <th data-sort="store">${sortLabel("Store", state, "store")}</th>
-    <th data-sort="title">${sortLabel("Title", state, "title")}</th>
-    <th data-sort="category">${sortLabel("Category", state, "category")}</th>
-    <th data-sort="expires">${sortLabel("Expires", state, "expires")}</th>
-    <th data-sort="couponCode">${sortLabel("Code", state, "couponCode")}</th>
-    <th data-sort="clickCount">${sortLabel("Clicks", state, "clickCount")}</th>
-    <th data-sort="createdAt">${sortLabel("Created", state, "createdAt")}</th>
-    <th data-sort="updatedAt">${sortLabel("Updated", state, "updatedAt")}</th>
-    <th>Affiliate URL</th><th>Logo</th><th>Actions</th>
+    <th data-sort="id">${sortLabel(headers[0], state, "id")}</th>
+    <th data-sort="store">${sortLabel(headers[1], state, "store")}</th>
+    <th data-sort="title">${sortLabel(headers[2], state, "title")}</th>
+    <th data-sort="category">${sortLabel(headers[3], state, "category")}</th>
+    <th data-sort="expires">${sortLabel(headers[4], state, "expires")}</th>
+    <th data-sort="couponCode">${sortLabel(headers[5], state, "couponCode")}</th>
+    <th data-sort="clickCount">${sortLabel(headers[6], state, "clickCount")}</th>
+    <th data-sort="createdAt">${sortLabel(headers[7], state, "createdAt")}</th>
+    <th data-sort="updatedAt">${sortLabel(headers[8], state, "updatedAt")}</th>
+    <th>${headers[9]}</th><th>${headers[10]}</th><th>${headers[11]}</th>
   </tr></thead><tbody>${rows.map(c => `
     <tr data-id='${c.id}'>
       <td>${c.id}</td>
@@ -523,7 +704,7 @@ function renderCouponRows(coupons) {
       <td>${formatDateTime(c.updatedAt)}</td>
       <td class='editable-cell cut-cell' data-field='affiliateUrl'>${c.affiliateUrl || ""}</td>
       <td class='editable-cell cut-cell' data-field='logoUrl'>${c.logoUrl || ""}</td>
-      <td><button class='admin-mini-btn' data-save-coupon='${c.id}'>Save</button> <button class='admin-mini-btn' data-del-coupon='${c.id}'>Delete</button></td>
+      <td><button class='admin-mini-btn' data-save-coupon='${c.id}'>${t("tableSave")}</button> <button class='admin-mini-btn' data-del-coupon='${c.id}'>${t("tableDelete")}</button></td>
     </tr>`).join("")}</tbody>`;
 }
 
@@ -551,7 +732,7 @@ async function saveCoupon() {
 
 function clearBrandForm() {
   saveBrandBtn.dataset.editId = "";
-  saveBrandBtn.textContent = "Add Brand";
+  saveBrandBtn.textContent = t("addBrand");
   [brandStoreName, brandSlug, brandTitle, brandSummary, brandOfficialUrl, brandAffiliateUrl, brandLogoUrl, brandHeroImageUrl, brandDescription].forEach(el => el.value = "");
 }
 
@@ -573,6 +754,7 @@ async function saveBrandRowById(id) {
 }
 
 function renderBrandRows(brands) {
+  const headers = t("brandHeaders");
   const state = sortState.brands;
   const rows = sortedCopy(brands, state, {
     id: (a, b) => Number(a.id || 0) - Number(b.id || 0),
@@ -580,13 +762,13 @@ function renderBrandRows(brands) {
     updatedAt: (a, b) => toTimestamp(a.updatedAt) - toTimestamp(b.updatedAt)
   });
   brandTable.innerHTML = `<thead><tr>
-    <th data-sort="id">${sortLabel("ID", state, "id")}</th>
-    <th data-sort="storeName">${sortLabel("Store", state, "storeName")}</th>
-    <th data-sort="slug">${sortLabel("Slug", state, "slug")}</th>
-    <th data-sort="title">${sortLabel("Title", state, "title")}</th>
-    <th data-sort="createdAt">${sortLabel("Created", state, "createdAt")}</th>
-    <th data-sort="updatedAt">${sortLabel("Updated", state, "updatedAt")}</th>
-    <th>Summary</th><th>Official URL</th><th>Affiliate URL</th><th>Logo</th><th>Hero Image</th><th>Description</th><th>Actions</th>
+    <th data-sort="id">${sortLabel(headers[0], state, "id")}</th>
+    <th data-sort="storeName">${sortLabel(headers[1], state, "storeName")}</th>
+    <th data-sort="slug">${sortLabel(headers[2], state, "slug")}</th>
+    <th data-sort="title">${sortLabel(headers[3], state, "title")}</th>
+    <th data-sort="createdAt">${sortLabel(headers[4], state, "createdAt")}</th>
+    <th data-sort="updatedAt">${sortLabel(headers[5], state, "updatedAt")}</th>
+    <th>${headers[6]}</th><th>${headers[7]}</th><th>${headers[8]}</th><th>${headers[9]}</th><th>${headers[10]}</th><th>${headers[11]}</th><th>${headers[12]}</th>
   </tr></thead><tbody>${rows.map(b => `
     <tr data-id='${b.id}'>
       <td>${b.id}</td>
@@ -601,7 +783,7 @@ function renderBrandRows(brands) {
       <td class='editable-cell cut-cell' data-field='logoUrl'>${b.logoUrl || ""}</td>
       <td class='editable-cell cut-cell' data-field='heroImageUrl'>${b.heroImageUrl || ""}</td>
       <td class='editable-cell cut-cell' data-field='description'>${b.description || ""}</td>
-      <td><button class='admin-mini-btn' data-save-brand='${b.id}'>Save</button> <button class='admin-mini-btn' data-del-brand='${b.id}'>Delete</button></td>
+      <td><button class='admin-mini-btn' data-save-brand='${b.id}'>${t("tableSave")}</button> <button class='admin-mini-btn' data-del-brand='${b.id}'>${t("tableDelete")}</button></td>
     </tr>`).join("")}</tbody>`;
 }
 
@@ -631,7 +813,7 @@ async function saveBrand() {
 
 function clearBlogForm() {
   saveBlogBtn.dataset.editId = "";
-  saveBlogBtn.textContent = "Add Blog";
+  saveBlogBtn.textContent = t("addBlog");
   [blogTitle, blogSummary, blogCover, blogContent].forEach(el => el.value = "");
   blogPublished.value = "true";
 }
@@ -653,6 +835,7 @@ async function saveBlogRowById(id) {
 }
 
 function renderBlogRows(blogs) {
+  const headers = t("blogHeaders");
   const state = sortState.blogs;
   const rows = sortedCopy(blogs, state, {
     id: (a, b) => Number(a.id || 0) - Number(b.id || 0),
@@ -660,11 +843,11 @@ function renderBlogRows(blogs) {
     updatedAt: (a, b) => toTimestamp(a.updatedAt) - toTimestamp(b.updatedAt)
   });
   blogTable.innerHTML = `<thead><tr>
-    <th data-sort="id">${sortLabel("ID", state, "id")}</th>
-    <th data-sort="title">${sortLabel("Title", state, "title")}</th>
-    <th data-sort="createdAt">${sortLabel("Created", state, "createdAt")}</th>
-    <th data-sort="updatedAt">${sortLabel("Updated", state, "updatedAt")}</th>
-    <th>Summary</th><th>Content</th><th>Cover</th><th>Published</th><th>Actions</th>
+    <th data-sort="id">${sortLabel(headers[0], state, "id")}</th>
+    <th data-sort="title">${sortLabel(headers[1], state, "title")}</th>
+    <th data-sort="createdAt">${sortLabel(headers[2], state, "createdAt")}</th>
+    <th data-sort="updatedAt">${sortLabel(headers[3], state, "updatedAt")}</th>
+    <th>${headers[4]}</th><th>${headers[5]}</th><th>${headers[6]}</th><th>${headers[7]}</th><th>${headers[8]}</th>
   </tr></thead><tbody>${rows.map(b => `
     <tr data-id='${b.id}'>
       <td>${b.id}</td>
@@ -675,7 +858,7 @@ function renderBlogRows(blogs) {
       <td class='editable-cell cut-cell' data-field='content'>${b.content || ""}</td>
       <td class='editable-cell cut-cell' data-field='coverImageUrl'>${b.coverImageUrl || ""}</td>
       <td class='editable-cell' data-field='published'>${b.published}</td>
-      <td><button class='admin-mini-btn' data-save-blog='${b.id}'>Save</button> <button class='admin-mini-btn' data-del-blog='${b.id}'>Delete</button></td>
+      <td><button class='admin-mini-btn' data-save-blog='${b.id}'>${t("tableSave")}</button> <button class='admin-mini-btn' data-del-blog='${b.id}'>${t("tableDelete")}</button></td>
     </tr>`).join("")}</tbody>`;
 }
 
@@ -701,19 +884,19 @@ async function saveBlog() {
 
 async function uploadBlogImage() {
   if (!blogImageFile.files.length) {
-    blogStatus.textContent = "Choose an image file first";
+    blogStatus.textContent = t("chooseImageFirst");
     return;
   }
   const formData = new FormData();
   formData.append("file", blogImageFile.files[0]);
   const response = await adminFetch("/api/admin/uploads/images", { method: "POST", body: formData });
   if (!response.ok) {
-    blogStatus.textContent = "Upload failed";
+    blogStatus.textContent = t("uploadFailed");
     return;
   }
   const data = await response.json();
   blogCover.value = data.url;
-  blogStatus.textContent = `Uploaded: ${data.url}`;
+  blogStatus.textContent = `${t("uploadedPrefix")} ${data.url}`;
 }
 
 async function loadAds() {
@@ -735,7 +918,7 @@ async function loadAds() {
 }
 
 async function saveAds() {
-  adsStatus.textContent = "Saving...";
+  adsStatus.textContent = t("saving");
   const body = {
     stripEnabled: adsStripEnabled.checked,
     stripText: adsStripText.value,
@@ -757,7 +940,7 @@ async function saveAds() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body)
   });
-  adsStatus.textContent = response.ok ? "Saved" : "Save failed";
+  adsStatus.textContent = response.ok ? t("save") : t("saveFailed");
 }
 
 async function logout() {
@@ -847,7 +1030,7 @@ crawlerSiteTable.addEventListener("click", async event => {
     crawlerSiteBrandEnabled.checked = !!site.brandEnabled;
     crawlerSiteLogoEnabled.checked = !!site.logoEnabled;
     saveCrawlerSiteBtn.dataset.editId = String(site.id);
-    saveCrawlerSiteBtn.textContent = "Update Crawler Site";
+    saveCrawlerSiteBtn.textContent = t("updateCrawlerSite");
     return;
   }
 
@@ -897,9 +1080,9 @@ async function saveAllBlogs() {
 
 saveCrawlerBtn.addEventListener("click", saveCrawler);
 saveCrawlerSiteBtn.addEventListener("click", saveCrawlerSite);
-runCouponCrawlerBtn.addEventListener("click", () => runCrawler("/api/admin/crawler/run-coupons", "coupon crawler"));
-runBrandCrawlerBtn.addEventListener("click", () => runCrawler("/api/admin/crawler/run-brands", "brand crawler"));
-runBrandLogoCrawlerBtn.addEventListener("click", () => runCrawler("/api/admin/crawler/run-brand-logos", "brand logo crawler"));
+runCouponCrawlerBtn.addEventListener("click", () => runCrawler("/api/admin/crawler/run-coupons", t("runCouponCrawler")));
+runBrandCrawlerBtn.addEventListener("click", () => runCrawler("/api/admin/crawler/run-brands", t("runBrandCrawler")));
+runBrandLogoCrawlerBtn.addEventListener("click", () => runCrawler("/api/admin/crawler/run-brand-logos", t("runLogoCrawler")));
 saveContentBtn.addEventListener("click", saveContent);
 uploadHeroImageBtn.addEventListener("click", uploadHeroImage);
 saveCouponBtn.addEventListener("click", saveCoupon);
@@ -915,7 +1098,35 @@ uploadImageBtn.addEventListener("click", uploadBlogImage);
 saveAdsBtn.addEventListener("click", saveAds);
 logoutBtn.addEventListener("click", event => { event.preventDefault(); logout(); });
 if (logLang) {
-  logLang.addEventListener("change", renderCrawlerLogs);
+  logLang.addEventListener("change", () => {
+    currentLang = logLang.value || currentLang;
+    if (adminLang) {
+      adminLang.value = currentLang;
+    }
+    localStorage.setItem("admin.lang", currentLang);
+    applyAdminLanguage();
+    renderCrawlerLogs();
+    renderCouponRows(cachedCoupons);
+    renderBrandRows(cachedBrands);
+    renderBlogRows(cachedBlogs);
+    renderCrawlerSites(cachedCrawlerSites);
+  });
+}
+if (adminLang) {
+  adminLang.value = currentLang;
+  adminLang.addEventListener("change", () => {
+    currentLang = adminLang.value || "en";
+    localStorage.setItem("admin.lang", currentLang);
+    if (logLang) {
+      logLang.value = currentLang;
+    }
+    applyAdminLanguage();
+    renderCrawlerLogs();
+    renderCouponRows(cachedCoupons);
+    renderBrandRows(cachedBrands);
+    renderBlogRows(cachedBlogs);
+    renderCrawlerSites(cachedCrawlerSites);
+  });
 }
 
 contentHeroBgColorPicker.addEventListener("input", () => {
@@ -930,10 +1141,12 @@ activateInlineEditing(brandTable, dirtyBrandIds);
 activateInlineEditing(blogTable, dirtyBlogIds);
 
 (async function init() {
+  applyAdminLanguage();
   const ok = await checkAuth();
   if (!ok) return;
   await Promise.all([loadCrawler(), loadContent(), loadCoupons(), loadBrands(), loadBlogs(), loadAds()]);
   clearCrawlerSiteForm();
+  applyAdminLanguage();
 })();
 
 

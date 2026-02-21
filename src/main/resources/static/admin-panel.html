@@ -8,12 +8,19 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="./styles.css">
 </head>
-<body>
+<body data-admin="1">
 <header class="topbar">
-    <div class="container topbar-inner">
+    <div class="container topbar-inner admin-topbar-inner">
         <a class="brand" href="/"><i class="bi bi-shield-check"></i> Dotiki Coupon Admin</a>
         <nav class="nav">
             <a href="/">Site</a>
+            <label class="admin-lang-switch">
+                <span id="adminLangLabel">Language</span>
+                <select id="adminLang">
+                    <option value="en">English</option>
+                    <option value="zh">中文</option>
+                </select>
+            </label>
             <a href="#" id="logoutBtn">Logout</a>
         </nav>
     </div>
@@ -22,37 +29,37 @@
 <div class="admin-container">
     <section class="admin-nav-card">
         <div class="admin-tabs" id="adminTabs">
-            <button class="admin-tab active" data-tab="dashboard">Dashboard</button>
-            <button class="admin-tab" data-tab="content">Content</button>
-            <button class="admin-tab" data-tab="coupons">Coupons</button>
-            <button class="admin-tab" data-tab="brands">Brands</button>
-            <button class="admin-tab" data-tab="blogs">Blogs</button>
-            <button class="admin-tab" data-tab="ads">Ads</button>
-            <button class="admin-tab" data-tab="crawler">Crawler</button>
+            <button class="admin-tab active" data-tab="dashboard" id="tabDashboard">Dashboard</button>
+            <button class="admin-tab" data-tab="content" id="tabContent">Content</button>
+            <button class="admin-tab" data-tab="coupons" id="tabCoupons">Coupons</button>
+            <button class="admin-tab" data-tab="brands" id="tabBrands">Brands</button>
+            <button class="admin-tab" data-tab="blogs" id="tabBlogs">Blogs</button>
+            <button class="admin-tab" data-tab="ads" id="tabAds">Ads</button>
+            <button class="admin-tab" data-tab="crawler" id="tabCrawler">Crawler</button>
         </div>
     </section>
 
     <section class="admin-section" data-section="dashboard">
-        <h3>Dashboard</h3>
+        <h3 id="dashboardTitle">Dashboard</h3>
         <div class="stat-grid" id="statGrid">
-            <article class="stat-card"><p>Total Coupons</p><h4 id="statCoupons">-</h4></article>
-            <article class="stat-card"><p>Published Blogs</p><h4 id="statBlogs">-</h4></article>
-            <article class="stat-card"><p>Total Brands</p><h4 id="statBrands">-</h4></article>
-            <article class="stat-card"><p>Crawler Status</p><h4 id="statCrawler">-</h4></article>
+            <article class="stat-card"><p id="statCouponsLabel">Total Coupons</p><h4 id="statCoupons">-</h4></article>
+            <article class="stat-card"><p id="statBlogsLabel">Published Blogs</p><h4 id="statBlogs">-</h4></article>
+            <article class="stat-card"><p id="statBrandsLabel">Total Brands</p><h4 id="statBrands">-</h4></article>
+            <article class="stat-card"><p id="statCrawlerLabel">Crawler Status</p><h4 id="statCrawler">-</h4></article>
         </div>
     </section>
 
     <section class="admin-section hidden" data-section="content">
         <div class="section-head-admin">
-            <h3>Homepage Hero & Footer Content</h3>
-            <span>Edit hero text, background image and footer social links</span>
+            <h3 id="contentSectionTitle">Homepage Hero & Footer Content</h3>
+            <span id="contentSectionDesc">Edit hero text, background image and footer social links</span>
         </div>
         <div class="admin-grid">
-            <label>Theme Preset
+            <label id="contentThemeLabel">Theme Preset
                 <select id="contentThemePreset">
-                    <option value="scheme-a">Scheme A - Trust Blue</option>
-                    <option value="scheme-b">Scheme B - Tech Cyan</option>
-                    <option value="scheme-c">Scheme C - Commerce Red</option>
+                    <option value="scheme-a">Scheme A - Trust Blue (Recommended)</option>
+                    <option value="scheme-b">Scheme B - Tech Navy + Cyan</option>
+                    <option value="scheme-c">Scheme C - High Conversion Red</option>
                 </select>
             </label>
             <input id="contentHeroEyebrow" placeholder="Hero eyebrow">
