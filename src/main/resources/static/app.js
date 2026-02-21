@@ -26,14 +26,6 @@ const footerContactLink = document.getElementById("footerContactLink");
 const footerSubmitCouponLink = document.getElementById("footerSubmitCouponLink");
 const footerAffiliateDisclosureLink = document.getElementById("footerAffiliateDisclosureLink");
 
-const couponModal = document.getElementById("couponModal");
-const modalStoreName = document.getElementById("modalStoreName");
-const modalCouponCode = document.getElementById("modalCouponCode");
-const modalCouponTitle = document.getElementById("modalCouponTitle");
-const modalGoStoreBtn = document.getElementById("modalGoStoreBtn");
-const modalCloseBtn = document.getElementById("modalCloseBtn");
-const copyToast = document.getElementById("copyToast");
-
 let activeFilter = "all";
 let searchTerm = "";
 let allCouponsCache = [];
@@ -86,34 +78,6 @@ function isHotCoupon(coupon) {
   if (clicks >= 10) return true;
   const title = toSafeText(coupon.title).toLowerCase();
   return title.includes("hot") || title.includes("flash") || title.includes("limited");
-}
-
-async function copyCode(code) {
-  if (!code) return;
-  try {
-    await navigator.clipboard.writeText(code);
-    showToast("Coupon copied");
-  } catch (_) {
-    showToast("Copy failed, please copy manually");
-  }
-}
-
-function showToast(message) {
-  copyToast.textContent = message;
-  copyToast.classList.add("show");
-  setTimeout(() => copyToast.classList.remove("show"), 1800);
-}
-
-function openModal(store, title, code, affiliateUrl) {
-  modalStoreName.textContent = store;
-  modalCouponTitle.textContent = title;
-  modalCouponCode.textContent = code || "NO-CODE";
-  modalGoStoreBtn.href = affiliateUrl || "#";
-  couponModal.classList.remove("hidden");
-}
-
-function closeModal() {
-  couponModal.classList.add("hidden");
 }
 
 async function fetchCoupons() {
@@ -364,13 +328,6 @@ searchForm.addEventListener("submit", event => {
   event.preventDefault();
   searchTerm = searchInput.value.trim().toLowerCase();
   refreshCoupons();
-});
-
-modalCloseBtn.addEventListener("click", closeModal);
-couponModal.addEventListener("click", event => {
-  if (event.target === couponModal) {
-    closeModal();
-  }
 });
 
 (async function init() {
