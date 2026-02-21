@@ -37,8 +37,10 @@ async function revealCoupon(id) {
 
 function openCodePageAndRedirectCurrent(data, store, title) {
   const codePage = `/coupon-code.html?store=${encodeURIComponent(store)}&title=${encodeURIComponent(title)}&code=${encodeURIComponent(data.couponCode)}`;
-  window.open(codePage, "_blank", "noopener");
-  window.location.assign(data.affiliateUrl);
+  if (data.affiliateUrl) {
+    window.open(data.affiliateUrl, "_blank", "noopener");
+  }
+  window.location.assign(codePage);
 }
 
 function uniqueStores(coupons) {
