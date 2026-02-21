@@ -141,6 +141,15 @@ async function revealCoupon(id) {
   return response.json();
 }
 
+function buildCodePageUrl(coupon, couponCode) {
+  const params = new URLSearchParams({
+    store: toSafeText(coupon?.store, "Store"),
+    title: toSafeText(coupon?.title, "Offer"),
+    code: toSafeText(couponCode, "SEEDEAL")
+  });
+  return `/coupon-code.html?${params.toString()}`;
+}
+
 function applyContent(content) {
   if (!content) return;
 
@@ -254,15 +263,27 @@ function buildCouponNode(coupon) {
   btn.addEventListener("click", async () => {
     btn.disabled = true;
     btn.textContent = "Checking...";
+    const codeTab = window.open("about:blank", "_blank", "noopener");
     try {
       const data = await revealCoupon(coupon.id);
-      await copyCode(data.couponCode);
-      openModal(coupon.store, coupon.title, data.couponCode, data.affiliateUrl);
-      if (data.affiliateUrl) {
-        window.open(data.affiliateUrl, "_blank", "noopener");
+      const codePageUrl = buildCodePageUrl(coupon, data.couponCode);
+
+      if (codeTab) {
+        codeTab.location.href = codePageUrl;
+      } else {
+        window.open(codePageUrl, "_blank", "noopener");
       }
-      btn.textContent = "Copied";
+
+      if (data.affiliateUrl) {
+        window.location.assign(data.affiliateUrl);
+      } else if (!codeTab) {
+        window.location.assign(codePageUrl);
+      }
+      btn.textContent = "Redirecting...";
     } catch (_) {
+      if (codeTab) {
+        codeTab.close();
+      }
       btn.textContent = "Try Again";
       btn.disabled = false;
     }
