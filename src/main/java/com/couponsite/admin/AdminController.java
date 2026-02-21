@@ -123,7 +123,14 @@ public class AdminController {
         int brandCount = brandCrawlerService.crawlLatest() + genericSiteCrawlerService.crawlBrandsFromEnabledSites();
         int logoCount = brandLogoCrawlerService.crawlLatest() + genericSiteCrawlerService.crawlLogosFromEnabledSites();
         int total = couponCount + brandCount + logoCount;
-        return ResponseEntity.ok("Crawler done, coupons=" + couponCount + ", brands=" + brandCount + ", brandLogos=" + logoCount + ", total=" + total);
+        long brandProfilesTotal = brandProfileService.count();
+        return ResponseEntity.ok(
+            "Crawler done, coupons=" + couponCount
+                + ", brandUpserts=" + brandCount
+                + ", brandProfilesTotal=" + brandProfilesTotal
+                + ", brandLogos=" + logoCount
+                + ", totalUpserts=" + total
+        );
     }
 
     @PostMapping("/crawler/run-coupons")
@@ -135,7 +142,8 @@ public class AdminController {
     @PostMapping("/crawler/run-brands")
     public ResponseEntity<String> runBrandCrawler() {
         int brandCount = brandCrawlerService.crawlLatest() + genericSiteCrawlerService.crawlBrandsFromEnabledSites();
-        return ResponseEntity.ok("Brand crawler done, total=" + brandCount);
+        long brandProfilesTotal = brandProfileService.count();
+        return ResponseEntity.ok("Brand crawler done, upserts=" + brandCount + ", brandProfilesTotal=" + brandProfilesTotal);
     }
 
     @PostMapping("/crawler/run-brand-logos")

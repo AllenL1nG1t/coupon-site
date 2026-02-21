@@ -5,12 +5,23 @@ import com.couponsite.brand.BrandProfileService;
 import com.couponsite.coupon.Coupon;
 import com.couponsite.coupon.CouponRepository;
 import com.couponsite.coupon.LogoCatalog;
+import java.io.IOException;
 import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +29,12 @@ import org.springframework.stereotype.Service;
 public class BrandCrawlerService {
 
     private static final String DEFAULT_LOGO = "/logos/default.svg";
+    private static final Pattern SIMPLYCODES_STORE_PATH = Pattern.compile("^/store/([^/?#]+)$");
+    private static final Pattern HOST_WITH_LOCALE_SUFFIX = Pattern.compile("^(.+\\.[a-z]{2,})(?:-[a-z]{2}(?:-[a-z]{2})?)$");
+    private static final int SIMPLYCODES_DISCOVERY_LIMIT = 250;
+    private static final Set<String> GENERIC_SUBDOMAINS = Set.of(
+        "www", "us", "uk", "ca", "au", "de", "fr", "es", "it", "nl", "br", "jp", "in", "m", "app", "shop", "store"
+    );
 
     private static final List<BrandSeed> POPULAR_BRAND_SEEDS = List.of(
         seed("Nike", "https://www.nike.com/"),
@@ -115,6 +132,10 @@ public class BrandCrawlerService {
             seeds.put(seed.store().toLowerCase(Locale.ROOT), seed);
         }
 
+        for (BrandSeed seed : discoverSimplyCodesSeeds()) {
+            seeds.put(seed.store().toLowerCase(Locale.ROOT), seed);
+        }
+
         for (Coupon coupon : couponRepository.findAllByOrderByCreatedAtDesc()) {
             String store = clean(coupon.getStore());
             if (store.isBlank()) {
@@ -129,6 +150,123 @@ public class BrandCrawlerService {
         }
 
         return seeds;
+    }
+
+    private List<BrandSeed> discoverSimplyCodesSeeds() {
+        List<BrandSeed> discovered = new ArrayList<>();
+        Set<String> seenStores = new LinkedHashSet<>();
+        try {
+            Document doc = Jsoup.connect("https://simplycodes.com/")
+                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                .header("Accept-Language", "en-US,en;q=0.9")
+                .header("Cache-Control", "no-cache")
+                .referrer("https://www.google.com/")
+                .timeout(10_000)
+                .get();
+
+            for (Element link : doc.select("a[href]")) {
+                if (discovered.size() >= SIMPLYCODES_DISCOVERY_LIMIT) {
+                    break;
+                }
+                String rawHref = clean(link.attr("href"));
+                String path = extractPath(rawHref);
+                Matcher matcher = SIMPLYCODES_STORE_PATH.matcher(path);
+                if (!matcher.matches()) {
+                    continue;
+                }
+                String slug = clean(URLDecoder.decode(matcher.group(1), StandardCharsets.UTF_8));
+                if (slug.isBlank()) {
+                    continue;
+                }
+                BrandSeed seed = seedFromSimplyCodesSlug(slug);
+                String key = seed.store().toLowerCase(Locale.ROOT);
+                if (seenStores.add(key)) {
+                    discovered.add(seed);
+                }
+            }
+        } catch (IOException ex) {
+            crawlerLogService.warn("Brand seed discovery from simplycodes failed: " + ex.getClass().getSimpleName());
+        }
+        return discovered;
+    }
+
+    private BrandSeed seedFromSimplyCodesSlug(String slug) {
+        String normalized = clean(slug).toLowerCase(Locale.ROOT);
+        String hostLike = normalized;
+        Matcher hostWithLocale = HOST_WITH_LOCALE_SUFFIX.matcher(hostLike);
+        if (hostWithLocale.matches()) {
+            hostLike = hostWithLocale.group(1);
+        }
+        String officialUrl = "";
+        if (hostLike.contains(".")) {
+            officialUrl = "https://" + hostLike + "/";
+        }
+        String store = prettifyStoreName(hostLike.contains(".") ? pickStoreTokenFromHost(hostLike) : normalized);
+        if (store.isBlank()) {
+            store = "Store";
+        }
+        String logoUrl = LogoCatalog.forStore(store);
+        String affiliateUrl = "https://simplycodes.com/store/" + normalized;
+        if (officialUrl.isBlank()) {
+            officialUrl = affiliateUrl;
+        }
+        return new BrandSeed(store, logoUrl, officialUrl, affiliateUrl);
+    }
+
+    private String prettifyStoreName(String raw) {
+        String value = clean(raw).toLowerCase(Locale.ROOT);
+        if (value.isBlank()) {
+            return "";
+        }
+        String noDomain = value.contains(".") ? value.substring(0, value.indexOf('.')) : value;
+        String[] chunks = noDomain.split("[-_+]+");
+        StringBuilder out = new StringBuilder();
+        for (String chunk : chunks) {
+            String token = clean(chunk);
+            if (token.isBlank()) {
+                continue;
+            }
+            if (out.length() > 0) {
+                out.append(' ');
+            }
+            out.append(Character.toUpperCase(token.charAt(0))).append(token.substring(1));
+        }
+        return out.toString().trim();
+    }
+
+    private String pickStoreTokenFromHost(String host) {
+        String[] labels = clean(host).toLowerCase(Locale.ROOT).split("\\.");
+        for (String label : labels) {
+            String token = clean(label);
+            if (token.isBlank() || GENERIC_SUBDOMAINS.contains(token)) {
+                continue;
+            }
+            return token;
+        }
+        return labels.length == 0 ? "" : clean(labels[0]);
+    }
+
+    private String extractPath(String href) {
+        if (href.startsWith("http://") || href.startsWith("https://")) {
+            try {
+                URI uri = URI.create(href);
+                return clean(uri.getPath());
+            } catch (Exception ex) {
+                return "";
+            }
+        }
+        if (href.startsWith("/")) {
+            int q = href.indexOf('?');
+            if (q >= 0) {
+                return href.substring(0, q);
+            }
+            int hash = href.indexOf('#');
+            if (hash >= 0) {
+                return href.substring(0, hash);
+            }
+            return href;
+        }
+        return "";
     }
 
     private boolean applySeed(BrandProfile profile, BrandSeed seed) {
