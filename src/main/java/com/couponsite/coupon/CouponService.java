@@ -3,6 +3,7 @@ package com.couponsite.coupon;
 import com.couponsite.admin.CrawlerLogService;
 import com.couponsite.admin.AdminCouponDto;
 import com.couponsite.admin.AdminCouponUpsertRequest;
+import com.couponsite.brand.BrandProfileService;
 import java.util.List;
 import java.util.Locale;
 import org.springframework.stereotype.Service;
@@ -13,10 +14,16 @@ public class CouponService {
 
     private final CouponRepository couponRepository;
     private final CrawlerLogService crawlerLogService;
+    private final BrandProfileService brandProfileService;
 
-    public CouponService(CouponRepository couponRepository, CrawlerLogService crawlerLogService) {
+    public CouponService(
+        CouponRepository couponRepository,
+        CrawlerLogService crawlerLogService,
+        BrandProfileService brandProfileService
+    ) {
         this.couponRepository = couponRepository;
         this.crawlerLogService = crawlerLogService;
+        this.brandProfileService = brandProfileService;
     }
 
     public List<CouponSummaryDto> listCoupons(String category, String query) {
@@ -63,7 +70,8 @@ public class CouponService {
 
         coupon.setClickCount(coupon.getClickCount() + 1);
         crawlerLogService.info("Coupon revealed: id=" + id + ", store=" + coupon.getStore());
-        return new CouponRevealDto(coupon.getId(), coupon.getCouponCode(), coupon.getAffiliateUrl());
+        String affiliateUrl = resolveAffiliateUrl(coupon);
+        return new CouponRevealDto(coupon.getId(), coupon.getCouponCode(), affiliateUrl);
     }
 
     @Transactional
@@ -139,7 +147,7 @@ public class CouponService {
         coupon.setCategory(nonBlankOrDefault(request.category(), "other"));
         coupon.setExpires(nonBlankOrDefault(request.expires(), "Limited time"));
         coupon.setCouponCode(nonBlankOrDefault(request.couponCode(), "SEEDEAL"));
-        coupon.setAffiliateUrl(nonBlankOrDefault(request.affiliateUrl(), "https://example-affiliate.com"));
+        coupon.setAffiliateUrl(nonBlankOrDefault(request.affiliateUrl(), ""));
         coupon.setLogoUrl(nonBlankOrDefault(request.logoUrl(), LogoCatalog.forStore(coupon.getStore())));
         coupon.setSource(nonBlankOrDefault(request.source(), "admin"));
         if (request.clickCount() != null && request.clickCount() >= 0) {
@@ -193,6 +201,23 @@ public class CouponService {
             return "";
         }
         return raw.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
+    }
+
+    private String resolveAffiliateUrl(Coupon coupon) {
+        if (coupon.getAffiliateUrl() != null && !coupon.getAffiliateUrl().isBlank()) {
+            return coupon.getAffiliateUrl();
+        }
+        return brandProfileService.findEntityByStore(coupon.getStore())
+            .map(profile -> {
+                if (profile.getAffiliateUrl() != null && !profile.getAffiliateUrl().isBlank()) {
+                    return profile.getAffiliateUrl();
+                }
+                if (profile.getOfficialUrl() != null && !profile.getOfficialUrl().isBlank()) {
+                    return profile.getOfficialUrl();
+                }
+                return "https://example.com";
+            })
+            .orElse("https://example.com");
     }
 }
 

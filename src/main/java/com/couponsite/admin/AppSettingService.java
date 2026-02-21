@@ -7,9 +7,14 @@ import org.springframework.beans.factory.annotation.Value;
 @Service
 public class AppSettingService {
 
-    private static final String CRAWLER_ENABLED_KEY = "crawler.enabled";
+    private static final String COUPON_CRAWLER_ENABLED_KEY = "crawler.coupon.enabled";
     private static final String BRAND_CRAWLER_ENABLED_KEY = "crawler.brand.enabled";
-    private static final String CRAWLER_INTERVAL_MS_KEY = "crawler.interval-ms";
+    private static final String BRAND_LOGO_CRAWLER_ENABLED_KEY = "crawler.brand-logo.enabled";
+    private static final String COUPON_CRAWLER_INTERVAL_MS_KEY = "crawler.coupon.interval-ms";
+    private static final String BRAND_CRAWLER_INTERVAL_MS_KEY = "crawler.brand.interval-ms";
+    private static final String BRAND_LOGO_CRAWLER_INTERVAL_MS_KEY = "crawler.brand-logo.interval-ms";
+    private static final String LEGACY_CRAWLER_ENABLED_KEY = "crawler.enabled";
+    private static final String LEGACY_CRAWLER_INTERVAL_MS_KEY = "crawler.interval-ms";
     private static final long MIN_CRAWLER_INTERVAL_MS = 60_000L;
     private static final long MAX_CRAWLER_INTERVAL_MS = 86_400_000L;
 
@@ -24,22 +29,38 @@ public class AppSettingService {
         this.defaultCrawlerIntervalMs = clampCrawlerInterval(defaultCrawlerIntervalMs);
     }
 
-    public boolean isCrawlerEnabled() {
-        return getBoolean(CRAWLER_ENABLED_KEY, false);
+    public boolean isCouponCrawlerEnabled() {
+        boolean legacy = getBoolean(LEGACY_CRAWLER_ENABLED_KEY, false);
+        return getBoolean(COUPON_CRAWLER_ENABLED_KEY, legacy);
     }
 
     public boolean isBrandCrawlerEnabled() {
         return getBoolean(BRAND_CRAWLER_ENABLED_KEY, true);
     }
 
-    public long getCrawlerIntervalMs() {
-        long raw = getLong(CRAWLER_INTERVAL_MS_KEY, defaultCrawlerIntervalMs);
+    public boolean isBrandLogoCrawlerEnabled() {
+        return getBoolean(BRAND_LOGO_CRAWLER_ENABLED_KEY, true);
+    }
+
+    public long getCouponCrawlerIntervalMs() {
+        long legacy = getLong(LEGACY_CRAWLER_INTERVAL_MS_KEY, defaultCrawlerIntervalMs);
+        long raw = getLong(COUPON_CRAWLER_INTERVAL_MS_KEY, legacy);
+        return clampCrawlerInterval(raw);
+    }
+
+    public long getBrandCrawlerIntervalMs() {
+        long raw = getLong(BRAND_CRAWLER_INTERVAL_MS_KEY, defaultCrawlerIntervalMs);
+        return clampCrawlerInterval(raw);
+    }
+
+    public long getBrandLogoCrawlerIntervalMs() {
+        long raw = getLong(BRAND_LOGO_CRAWLER_INTERVAL_MS_KEY, defaultCrawlerIntervalMs);
         return clampCrawlerInterval(raw);
     }
 
     @Transactional
-    public boolean setCrawlerEnabled(boolean enabled) {
-        setBoolean(CRAWLER_ENABLED_KEY, enabled);
+    public boolean setCouponCrawlerEnabled(boolean enabled) {
+        setBoolean(COUPON_CRAWLER_ENABLED_KEY, enabled);
         return enabled;
     }
 
@@ -50,9 +71,29 @@ public class AppSettingService {
     }
 
     @Transactional
-    public long setCrawlerIntervalMs(long intervalMs) {
+    public boolean setBrandLogoCrawlerEnabled(boolean enabled) {
+        setBoolean(BRAND_LOGO_CRAWLER_ENABLED_KEY, enabled);
+        return enabled;
+    }
+
+    @Transactional
+    public long setCouponCrawlerIntervalMs(long intervalMs) {
         long normalized = clampCrawlerInterval(intervalMs);
-        setLong(CRAWLER_INTERVAL_MS_KEY, normalized);
+        setLong(COUPON_CRAWLER_INTERVAL_MS_KEY, normalized);
+        return normalized;
+    }
+
+    @Transactional
+    public long setBrandCrawlerIntervalMs(long intervalMs) {
+        long normalized = clampCrawlerInterval(intervalMs);
+        setLong(BRAND_CRAWLER_INTERVAL_MS_KEY, normalized);
+        return normalized;
+    }
+
+    @Transactional
+    public long setBrandLogoCrawlerIntervalMs(long intervalMs) {
+        long normalized = clampCrawlerInterval(intervalMs);
+        setLong(BRAND_LOGO_CRAWLER_INTERVAL_MS_KEY, normalized);
         return normalized;
     }
 

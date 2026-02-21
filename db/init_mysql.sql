@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS brand_profile (
   logo_image LONGBLOB,
   logo_image_content_type VARCHAR(255),
   official_url VARCHAR(255) NOT NULL,
+  affiliate_url VARCHAR(1200),
   slug VARCHAR(255) NOT NULL,
   store_name VARCHAR(255) NOT NULL,
   summary VARCHAR(1000) NOT NULL,
@@ -86,13 +87,25 @@ WHERE NOT EXISTS (
 );
 
 INSERT INTO app_setting (setting_key, setting_value, updated_at)
-SELECT 'crawler.enabled', 'false', NOW(6)
-WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'crawler.enabled');
+SELECT 'crawler.coupon.enabled', 'false', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'crawler.coupon.enabled');
 
 INSERT INTO app_setting (setting_key, setting_value, updated_at)
 SELECT 'crawler.brand.enabled', 'true', NOW(6)
 WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'crawler.brand.enabled');
 
 INSERT INTO app_setting (setting_key, setting_value, updated_at)
-SELECT 'crawler.interval-ms', '1800000', NOW(6)
-WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'crawler.interval-ms');
+SELECT 'crawler.brand-logo.enabled', 'true', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'crawler.brand-logo.enabled');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'crawler.coupon.interval-ms', '1800000', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'crawler.coupon.interval-ms');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'crawler.brand.interval-ms', '1800000', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'crawler.brand.interval-ms');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'crawler.brand-logo.interval-ms', '1800000', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'crawler.brand-logo.interval-ms');

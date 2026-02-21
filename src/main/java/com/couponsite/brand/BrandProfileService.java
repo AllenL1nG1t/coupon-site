@@ -60,6 +60,7 @@ public class BrandProfileService {
         profile.setHeroImageUrl(nonBlankOrDefault(request.heroImageUrl(), "/logos/default.svg"));
         profile.setLogoUrl(nonBlankOrDefault(request.logoUrl(), "/logos/default.svg"));
         profile.setOfficialUrl(nonBlankOrDefault(request.officialUrl(), "https://example.com"));
+        profile.setAffiliateUrl(nonBlankOrDefault(request.affiliateUrl(), profile.getOfficialUrl()));
 
         return toDto(brandProfileRepository.save(profile));
     }
@@ -82,6 +83,10 @@ public class BrandProfileService {
         return brandProfileRepository.findByStoreNameIgnoreCase(store);
     }
 
+    public List<BrandProfile> findAllEntities() {
+        return brandProfileRepository.findAll();
+    }
+
     public String normalizeSlug(String raw) {
         String value = raw == null ? "brand" : raw.trim().toLowerCase(Locale.ROOT);
         value = value.replaceAll("[^a-z0-9]+", "-");
@@ -102,7 +107,8 @@ public class BrandProfileService {
             profile.getDescription(),
             profile.getHeroImageUrl(),
             logoUrl,
-            profile.getOfficialUrl()
+            profile.getOfficialUrl(),
+            nonBlankOrDefault(profile.getAffiliateUrl(), profile.getOfficialUrl())
         );
     }
 

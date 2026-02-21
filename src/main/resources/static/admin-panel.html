@@ -100,6 +100,7 @@
             <input id="brandTitle" placeholder="Brand Title">
             <input id="brandSummary" placeholder="Summary">
             <input id="brandOfficialUrl" placeholder="Official URL">
+            <input id="brandAffiliateUrl" placeholder="Affiliate URL (Store-level)">
             <input id="brandLogoUrl" placeholder="Logo URL">
             <input id="brandHeroImageUrl" placeholder="Hero Image URL">
             <textarea id="brandDescription" rows="6" placeholder="Description"></textarea>
@@ -191,16 +192,29 @@
     <section class="admin-section hidden" data-section="crawler">
         <div class="section-head-admin">
             <h3>Crawler</h3>
-            <span>RetailMeNot + SimplyCodes + Brand crawler</span>
+            <span>Coupon / Brand / Logo crawler split controls</span>
         </div>
         <div class="admin-row">
-            <label><input type="checkbox" id="crawlerEnabled"> Enable scheduled crawler</label>
-            <label><input type="checkbox" id="brandCrawlerEnabled"> Enable scheduled brand/logo crawler</label>
-            <label>Interval (minutes)
-                <input id="crawlerIntervalMinutes" type="number" min="1" step="1" value="30" style="width:100px;">
+            <label><input type="checkbox" id="couponCrawlerEnabled"> Enable scheduled coupon crawler</label>
+            <label>Coupon interval (minutes)
+                <input id="couponCrawlerIntervalMinutes" type="number" min="1" step="1" value="30" style="width:90px;">
+            </label>
+            <button id="runCouponCrawlerBtn" class="primary-btn">Run Coupon Crawler</button>
+        </div>
+        <div class="admin-row">
+            <label><input type="checkbox" id="brandCrawlerEnabled"> Enable scheduled brand crawler</label>
+            <label>Brand interval (minutes)
+                <input id="brandCrawlerIntervalMinutes" type="number" min="1" step="1" value="30" style="width:90px;">
+            </label>
+            <button id="runBrandCrawlerBtn" class="primary-btn">Run Brand Crawler</button>
+        </div>
+        <div class="admin-row">
+            <label><input type="checkbox" id="brandLogoCrawlerEnabled"> Enable scheduled brand logo crawler</label>
+            <label>Logo interval (minutes)
+                <input id="brandLogoCrawlerIntervalMinutes" type="number" min="1" step="1" value="30" style="width:90px;">
             </label>
             <button id="saveCrawlerBtn" class="primary-btn">Save</button>
-            <button id="runCrawlerBtn" class="primary-btn">Run Now</button>
+            <button id="runBrandLogoCrawlerBtn" class="primary-btn">Run Brand Logo Crawler</button>
             <span id="crawlerStatus"></span>
         </div>
         <pre id="logPanel" class="logs-panel"></pre>

@@ -24,7 +24,18 @@ public class SimplyCodesCrawlerService {
     private static final List<StoreSeed> STORE_SEEDS = List.of(
         new StoreSeed("Nike", "fashion", LogoCatalog.forStore("Nike"), List.of("nike.com", "nike")),
         new StoreSeed("Samsung", "electronics", LogoCatalog.forStore("Samsung"), List.of("samsung.com", "samsung")),
-        new StoreSeed("Best Buy", "electronics", LogoCatalog.forStore("Best Buy"), List.of("bestbuy.com", "best-buy", "bestbuy"))
+        new StoreSeed("Best Buy", "electronics", LogoCatalog.forStore("Best Buy"), List.of("bestbuy.com", "best-buy", "bestbuy")),
+        new StoreSeed("Adidas", "fashion", LogoCatalog.forStore("Adidas"), List.of("adidas.com", "adidas")),
+        new StoreSeed("Walmart", "other", LogoCatalog.forStore("Walmart"), List.of("walmart.com", "walmart")),
+        new StoreSeed("Target", "other", LogoCatalog.forStore("Target"), List.of("target.com", "target")),
+        new StoreSeed("Dell", "electronics", LogoCatalog.forStore("Dell"), List.of("dell.com", "dell")),
+        new StoreSeed("Lenovo", "electronics", LogoCatalog.forStore("Lenovo"), List.of("lenovo.com", "lenovo")),
+        new StoreSeed("Sephora", "fashion", LogoCatalog.forStore("Sephora"), List.of("sephora.com", "sephora")),
+        new StoreSeed("Ulta Beauty", "fashion", LogoCatalog.forStore("Ulta Beauty"), List.of("ulta.com", "ulta")),
+        new StoreSeed("Booking.com", "travel", LogoCatalog.forStore("Booking.com"), List.of("booking.com", "booking")),
+        new StoreSeed("Hotels.com", "travel", LogoCatalog.forStore("Hotels.com"), List.of("hotels.com", "hotels")),
+        new StoreSeed("Uber", "travel", LogoCatalog.forStore("Uber"), List.of("uber.com", "uber")),
+        new StoreSeed("Grubhub", "food", LogoCatalog.forStore("Grubhub"), List.of("grubhub.com", "grubhub"))
     );
 
     private final CouponService couponService;
@@ -44,11 +55,11 @@ public class SimplyCodesCrawlerService {
 
     @Scheduled(fixedDelay = 30_000)
     public void scheduledRun() {
-        if (!appSettingService.isCrawlerEnabled()) {
+        if (!appSettingService.isCouponCrawlerEnabled()) {
             return;
         }
         long now = System.currentTimeMillis();
-        long intervalMs = appSettingService.getCrawlerIntervalMs();
+        long intervalMs = appSettingService.getCouponCrawlerIntervalMs();
         long lastRun = lastScheduledRunAt.get();
         if (now - lastRun < intervalMs) {
             return;
@@ -124,7 +135,7 @@ public class SimplyCodesCrawlerService {
 
             String href = firstHref(card, "a[href]");
             if (href.isBlank()) {
-                href = "https://simplycodes.com/store/" + seed.paths().get(0);
+                href = "";
             } else if (href.startsWith("/")) {
                 href = "https://simplycodes.com" + href;
             }
@@ -135,7 +146,7 @@ public class SimplyCodesCrawlerService {
             coupon.setCategory(seed.category());
             coupon.setExpires(expires);
             coupon.setCouponCode(code);
-            coupon.setAffiliateUrl(href);
+            coupon.setAffiliateUrl("");
             coupon.setLogoUrl(seed.logoUrl());
             coupon.setSource("simplycodes");
             parsed.add(coupon);
@@ -166,7 +177,7 @@ public class SimplyCodesCrawlerService {
         coupon.setCategory(seed.category());
         coupon.setExpires(expires);
         coupon.setCouponCode(code);
-        coupon.setAffiliateUrl(affiliateUrl);
+        coupon.setAffiliateUrl("");
         coupon.setLogoUrl(seed.logoUrl());
         coupon.setSource("simplycodes-fallback");
         return coupon;

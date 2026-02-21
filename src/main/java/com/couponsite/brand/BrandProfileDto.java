@@ -9,6 +9,7 @@ public record BrandProfileDto(
     String description,
     String heroImageUrl,
     String logoUrl,
-    String officialUrl
+    String officialUrl,
+    String affiliateUrl
 ) {
 }

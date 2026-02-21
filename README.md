@@ -58,17 +58,19 @@ Notes:
   - Background color
   - Background image (upload supported)
 - Crawler management:
-  - Enable/disable scheduled crawler
-  - Enable/disable scheduled brand/logo crawler
-  - Set crawler interval (minutes) from admin panel
-  - Manual run
+  - Separate scheduled switches:
+    - Coupon crawler
+    - Brand profile crawler
+    - Brand logo crawler
+  - Separate interval (minutes) for each crawler from admin panel
+  - Manual run buttons for each crawler
   - Log viewing
   - Brand logos are crawled and stored in DB (`brand_profile.logo_image`)
 
 ## Coupon Flow
 - Coupon code is hidden on list view.
 - Clicking `Show Coupon Code` calls reveal API and **directly redirects current page** to configured affiliate URL.
-- Coupon code and affiliate URL are persisted in DB.
+- If coupon-level affiliate URL is empty, reveal flow falls back to store-level brand affiliate URL.
 
 ## Crawlers
 - Sources:
@@ -101,6 +103,9 @@ Notes:
   - `PUT /api/admin/settings`
   - `GET /api/admin/logs`
   - `POST /api/admin/crawler/run`
+  - `POST /api/admin/crawler/run-coupons`
+  - `POST /api/admin/crawler/run-brands`
+  - `POST /api/admin/crawler/run-brand-logos`
 - Coupons:
   - `GET /api/admin/coupons`
   - `PUT /api/admin/coupons`

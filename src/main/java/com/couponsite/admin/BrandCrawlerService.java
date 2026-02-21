@@ -5,16 +5,9 @@ import com.couponsite.brand.BrandProfileService;
 import com.couponsite.coupon.Coupon;
 import com.couponsite.coupon.CouponRepository;
 import com.couponsite.coupon.LogoCatalog;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -24,8 +17,39 @@ import org.springframework.stereotype.Service;
 @Service
 public class BrandCrawlerService {
 
-    private static final int LOGO_MAX_BYTES = 1_500_000;
     private static final String DEFAULT_LOGO = "/logos/default.svg";
+
+    private static final List<BrandSeed> POPULAR_BRAND_SEEDS = List.of(
+        seed("Nike", "https://www.nike.com/"),
+        seed("Adidas", "https://www.adidas.com/"),
+        seed("Puma", "https://us.puma.com/"),
+        seed("New Balance", "https://www.newbalance.com/"),
+        seed("Best Buy", "https://www.bestbuy.com/"),
+        seed("Walmart", "https://www.walmart.com/"),
+        seed("Target", "https://www.target.com/"),
+        seed("Costco", "https://www.costco.com/"),
+        seed("Dell", "https://www.dell.com/"),
+        seed("Lenovo", "https://www.lenovo.com/"),
+        seed("HP", "https://www.hp.com/"),
+        seed("Samsung", "https://www.samsung.com/"),
+        seed("Apple", "https://www.apple.com/"),
+        seed("Sephora", "https://www.sephora.com/"),
+        seed("Ulta Beauty", "https://www.ulta.com/"),
+        seed("Macy's", "https://www.macys.com/"),
+        seed("Nordstrom", "https://www.nordstrom.com/"),
+        seed("Expedia", "https://www.expedia.com/"),
+        seed("Booking.com", "https://www.booking.com/"),
+        seed("Hotels.com", "https://www.hotels.com/"),
+        seed("Trip.com", "https://www.trip.com/"),
+        seed("DoorDash", "https://www.doordash.com/"),
+        seed("Uber", "https://www.uber.com/"),
+        seed("Grubhub", "https://www.grubhub.com/"),
+        seed("Instacart", "https://www.instacart.com/"),
+        seed("AliExpress", "https://www.aliexpress.com/"),
+        seed("eBay", "https://www.ebay.com/"),
+        seed("Amazon", "https://www.amazon.com/")
+    );
+
     private final CouponRepository couponRepository;
     private final BrandProfileService brandProfileService;
     private final AppSettingService appSettingService;
@@ -46,11 +70,11 @@ public class BrandCrawlerService {
 
     @Scheduled(fixedDelay = 30_000)
     public void scheduledRun() {
-        if (!appSettingService.isCrawlerEnabled() || !appSettingService.isBrandCrawlerEnabled()) {
+        if (!appSettingService.isBrandCrawlerEnabled()) {
             return;
         }
         long now = System.currentTimeMillis();
-        long intervalMs = appSettingService.getCrawlerIntervalMs();
+        long intervalMs = appSettingService.getBrandCrawlerIntervalMs();
         long lastRun = lastScheduledRunAt.get();
         if (now - lastRun < intervalMs) {
             return;
@@ -62,35 +86,35 @@ public class BrandCrawlerService {
     }
 
     public synchronized int crawlLatest() {
-        crawlerLogService.info("Brand crawler started.");
+        crawlerLogService.info("Brand profile crawler started.");
         Map<String, BrandSeed> seeds = buildSeeds();
         int upserts = 0;
-        int logosStored = 0;
 
         for (BrandSeed seed : seeds.values()) {
             try {
                 BrandProfile profile = brandProfileService.findEntityByStore(seed.store())
                     .orElseGet(BrandProfile::new);
                 boolean changed = applySeed(profile, seed);
-                boolean logoChanged = tryStoreLogoImage(profile, seed);
-                if (changed || logoChanged) {
+                if (changed) {
                     brandProfileService.save(profile);
                     upserts++;
                 }
-                if (logoChanged) {
-                    logosStored++;
-                }
             } catch (Exception ex) {
-                crawlerLogService.warn("Brand crawl failed for " + seed.store() + ": " + ex.getClass().getSimpleName());
+                crawlerLogService.warn("Brand profile crawl failed for " + seed.store() + ": " + ex.getClass().getSimpleName());
             }
         }
 
-        crawlerLogService.info("Brand crawler finished. upserts=" + upserts + ", logosStored=" + logosStored + ", scannedStores=" + seeds.size());
+        crawlerLogService.info("Brand profile crawler finished. upserts=" + upserts + ", scannedStores=" + seeds.size());
         return upserts;
     }
 
     private Map<String, BrandSeed> buildSeeds() {
         Map<String, BrandSeed> seeds = new LinkedHashMap<>();
+
+        for (BrandSeed seed : POPULAR_BRAND_SEEDS) {
+            seeds.put(seed.store().toLowerCase(Locale.ROOT), seed);
+        }
+
         for (Coupon coupon : couponRepository.findAllByOrderByCreatedAtDesc()) {
             String store = clean(coupon.getStore());
             if (store.isBlank()) {
@@ -100,9 +124,10 @@ public class BrandCrawlerService {
             BrandSeed current = seeds.get(key);
             String logoUrl = preferLogoUrl(clean(coupon.getLogoUrl()), current == null ? "" : current.logoUrl());
             String officialUrl = chooseOfficialUrl(clean(coupon.getAffiliateUrl()), current == null ? "" : current.officialUrl());
-            String domain = chooseDomain(officialUrl, current == null ? "" : current.domain());
-            seeds.put(key, new BrandSeed(store, logoUrl, officialUrl, domain));
+            String affiliateUrl = chooseAffiliateUrl(clean(coupon.getAffiliateUrl()), current == null ? "" : current.affiliateUrl(), officialUrl);
+            seeds.put(key, new BrandSeed(store, logoUrl, officialUrl, affiliateUrl));
         }
+
         return seeds;
     }
 
@@ -142,153 +167,34 @@ public class BrandCrawlerService {
             profile.setOfficialUrl(isBlank(seed.officialUrl()) ? "https://example.com" : seed.officialUrl());
             changed = true;
         }
+        if (isBlank(profile.getAffiliateUrl())) {
+            profile.setAffiliateUrl(isBlank(seed.affiliateUrl()) ? profile.getOfficialUrl() : seed.affiliateUrl());
+            changed = true;
+        }
 
         return changed;
     }
 
-    private boolean tryStoreLogoImage(BrandProfile profile, BrandSeed seed) {
-        if (profile.getLogoImage() != null && profile.getLogoImage().length > 0) {
-            return false;
-        }
-
-        DownloadedLogo downloaded = null;
-        if (!isBlank(seed.domain())) {
-            downloaded = downloadLogo("https://logo.clearbit.com/" + seed.domain());
-            if (downloaded == null) {
-                String faviconUrl = "https://www.google.com/s2/favicons?sz=256&domain_url=" +
-                    URLEncoder.encode("https://" + seed.domain(), StandardCharsets.UTF_8);
-                downloaded = downloadLogo(faviconUrl);
-            }
-        }
-
-        if (downloaded == null && isRemoteImageUrl(seed.logoUrl())) {
-            downloaded = downloadLogo(seed.logoUrl());
-        }
-        if (downloaded == null && isRemoteImageUrl(profile.getLogoUrl())) {
-            downloaded = downloadLogo(profile.getLogoUrl());
-        }
-        if (downloaded == null && isLocalLogoPath(seed.logoUrl())) {
-            downloaded = loadLocalLogo(seed.logoUrl());
-        }
-        if (downloaded == null && isLocalLogoPath(profile.getLogoUrl())) {
-            downloaded = loadLocalLogo(profile.getLogoUrl());
-        }
-        if (downloaded == null) {
-            return false;
-        }
-
-        profile.setLogoImage(downloaded.bytes());
-        profile.setLogoImageContentType(downloaded.contentType());
-        return true;
-    }
-
-    private DownloadedLogo downloadLogo(String url) {
-        try {
-            HttpURLConnection connection = (HttpURLConnection) URI.create(url).toURL().openConnection();
-            connection.setConnectTimeout(8000);
-            connection.setReadTimeout(8000);
-            connection.setRequestProperty("User-Agent", "Mozilla/5.0");
-            connection.connect();
-
-            int status = connection.getResponseCode();
-            if (status < 200 || status >= 300) {
-                return null;
-            }
-            String contentType = clean(connection.getContentType()).toLowerCase(Locale.ROOT);
-            if (!contentType.startsWith("image/") && !url.toLowerCase(Locale.ROOT).endsWith(".svg")) {
-                return null;
-            }
-
-            try (InputStream in = connection.getInputStream();
-                 ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-                byte[] buffer = new byte[8192];
-                int read;
-                int total = 0;
-                while ((read = in.read(buffer)) != -1) {
-                    total += read;
-                    if (total > LOGO_MAX_BYTES) {
-                        return null;
-                    }
-                    out.write(buffer, 0, read);
-                }
-                byte[] bytes = out.toByteArray();
-                if (bytes.length == 0) {
-                    return null;
-                }
-                String normalizedType = contentType.startsWith("image/")
-                    ? contentType
-                    : "image/svg+xml";
-                return new DownloadedLogo(bytes, normalizedType);
-            }
-        } catch (Exception ignored) {
-            return null;
-        }
-    }
-
-    private DownloadedLogo loadLocalLogo(String logoPath) {
-        String path = clean(logoPath);
-        if (!path.startsWith("/")) {
-            return null;
-        }
-        try {
-            byte[] bytes = null;
-            try (InputStream in = BrandCrawlerService.class.getResourceAsStream("/static" + path)) {
-                if (in != null) {
-                    bytes = readBytes(in);
-                }
-            }
-            if (bytes == null || bytes.length == 0) {
-                Path sourcePath = Paths.get("src", "main", "resources", "static" + path);
-                if (Files.exists(sourcePath)) {
-                    bytes = Files.readAllBytes(sourcePath);
-                }
-            }
-            if (bytes == null || bytes.length == 0) {
-                Path compiledPath = Paths.get("target", "classes", "static" + path);
-                if (Files.exists(compiledPath)) {
-                    bytes = Files.readAllBytes(compiledPath);
-                }
-            }
-            if (bytes == null || bytes.length == 0 || bytes.length > LOGO_MAX_BYTES) {
-                return null;
-            }
-            String contentType = detectContentType(path);
-            return new DownloadedLogo(bytes, contentType);
-        } catch (Exception ignored) {
-            return null;
-        }
-    }
-
-    private byte[] readBytes(InputStream in) throws Exception {
-        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            byte[] buffer = new byte[8192];
-            int read;
-            int total = 0;
-            while ((read = in.read(buffer)) != -1) {
-                total += read;
-                if (total > LOGO_MAX_BYTES) {
-                    return null;
-                }
-                out.write(buffer, 0, read);
-            }
-            return out.toByteArray();
-        }
-    }
-
-    private String chooseOfficialUrl(String affiliateUrl, String existing) {
-        String derived = toOfficialSite(affiliateUrl);
+    private String chooseOfficialUrl(String couponAffiliate, String existing) {
+        String derived = toOfficialSite(couponAffiliate);
         if (!isBlank(derived)) {
             return derived;
         }
         return existing;
     }
 
-    private String chooseDomain(String officialUrl, String existingDomain) {
-        String domain = extractDomain(officialUrl);
-        if (!isBlank(domain)) {
-            return domain;
+    private String chooseAffiliateUrl(String couponAffiliate, String existing, String officialUrl) {
+        if (!isBlank(couponAffiliate)) {
+            return couponAffiliate;
         }
-        return existingDomain;
+        if (!isBlank(existing)) {
+            return existing;
+        }
+        return officialUrl;
+    }
+
+    private static BrandSeed seed(String store, String officialUrl) {
+        return new BrandSeed(store, LogoCatalog.forStore(store), officialUrl, officialUrl);
     }
 
     private String toOfficialSite(String rawUrl) {
@@ -307,60 +213,11 @@ public class BrandCrawlerService {
         }
     }
 
-    private String extractDomain(String officialUrl) {
-        try {
-            if (isBlank(officialUrl)) {
-                return "";
-            }
-            String host = clean(URI.create(officialUrl).getHost()).toLowerCase(Locale.ROOT);
-            if (isBlank(host)) {
-                return "";
-            }
-            String[] parts = host.split("\\.");
-            if (parts.length >= 2) {
-                return parts[parts.length - 2] + "." + parts[parts.length - 1];
-            }
-            return host;
-        } catch (Exception ex) {
-            return "";
-        }
-    }
-
     private String preferLogoUrl(String candidate, String existing) {
         if (!isBlank(candidate) && !DEFAULT_LOGO.equals(candidate)) {
             return candidate;
         }
         return existing;
-    }
-
-    private boolean isRemoteImageUrl(String url) {
-        String value = clean(url).toLowerCase(Locale.ROOT);
-        return value.startsWith("http://") || value.startsWith("https://");
-    }
-
-    private boolean isLocalLogoPath(String url) {
-        String value = clean(url).toLowerCase(Locale.ROOT);
-        return value.startsWith("/logos/");
-    }
-
-    private String detectContentType(String path) {
-        String lower = path.toLowerCase(Locale.ROOT);
-        if (lower.endsWith(".svg")) {
-            return "image/svg+xml";
-        }
-        if (lower.endsWith(".png")) {
-            return "image/png";
-        }
-        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) {
-            return "image/jpeg";
-        }
-        if (lower.endsWith(".gif")) {
-            return "image/gif";
-        }
-        if (lower.endsWith(".webp")) {
-            return "image/webp";
-        }
-        return "application/octet-stream";
     }
 
     private String clean(String value) {
@@ -374,9 +231,6 @@ public class BrandCrawlerService {
         return clean(value).isBlank();
     }
 
-    private record DownloadedLogo(byte[] bytes, String contentType) {
-    }
-
-    private record BrandSeed(String store, String logoUrl, String officialUrl, String domain) {
+    private record BrandSeed(String store, String logoUrl, String officialUrl, String affiliateUrl) {
     }
 }

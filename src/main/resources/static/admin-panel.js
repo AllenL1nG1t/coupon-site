@@ -1,8 +1,13 @@
-﻿const crawlerEnabled = document.getElementById("crawlerEnabled");
+﻿const couponCrawlerEnabled = document.getElementById("couponCrawlerEnabled");
 const brandCrawlerEnabled = document.getElementById("brandCrawlerEnabled");
-const crawlerIntervalMinutes = document.getElementById("crawlerIntervalMinutes");
+const brandLogoCrawlerEnabled = document.getElementById("brandLogoCrawlerEnabled");
+const couponCrawlerIntervalMinutes = document.getElementById("couponCrawlerIntervalMinutes");
+const brandCrawlerIntervalMinutes = document.getElementById("brandCrawlerIntervalMinutes");
+const brandLogoCrawlerIntervalMinutes = document.getElementById("brandLogoCrawlerIntervalMinutes");
 const saveCrawlerBtn = document.getElementById("saveCrawlerBtn");
-const runCrawlerBtn = document.getElementById("runCrawlerBtn");
+const runCouponCrawlerBtn = document.getElementById("runCouponCrawlerBtn");
+const runBrandCrawlerBtn = document.getElementById("runBrandCrawlerBtn");
+const runBrandLogoCrawlerBtn = document.getElementById("runBrandLogoCrawlerBtn");
 const crawlerStatus = document.getElementById("crawlerStatus");
 const logPanel = document.getElementById("logPanel");
 const couponTable = document.getElementById("couponTable");
@@ -44,6 +49,7 @@ const brandSlug = document.getElementById("brandSlug");
 const brandTitle = document.getElementById("brandTitle");
 const brandSummary = document.getElementById("brandSummary");
 const brandOfficialUrl = document.getElementById("brandOfficialUrl");
+const brandAffiliateUrl = document.getElementById("brandAffiliateUrl");
 const brandLogoUrl = document.getElementById("brandLogoUrl");
 const brandHeroImageUrl = document.getElementById("brandHeroImageUrl");
 const brandDescription = document.getElementById("brandDescription");
@@ -175,12 +181,19 @@ function readRowData(row, fields) {
 
 async function loadCrawler() {
   const settings = await (await adminFetch("/api/admin/settings")).json();
-  crawlerEnabled.checked = settings.crawlerEnabled;
+  couponCrawlerEnabled.checked = settings.couponCrawlerEnabled ?? false;
   brandCrawlerEnabled.checked = settings.brandCrawlerEnabled ?? true;
-  crawlerIntervalMinutes.value = Math.max(1, Number(settings.crawlerIntervalMinutes || 30));
+  brandLogoCrawlerEnabled.checked = settings.brandLogoCrawlerEnabled ?? true;
+  couponCrawlerIntervalMinutes.value = Math.max(1, Number(settings.couponCrawlerIntervalMinutes || 30));
+  brandCrawlerIntervalMinutes.value = Math.max(1, Number(settings.brandCrawlerIntervalMinutes || 30));
+  brandLogoCrawlerIntervalMinutes.value = Math.max(1, Number(settings.brandLogoCrawlerIntervalMinutes || 30));
   const logs = await (await adminFetch("/api/admin/logs")).json();
   logPanel.textContent = (logs || []).map(log => `[${log.createdAt}] [${log.level}] ${log.message}`).join("\n") || "No logs yet";
-  statCrawler.textContent = settings.crawlerEnabled ? `Enabled / ${crawlerIntervalMinutes.value}m` : "Disabled";
+  statCrawler.textContent = [
+    `C:${couponCrawlerEnabled.checked ? "on" : "off"}(${couponCrawlerIntervalMinutes.value}m)`,
+    `B:${brandCrawlerEnabled.checked ? "on" : "off"}(${brandCrawlerIntervalMinutes.value}m)`,
+    `L:${brandLogoCrawlerEnabled.checked ? "on" : "off"}(${brandLogoCrawlerIntervalMinutes.value}m)`
+  ].join(" ");
 }
 
 async function loadContent() {
@@ -229,23 +242,28 @@ async function uploadHeroImage() {
 
 async function saveCrawler() {
   crawlerStatus.textContent = "Saving...";
-  const minutes = Math.max(1, Number(crawlerIntervalMinutes.value || 30));
+  const couponMinutes = Math.max(1, Number(couponCrawlerIntervalMinutes.value || 30));
+  const brandMinutes = Math.max(1, Number(brandCrawlerIntervalMinutes.value || 30));
+  const logoMinutes = Math.max(1, Number(brandLogoCrawlerIntervalMinutes.value || 30));
   const response = await adminFetch("/api/admin/settings", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      crawlerEnabled: crawlerEnabled.checked,
+      couponCrawlerEnabled: couponCrawlerEnabled.checked,
       brandCrawlerEnabled: brandCrawlerEnabled.checked,
-      crawlerIntervalMinutes: minutes
+      brandLogoCrawlerEnabled: brandLogoCrawlerEnabled.checked,
+      couponCrawlerIntervalMinutes: couponMinutes,
+      brandCrawlerIntervalMinutes: brandMinutes,
+      brandLogoCrawlerIntervalMinutes: logoMinutes
     })
   });
   crawlerStatus.textContent = response.ok ? "Saved" : "Save failed";
   await loadCrawler();
 }
 
-async function runCrawler() {
-  crawlerStatus.textContent = "Running...";
-  const response = await adminFetch("/api/admin/crawler/run", { method: "POST" });
+async function runCrawler(endpoint, title) {
+  crawlerStatus.textContent = `Running ${title}...`;
+  const response = await adminFetch(endpoint, { method: "POST" });
   crawlerStatus.textContent = await response.text();
   await Promise.all([loadCrawler(), loadCoupons(), loadBrands()]);
 }
@@ -318,7 +336,7 @@ async function saveCoupon() {
 function clearBrandForm() {
   saveBrandBtn.dataset.editId = "";
   saveBrandBtn.textContent = "Add Brand";
-  [brandStoreName, brandSlug, brandTitle, brandSummary, brandOfficialUrl, brandLogoUrl, brandHeroImageUrl, brandDescription].forEach(el => el.value = "");
+  [brandStoreName, brandSlug, brandTitle, brandSummary, brandOfficialUrl, brandAffiliateUrl, brandLogoUrl, brandHeroImageUrl, brandDescription].forEach(el => el.value = "");
 }
 
 async function saveBrandRowById(id) {
@@ -326,7 +344,7 @@ async function saveBrandRowById(id) {
   if (!row) return;
   const fields = [
     { name: "storeName" }, { name: "slug" }, { name: "title" }, { name: "summary" },
-    { name: "officialUrl" }, { name: "logoUrl" }, { name: "heroImageUrl" }, { name: "description" }
+    { name: "officialUrl" }, { name: "affiliateUrl" }, { name: "logoUrl" }, { name: "heroImageUrl" }, { name: "description" }
   ];
   const payload = { id, ...readRowData(row, fields) };
   await adminFetch("/api/admin/brands", {
@@ -340,7 +358,7 @@ async function saveBrandRowById(id) {
 
 function renderBrandRows(brands) {
   brandTable.innerHTML = `<thead><tr>
-    <th>ID</th><th>Store</th><th>Slug</th><th>Title</th><th>Summary</th><th>Official URL</th><th>Logo</th><th>Hero Image</th><th>Description</th><th>Actions</th>
+    <th>ID</th><th>Store</th><th>Slug</th><th>Title</th><th>Summary</th><th>Official URL</th><th>Affiliate URL</th><th>Logo</th><th>Hero Image</th><th>Description</th><th>Actions</th>
   </tr></thead><tbody>${brands.map(b => `
     <tr data-id='${b.id}'>
       <td>${b.id}</td>
@@ -349,6 +367,7 @@ function renderBrandRows(brands) {
       <td class='editable-cell' data-field='title'>${b.title || ""}</td>
       <td class='editable-cell' data-field='summary'>${b.summary || ""}</td>
       <td class='editable-cell cut-cell' data-field='officialUrl'>${b.officialUrl || ""}</td>
+      <td class='editable-cell cut-cell' data-field='affiliateUrl'>${b.affiliateUrl || ""}</td>
       <td class='editable-cell cut-cell' data-field='logoUrl'>${b.logoUrl || ""}</td>
       <td class='editable-cell cut-cell' data-field='heroImageUrl'>${b.heroImageUrl || ""}</td>
       <td class='editable-cell cut-cell' data-field='description'>${b.description || ""}</td>
@@ -372,7 +391,8 @@ async function saveBrand() {
     description: brandDescription.value,
     heroImageUrl: brandHeroImageUrl.value,
     logoUrl: brandLogoUrl.value,
-    officialUrl: brandOfficialUrl.value
+    officialUrl: brandOfficialUrl.value,
+    affiliateUrl: brandAffiliateUrl.value
   };
   await adminFetch("/api/admin/brands", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   clearBrandForm();
@@ -567,7 +587,9 @@ async function saveAllBlogs() {
 }
 
 saveCrawlerBtn.addEventListener("click", saveCrawler);
-runCrawlerBtn.addEventListener("click", runCrawler);
+runCouponCrawlerBtn.addEventListener("click", () => runCrawler("/api/admin/crawler/run-coupons", "coupon crawler"));
+runBrandCrawlerBtn.addEventListener("click", () => runCrawler("/api/admin/crawler/run-brands", "brand crawler"));
+runBrandLogoCrawlerBtn.addEventListener("click", () => runCrawler("/api/admin/crawler/run-brand-logos", "brand logo crawler"));
 saveContentBtn.addEventListener("click", saveContent);
 uploadHeroImageBtn.addEventListener("click", uploadHeroImage);
 saveCouponBtn.addEventListener("click", saveCoupon);
@@ -599,5 +621,7 @@ activateInlineEditing(blogTable, dirtyBlogIds);
   if (!ok) return;
   await Promise.all([loadCrawler(), loadContent(), loadCoupons(), loadBrands(), loadBlogs(), loadAds()]);
 })();
+
+
 
 

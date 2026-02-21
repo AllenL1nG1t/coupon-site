@@ -34,12 +34,12 @@ public class SeedDataConfig {
             if (couponService.count() > 0) {
                 couponService.normalizeStoreLogos();
             } else {
-                couponService.upsert(seed("Nike", "20% Off New Season Sneakers", "fashion", "Ends tonight", "RUN20", "https://example-affiliate.com/nike?cid=dotiki", LogoCatalog.forStore("Nike"), "seed"));
-                couponService.upsert(seed("Expedia", "Save $50 on Hotels $300+", "travel", "2 days left", "TRIP50", "https://example-affiliate.com/expedia?cid=dotiki", LogoCatalog.forStore("Expedia"), "seed"));
-                couponService.upsert(seed("Best Buy", "Extra 15% Off Headphones", "electronics", "This week", "SOUND15", "https://example-affiliate.com/bestbuy?cid=dotiki", LogoCatalog.forStore("Best Buy"), "seed"));
-                couponService.upsert(seed("DoorDash", "$10 Off First 2 Orders", "food", "No expiration date", "FAST10", "https://example-affiliate.com/doordash?cid=dotiki", LogoCatalog.forStore("DoorDash"), "seed"));
-                couponService.upsert(seed("Macy's", "30% Off Clearance + Free Shipping", "fashion", "Ends Sunday", "GLOW30", "https://example-affiliate.com/macys?cid=dotiki", LogoCatalog.forStore("Macy's"), "seed"));
-                couponService.upsert(seed("Samsung", "$100 Off Select Monitors", "electronics", "Limited stock", "VIEW100", "https://example-affiliate.com/samsung?cid=dotiki", LogoCatalog.forStore("Samsung"), "seed"));
+                couponService.upsert(seed("Nike", "20% Off New Season Sneakers", "fashion", "Ends tonight", "RUN20", "", LogoCatalog.forStore("Nike"), "seed"));
+                couponService.upsert(seed("Expedia", "Save $50 on Hotels $300+", "travel", "2 days left", "TRIP50", "", LogoCatalog.forStore("Expedia"), "seed"));
+                couponService.upsert(seed("Best Buy", "Extra 15% Off Headphones", "electronics", "This week", "SOUND15", "", LogoCatalog.forStore("Best Buy"), "seed"));
+                couponService.upsert(seed("DoorDash", "$10 Off First 2 Orders", "food", "No expiration date", "FAST10", "", LogoCatalog.forStore("DoorDash"), "seed"));
+                couponService.upsert(seed("Macy's", "30% Off Clearance + Free Shipping", "fashion", "Ends Sunday", "GLOW30", "", LogoCatalog.forStore("Macy's"), "seed"));
+                couponService.upsert(seed("Samsung", "$100 Off Select Monitors", "electronics", "Limited stock", "VIEW100", "", LogoCatalog.forStore("Samsung"), "seed"));
                 crawlerLogService.info("Seed coupons initialized.");
             }
 
@@ -96,6 +96,7 @@ public class SeedDataConfig {
             summary + " This page is managed from admin and can be fully customized.",
             "/logos/default.svg",
             LogoCatalog.forStore(store),
+            officialUrl,
             officialUrl
         ));
     }

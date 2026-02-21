@@ -1,9 +1,12 @@
 package com.couponsite.admin;
 
 public record CrawlerSettingsDto(
-    boolean crawlerEnabled,
+    boolean couponCrawlerEnabled,
     boolean brandCrawlerEnabled,
-    long crawlerIntervalMinutes
+    boolean brandLogoCrawlerEnabled,
+    long couponCrawlerIntervalMinutes,
+    long brandCrawlerIntervalMinutes,
+    long brandLogoCrawlerIntervalMinutes
 ) {
 }
 

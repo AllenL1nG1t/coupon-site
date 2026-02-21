@@ -48,6 +48,9 @@ public class BrandProfile {
     @Column(nullable = false)
     private String officialUrl;
 
+    @Column(length = 1200)
+    private String affiliateUrl;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
@@ -88,6 +91,8 @@ public class BrandProfile {
     public void setLogoImageContentType(String logoImageContentType) { this.logoImageContentType = logoImageContentType; }
     public String getOfficialUrl() { return officialUrl; }
     public void setOfficialUrl(String officialUrl) { this.officialUrl = officialUrl; }
+    public String getAffiliateUrl() { return affiliateUrl; }
+    public void setAffiliateUrl(String affiliateUrl) { this.affiliateUrl = affiliateUrl; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

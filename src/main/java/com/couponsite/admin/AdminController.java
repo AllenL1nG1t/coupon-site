@@ -34,6 +34,7 @@ public class AdminController {
     private final RetailMeNotCrawlerService retailMeNotCrawlerService;
     private final SimplyCodesCrawlerService simplyCodesCrawlerService;
     private final BrandCrawlerService brandCrawlerService;
+    private final BrandLogoCrawlerService brandLogoCrawlerService;
     private final AdSettingsService adSettingsService;
     private final ContentSettingsService contentSettingsService;
     private final CouponService couponService;
@@ -46,6 +47,7 @@ public class AdminController {
         RetailMeNotCrawlerService retailMeNotCrawlerService,
         SimplyCodesCrawlerService simplyCodesCrawlerService,
         BrandCrawlerService brandCrawlerService,
+        BrandLogoCrawlerService brandLogoCrawlerService,
         AdSettingsService adSettingsService,
         ContentSettingsService contentSettingsService,
         CouponService couponService,
@@ -57,6 +59,7 @@ public class AdminController {
         this.retailMeNotCrawlerService = retailMeNotCrawlerService;
         this.simplyCodesCrawlerService = simplyCodesCrawlerService;
         this.brandCrawlerService = brandCrawlerService;
+        this.brandLogoCrawlerService = brandLogoCrawlerService;
         this.adSettingsService = adSettingsService;
         this.contentSettingsService = contentSettingsService;
         this.couponService = couponService;
@@ -66,25 +69,41 @@ public class AdminController {
 
     @GetMapping("/dashboard")
     public AdminDashboardDto dashboard() {
-        return new AdminDashboardDto(appSettingService.isCrawlerEnabled(), crawlerLogService.latest());
+        return new AdminDashboardDto(appSettingService.isCouponCrawlerEnabled(), crawlerLogService.latest());
     }
 
     @GetMapping("/settings")
     public CrawlerSettingsDto settings() {
         return new CrawlerSettingsDto(
-            appSettingService.isCrawlerEnabled(),
+            appSettingService.isCouponCrawlerEnabled(),
             appSettingService.isBrandCrawlerEnabled(),
-            Math.max(1, appSettingService.getCrawlerIntervalMs() / 60_000)
+            appSettingService.isBrandLogoCrawlerEnabled(),
+            Math.max(1, appSettingService.getCouponCrawlerIntervalMs() / 60_000),
+            Math.max(1, appSettingService.getBrandCrawlerIntervalMs() / 60_000),
+            Math.max(1, appSettingService.getBrandLogoCrawlerIntervalMs() / 60_000)
         );
     }
 
     @PutMapping("/settings")
     public CrawlerSettingsDto updateSettings(@RequestBody CrawlerSettingsDto body) {
-        boolean crawlerEnabled = appSettingService.setCrawlerEnabled(body.crawlerEnabled());
+        boolean couponCrawlerEnabled = appSettingService.setCouponCrawlerEnabled(body.couponCrawlerEnabled());
         boolean brandCrawlerEnabled = appSettingService.setBrandCrawlerEnabled(body.brandCrawlerEnabled());
-        long minutes = body.crawlerIntervalMinutes() <= 0 ? 30 : body.crawlerIntervalMinutes();
-        long intervalMs = appSettingService.setCrawlerIntervalMs(minutes * 60_000);
-        return new CrawlerSettingsDto(crawlerEnabled, brandCrawlerEnabled, Math.max(1, intervalMs / 60_000));
+        boolean brandLogoCrawlerEnabled = appSettingService.setBrandLogoCrawlerEnabled(body.brandLogoCrawlerEnabled());
+        long couponMinutes = body.couponCrawlerIntervalMinutes() <= 0 ? 30 : body.couponCrawlerIntervalMinutes();
+        long brandMinutes = body.brandCrawlerIntervalMinutes() <= 0 ? 30 : body.brandCrawlerIntervalMinutes();
+        long logoMinutes = body.brandLogoCrawlerIntervalMinutes() <= 0 ? 30 : body.brandLogoCrawlerIntervalMinutes();
+        long couponIntervalMs = appSettingService.setCouponCrawlerIntervalMs(couponMinutes * 60_000);
+        long brandIntervalMs = appSettingService.setBrandCrawlerIntervalMs(brandMinutes * 60_000);
+        long logoIntervalMs = appSettingService.setBrandLogoCrawlerIntervalMs(logoMinutes * 60_000);
+
+        return new CrawlerSettingsDto(
+            couponCrawlerEnabled,
+            brandCrawlerEnabled,
+            brandLogoCrawlerEnabled,
+            Math.max(1, couponIntervalMs / 60_000),
+            Math.max(1, brandIntervalMs / 60_000),
+            Math.max(1, logoIntervalMs / 60_000)
+        );
     }
 
     @GetMapping("/logs")
@@ -94,11 +113,35 @@ public class AdminController {
 
     @PostMapping("/crawler/run")
     public ResponseEntity<String> runCrawler() {
+        int couponCount = runCouponCrawlerInternal();
+        int brandCount = brandCrawlerService.crawlLatest();
+        int logoCount = brandLogoCrawlerService.crawlLatest();
+        int total = couponCount + brandCount + logoCount;
+        return ResponseEntity.ok("Crawler done, coupons=" + couponCount + ", brands=" + brandCount + ", brandLogos=" + logoCount + ", total=" + total);
+    }
+
+    @PostMapping("/crawler/run-coupons")
+    public ResponseEntity<String> runCouponCrawler() {
+        int couponCount = runCouponCrawlerInternal();
+        return ResponseEntity.ok("Coupon crawler done, total=" + couponCount);
+    }
+
+    @PostMapping("/crawler/run-brands")
+    public ResponseEntity<String> runBrandCrawler() {
+        int brandCount = brandCrawlerService.crawlLatest();
+        return ResponseEntity.ok("Brand crawler done, total=" + brandCount);
+    }
+
+    @PostMapping("/crawler/run-brand-logos")
+    public ResponseEntity<String> runBrandLogoCrawler() {
+        int logoCount = brandLogoCrawlerService.crawlLatest();
+        return ResponseEntity.ok("Brand logo crawler done, total=" + logoCount);
+    }
+
+    private int runCouponCrawlerInternal() {
         int retailCount = retailMeNotCrawlerService.crawlLatest();
         int simplyCodesCount = simplyCodesCrawlerService.crawlLatest();
-        int brandCount = brandCrawlerService.crawlLatest();
-        int total = retailCount + simplyCodesCount + brandCount;
-        return ResponseEntity.ok("Crawler done, retailmenot=" + retailCount + ", simplycodes=" + simplyCodesCount + ", brands=" + brandCount + ", total=" + total);
+        return retailCount + simplyCodesCount;
     }
 
     @GetMapping("/coupons")

@@ -21,7 +21,18 @@ public class RetailMeNotCrawlerService {
     private static final List<StoreSeed> STORE_SEEDS = List.of(
         new StoreSeed("nike.com", "Nike", "fashion", LogoCatalog.forStore("Nike")),
         new StoreSeed("samsung.com", "Samsung", "electronics", LogoCatalog.forStore("Samsung")),
-        new StoreSeed("bestbuy.com", "Best Buy", "electronics", LogoCatalog.forStore("Best Buy"))
+        new StoreSeed("bestbuy.com", "Best Buy", "electronics", LogoCatalog.forStore("Best Buy")),
+        new StoreSeed("adidas.com", "Adidas", "fashion", LogoCatalog.forStore("Adidas")),
+        new StoreSeed("walmart.com", "Walmart", "other", LogoCatalog.forStore("Walmart")),
+        new StoreSeed("target.com", "Target", "other", LogoCatalog.forStore("Target")),
+        new StoreSeed("lenovo.com", "Lenovo", "electronics", LogoCatalog.forStore("Lenovo")),
+        new StoreSeed("dell.com", "Dell", "electronics", LogoCatalog.forStore("Dell")),
+        new StoreSeed("sephora.com", "Sephora", "fashion", LogoCatalog.forStore("Sephora")),
+        new StoreSeed("ulta.com", "Ulta Beauty", "fashion", LogoCatalog.forStore("Ulta Beauty")),
+        new StoreSeed("booking.com", "Booking.com", "travel", LogoCatalog.forStore("Booking.com")),
+        new StoreSeed("hotels.com", "Hotels.com", "travel", LogoCatalog.forStore("Hotels.com")),
+        new StoreSeed("uber.com", "Uber", "travel", LogoCatalog.forStore("Uber")),
+        new StoreSeed("grubhub.com", "Grubhub", "food", LogoCatalog.forStore("Grubhub"))
     );
 
     private final CouponService couponService;
@@ -41,11 +52,11 @@ public class RetailMeNotCrawlerService {
 
     @Scheduled(fixedDelay = 30_000)
     public void scheduledRun() {
-        if (!appSettingService.isCrawlerEnabled()) {
+        if (!appSettingService.isCouponCrawlerEnabled()) {
             return;
         }
         long now = System.currentTimeMillis();
-        long intervalMs = appSettingService.getCrawlerIntervalMs();
+        long intervalMs = appSettingService.getCouponCrawlerIntervalMs();
         long lastRun = lastScheduledRunAt.get();
         if (now - lastRun < intervalMs) {
             return;
@@ -126,7 +137,7 @@ public class RetailMeNotCrawlerService {
 
             String href = firstHref(card, "a[href]");
             if (href.isBlank()) {
-                href = "https://www.retailmenot.com/view/" + seed.path();
+                href = "";
             } else if (href.startsWith("/")) {
                 href = "https://www.retailmenot.com" + href;
             }
@@ -137,7 +148,7 @@ public class RetailMeNotCrawlerService {
             coupon.setCategory(seed.category());
             coupon.setExpires(expires);
             coupon.setCouponCode(code);
-            coupon.setAffiliateUrl(href);
+            coupon.setAffiliateUrl("");
             coupon.setLogoUrl(seed.logoUrl());
             coupon.setSource("retailmenot");
             parsed.add(coupon);
@@ -168,7 +179,7 @@ public class RetailMeNotCrawlerService {
         coupon.setCategory(seed.category());
         coupon.setExpires(expires);
         coupon.setCouponCode(code);
-        coupon.setAffiliateUrl("https://www.retailmenot.com/view/" + seed.path());
+        coupon.setAffiliateUrl("");
         coupon.setLogoUrl(seed.logoUrl());
         coupon.setSource("retailmenot-fallback");
         return coupon;
