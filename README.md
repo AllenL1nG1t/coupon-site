@@ -1,9 +1,14 @@
 ﻿# Dotiki Coupon
 
 Language: [English (Default)](README.md) | [Chinese (Simplified)](README.zh-CN.md)
+Version: 0.0.1-SNAPSHOT
 Last Updated: 2026-02-21 00:42:44 -05:00
 
 Dotiki Coupon site built with Java + Spring Boot + Maven.
+
+## Versioning
+- Current version is stored in `VERSION`.
+- Every update should bump/update the version and sync it in both `README.md` and `README.zh-CN.md`.
 
 ## Tech Stack
 - Java 17

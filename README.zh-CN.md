@@ -1,7 +1,13 @@
 # Dotiki Coupon
+
+项目版本：0.0.1-SNAPSHOT
 最后更新：2026-02-21 00:43:42 -05:00
 
 Dotiki Coupon 是一个基于 Java + Spring Boot + Maven 的优惠券网站项目。
+
+## 版本管理
+- 当前版本保存在 VERSION 文件。
+- 后续每次更新都要同步修改版本号，并同步到 README.md 和 README.zh-CN.md。
 
 ## 技术栈
 - Java 17
