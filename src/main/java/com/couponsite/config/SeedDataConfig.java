@@ -1,6 +1,8 @@
 package com.couponsite.config;
 
 import com.couponsite.admin.CrawlerLogService;
+import com.couponsite.admin.AdminUser;
+import com.couponsite.admin.AdminUserRepository;
 import com.couponsite.blog.BlogPostUpsertRequest;
 import com.couponsite.blog.BlogService;
 import com.couponsite.brand.BrandProfileService;
@@ -8,6 +10,7 @@ import com.couponsite.brand.BrandProfileUpsertRequest;
 import com.couponsite.coupon.Coupon;
 import com.couponsite.coupon.LogoCatalog;
 import com.couponsite.coupon.CouponService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,18 +23,23 @@ public class SeedDataConfig {
         CouponService couponService,
         CrawlerLogService crawlerLogService,
         BlogService blogService,
-        BrandProfileService brandProfileService
+        BrandProfileService brandProfileService,
+        AdminUserRepository adminUserRepository,
+        @Value("${admin.default.username:admin}") String defaultAdminUsername,
+        @Value("${admin.default.password:admin123}") String defaultAdminPassword
     ) {
         return args -> {
+            ensureDefaultAdmin(adminUserRepository, defaultAdminUsername, defaultAdminPassword);
+
             if (couponService.count() > 0) {
                 couponService.normalizeStoreLogos();
             } else {
-                couponService.upsert(seed("Nike", "20% Off New Season Sneakers", "fashion", "Ends tonight", "RUN20", "https://example-affiliate.com/nike?cid=dealnest", LogoCatalog.forStore("Nike"), "seed"));
-                couponService.upsert(seed("Expedia", "Save $50 on Hotels $300+", "travel", "2 days left", "TRIP50", "https://example-affiliate.com/expedia?cid=dealnest", LogoCatalog.forStore("Expedia"), "seed"));
-                couponService.upsert(seed("Best Buy", "Extra 15% Off Headphones", "electronics", "This week", "SOUND15", "https://example-affiliate.com/bestbuy?cid=dealnest", LogoCatalog.forStore("Best Buy"), "seed"));
-                couponService.upsert(seed("DoorDash", "$10 Off First 2 Orders", "food", "No expiration date", "FAST10", "https://example-affiliate.com/doordash?cid=dealnest", LogoCatalog.forStore("DoorDash"), "seed"));
-                couponService.upsert(seed("Macy's", "30% Off Clearance + Free Shipping", "fashion", "Ends Sunday", "GLOW30", "https://example-affiliate.com/macys?cid=dealnest", LogoCatalog.forStore("Macy's"), "seed"));
-                couponService.upsert(seed("Samsung", "$100 Off Select Monitors", "electronics", "Limited stock", "VIEW100", "https://example-affiliate.com/samsung?cid=dealnest", LogoCatalog.forStore("Samsung"), "seed"));
+                couponService.upsert(seed("Nike", "20% Off New Season Sneakers", "fashion", "Ends tonight", "RUN20", "https://example-affiliate.com/nike?cid=dotiki", LogoCatalog.forStore("Nike"), "seed"));
+                couponService.upsert(seed("Expedia", "Save $50 on Hotels $300+", "travel", "2 days left", "TRIP50", "https://example-affiliate.com/expedia?cid=dotiki", LogoCatalog.forStore("Expedia"), "seed"));
+                couponService.upsert(seed("Best Buy", "Extra 15% Off Headphones", "electronics", "This week", "SOUND15", "https://example-affiliate.com/bestbuy?cid=dotiki", LogoCatalog.forStore("Best Buy"), "seed"));
+                couponService.upsert(seed("DoorDash", "$10 Off First 2 Orders", "food", "No expiration date", "FAST10", "https://example-affiliate.com/doordash?cid=dotiki", LogoCatalog.forStore("DoorDash"), "seed"));
+                couponService.upsert(seed("Macy's", "30% Off Clearance + Free Shipping", "fashion", "Ends Sunday", "GLOW30", "https://example-affiliate.com/macys?cid=dotiki", LogoCatalog.forStore("Macy's"), "seed"));
+                couponService.upsert(seed("Samsung", "$100 Off Select Monitors", "electronics", "Limited stock", "VIEW100", "https://example-affiliate.com/samsung?cid=dotiki", LogoCatalog.forStore("Samsung"), "seed"));
                 crawlerLogService.info("Seed coupons initialized.");
             }
 
@@ -65,6 +73,16 @@ public class SeedDataConfig {
                 seedBrand(brandProfileService, "Samsung", "Consumer electronics and appliance manufacturer.", "https://www.samsung.com/");
             }
         };
+    }
+
+    private void ensureDefaultAdmin(AdminUserRepository adminUserRepository, String username, String password) {
+        if (adminUserRepository.count() > 0) {
+            return;
+        }
+        AdminUser user = new AdminUser();
+        user.setUsername(username);
+        user.setPassword(password);
+        adminUserRepository.save(user);
     }
 
     private void seedBrand(BrandProfileService service, String store, String summary, String officialUrl) {

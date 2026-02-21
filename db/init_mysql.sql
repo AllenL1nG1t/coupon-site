@@ -1,0 +1,84 @@
+-- Dotiki Coupon MySQL initialization script
+-- Keep this file in sync with JPA entities when schema changes.
+
+CREATE DATABASE IF NOT EXISTS coupon_site
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+USE coupon_site;
+
+CREATE TABLE IF NOT EXISTS app_setting (
+  setting_key VARCHAR(255) NOT NULL,
+  setting_value VARCHAR(255) NOT NULL,
+  updated_at DATETIME(6) NOT NULL,
+  PRIMARY KEY (setting_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS blog_post (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  content VARCHAR(12000) NOT NULL,
+  cover_image_url VARCHAR(255) NOT NULL,
+  created_at DATETIME(6) NOT NULL,
+  published BIT(1) NOT NULL,
+  summary VARCHAR(1600) NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  updated_at DATETIME(6) NOT NULL,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS brand_profile (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  created_at DATETIME(6) NOT NULL,
+  description VARCHAR(8000) NOT NULL,
+  hero_image_url VARCHAR(255) NOT NULL,
+  logo_url VARCHAR(255) NOT NULL,
+  official_url VARCHAR(255) NOT NULL,
+  slug VARCHAR(255) NOT NULL,
+  store_name VARCHAR(255) NOT NULL,
+  summary VARCHAR(1000) NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  updated_at DATETIME(6) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_brand_profile_slug (slug),
+  UNIQUE KEY uk_brand_profile_store_name (store_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS coupon (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  affiliate_url VARCHAR(1200) NOT NULL,
+  category VARCHAR(255) NOT NULL,
+  click_count INT DEFAULT NULL,
+  coupon_code VARCHAR(255) NOT NULL,
+  created_at DATETIME(6) NOT NULL,
+  expires VARCHAR(255) NOT NULL,
+  logo_url VARCHAR(255) NOT NULL,
+  source VARCHAR(255) NOT NULL,
+  store VARCHAR(255) NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  updated_at DATETIME(6) NOT NULL,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS crawler_log (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  created_at DATETIME(6) NOT NULL,
+  level VARCHAR(255) NOT NULL,
+  message VARCHAR(2000) NOT NULL,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS admin_user (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  username VARCHAR(255) NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  created_at DATETIME(6) NOT NULL,
+  updated_at DATETIME(6) NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_admin_user_username (username)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO admin_user (username, password, created_at, updated_at)
+SELECT 'admin', 'admin123', NOW(6), NOW(6)
+WHERE NOT EXISTS (
+  SELECT 1 FROM admin_user WHERE LOWER(username) = 'admin'
+);

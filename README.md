@@ -1,6 +1,6 @@
 ﻿# coupon-site
 
-Coupon site built with Java + Spring Boot + Maven.
+Dotiki Coupon site built with Java + Spring Boot + Maven.
 
 ## Tech Stack
 - Java 17
@@ -33,12 +33,15 @@ spring.datasource.username=${DB_USERNAME:root}
 spring.datasource.password=${DB_PASSWORD:root}
 spring.jpa.hibernate.ddl-auto=update
 crawler.fixed-delay-ms=1800000
-admin.username=admin
-admin.password=admin123
+admin.default.username=admin
+admin.default.password=admin123
 ```
 
 Notes:
 - Configure DB host/port/name/user/password directly in `application.properties`, or override with env vars (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`)
+- Default admin account is seeded from `admin.default.username` and `admin.default.password` into DB table `admin_user` when no admin exists.
+- MySQL initialization script is provided at `db/init_mysql.sql`.
+- When database schema changes, update `db/init_mysql.sql` in the same commit.
 - Uploaded images are stored under `./data/uploads`
 
 ## Admin Features

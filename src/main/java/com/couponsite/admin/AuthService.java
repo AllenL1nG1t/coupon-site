@@ -9,19 +9,25 @@ public class AuthService {
 
     public static final String ADMIN_SESSION_KEY = "admin_logged_in";
 
-    private final String adminUsername;
-    private final String adminPassword;
+    private final AdminUserRepository adminUserRepository;
+    private final String defaultAdminUsername;
+    private final String defaultAdminPassword;
 
     public AuthService(
-        @Value("${admin.username:admin}") String adminUsername,
-        @Value("${admin.password:admin123}") String adminPassword
+        AdminUserRepository adminUserRepository,
+        @Value("${admin.default.username:admin}") String defaultAdminUsername,
+        @Value("${admin.default.password:admin123}") String defaultAdminPassword
     ) {
-        this.adminUsername = adminUsername;
-        this.adminPassword = adminPassword;
+        this.adminUserRepository = adminUserRepository;
+        this.defaultAdminUsername = defaultAdminUsername;
+        this.defaultAdminPassword = defaultAdminPassword;
     }
 
     public boolean login(String username, String password, HttpSession session) {
-        boolean ok = adminUsername.equals(username) && adminPassword.equals(password);
+        ensureDefaultAdminExists();
+        boolean ok = adminUserRepository.findByUsernameIgnoreCase(username)
+            .map(user -> user.getPassword().equals(password))
+            .orElse(false);
         if (ok) {
             session.setAttribute(ADMIN_SESSION_KEY, true);
         }
@@ -35,5 +41,15 @@ public class AuthService {
     public boolean isLoggedIn(HttpSession session) {
         Object value = session.getAttribute(ADMIN_SESSION_KEY);
         return value instanceof Boolean bool && bool;
+    }
+
+    private void ensureDefaultAdminExists() {
+        if (adminUserRepository.count() > 0) {
+            return;
+        }
+        AdminUser user = new AdminUser();
+        user.setUsername(defaultAdminUsername);
+        user.setPassword(defaultAdminPassword);
+        adminUserRepository.save(user);
     }
 }
