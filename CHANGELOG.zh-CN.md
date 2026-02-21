@@ -1,57 +1,53 @@
-﻿# æ›´æ–°æ—¥å¿—
+﻿# 更新日志
 
-æœ¬æ–‡ä»¶è®°å½•é¡¹ç›®æ¯ä¸ªç‰ˆæœ¬çš„é‡è¦å˜æ›´ã€‚
-å·¥ä½œæµè§„åˆ™ï¼šæ¯æ¬¡ä»£ç æ”¹åŠ¨å¿…é¡»åŒæ­¥æ›´æ–° `CHANGELOG.md` ä¸Ž `CHANGELOG.zh-CN.md`ã€‚
+本文件记录项目每个版本的重要变更。
+工作流规则：每次代码改动必须同步更新 `CHANGELOG.md` 与 `CHANGELOG.zh-CN.md`。
 
 ## [Unreleased]
 
-### ä¿®å¤
-- ä¿®å¤åŽå°å¹¿å‘Šç®¡ç†åœ¨åˆ‡æ¢è¯­è¨€åŽ checkbox æ¶ˆå¤±çš„é—®é¢˜ï¼ˆä¿ç•™ label å†… input èŠ‚ç‚¹ï¼Œä»…æ›¿æ¢æ–‡æœ¬ï¼‰ã€‚
-- æ–°å¢žåº•éƒ¨çŸ­é“¾æŽ¥è·¯ç”±è½¬å‘ï¼š
+### 修复
+- 修复后台广告管理在切换语言后 checkbox 消失的问题（保留 label 内 input 节点，仅替换文本）。
+- 新增页脚快捷路径路由转发：
   - `/about` -> `/about.html`
   - `/privacy` -> `/privacy.html`
   - `/contact` -> `/contact.html`
   - `/submit-coupon` -> `/submit-coupon.html`
   - `/affiliate-disclosure` -> `/affiliate-disclosure.html`
-- é¦–é¡µå¹¿å‘Šä½å·²æŽ¥å…¥åŽå°å¼€å…³æ¸²æŸ“ï¼ˆä¸å†åªæœ‰æ»šåŠ¨æ¡å¹¿å‘Šï¼‰ï¼š
-  - `homeTopEnabled`ã€`homeMidEnabled`ã€`homeSideLeftEnabled`ã€`homeSideRightEnabled`ã€`homeBottomEnabled`
-  - `blogTopEnabled`ã€`blogInlineEnabled`ã€`blogBottomEnabled`
+- 首页广告位已接入后台开关渲染（不再只有滚动条广告）：
+  - `homeTopEnabled`、`homeMidEnabled`、`homeSideLeftEnabled`、`homeSideRightEnabled`、`homeBottomEnabled`
+  - `blogTopEnabled`、`blogInlineEnabled`、`blogBottomEnabled`
 
-### æ–‡æ¡£
-- åœ¨ README ä¸Žæ›´æ–°æ—¥å¿—ä¸­å›ºåŒ–â€œæ¯æ¬¡æ”¹åŠ¨å¿…é¡»åŒæ­¥æ›´æ–°ä¸­è‹±æ–‡ changelogâ€çš„æµç¨‹ã€‚
-
-- Added startup+sync workflow documentation: use scripts/start-and-sync.ps1 to auto commit/push after health check.
-
-- Added Linux one-click deployment script and README usage: scripts/deploy-eb.sh / scripts/deploy-eb.env.example.
+### 文档
+- 在 README 与更新日志中固化“每次改动必须同步更新中英文 changelog”的流程。
+- 新增“启动成功后自动同步 GitHub”工作流说明：使用 `scripts/start-and-sync.ps1` 完成健康检查后自动 commit/push。
+- 新增 Linux 一键部署脚本与 README 使用说明：
+  - `scripts/deploy-eb.sh`
+  - `scripts/deploy-eb.env.example`
 
 ## [0.0.3] - 2026-02-21
 
-### æ–°å¢ž
-- åŽå°åˆ—è¡¨åˆ†é¡µä¸Žç­›é€‰æ¡†æž¶ï¼ˆCoupons/Brands/Blogs/Crawler Sites/Staged Couponsï¼‰ã€‚
-- åŽå° Theme èœå•ï¼šä¸»é¢˜å±•ç¤ºåã€ç«™ç‚¹å/çŸ­è¯­ã€Logo æ–‡å­—/å›¾ç‰‡ã€‚
-- åŽå° SEO èœå•ä¸Žç›¸å…³ APIã€‚
-- çˆ¬è™«ç»Ÿè®¡æŠ¥è¡¨ API ä¸ŽåŽå°æŠ¥è¡¨è¡¨æ ¼ã€‚
-- å“ç‰Œ Logo ä¸­é—´è¡¨ï¼ˆ`staged_brand_logo`ï¼‰åŠåŽå°å›¾ç‰‡é¢„è§ˆ APIã€‚
-- é¡µè„šé™æ€é¡µé¢ï¼š
+### 新增
+- 后台列表分页与筛选框架（Coupons、Brands、Blogs、Crawler Sites、Staged Coupons）。
+- 后台 Theme 菜单：主题展示名、站点名/短语、Logo 文字/图片。
+- 后台 SEO 菜单与相关 API。
+- 爬虫统计报表 API 与后台报表表格。
+- 品牌 Logo 中间表（`staged_brand_logo`）及后台图片预览 API。
+- 页脚静态页面：
   - `about.html`
   - `privacy.html`
   - `contact.html`
   - `submit-coupon.html`
   - `affiliate-disclosure.html`
 
-### è°ƒæ•´
-- ç‰ˆæœ¬å‡çº§ä¸º `0.0.3`ï¼ˆåŽ»é™¤ SNAPSHOTï¼‰ã€‚
-- ä¼˜æƒ åˆ¸æœ‰æ•ˆæœŸæ”¹ä¸ºæ—¥æœŸåŒ–è¡Œä¸ºï¼Œå‰ç«¯åŒºåˆ† active/expired å±•ç¤ºã€‚
-- é¦–é¡µ deals å¡ç‰‡æ–°å¢žå“ç‰Œ Logo å±•ç¤ºã€‚
-- åŽå°çˆ¬è™«çŠ¶æ€æ–‡æœ¬æ”¹ä¸ºå®Œæ•´å¯è¯»æè¿°ã€‚
-- ä¸»é¢˜é…ç½®è¦†ç›–åˆ°æ›´å¤šå‰å°é¡µé¢ã€‚
-- `db/init_mysql.sql` åŒæ­¥æ–°å¢žé…ç½®é¡¹ä¸Ž `staged_brand_logo` è¡¨ã€‚
+### 调整
+- 版本升级为 `0.0.3`（移除 SNAPSHOT）。
+- 优惠券有效期改为日期化行为，前端区分 active/expired 展示。
+- 首页 deals 卡片新增品牌 Logo 展示。
+- 后台爬虫状态文本改为完整可读描述。
+- 主题配置覆盖到更多前台页面。
+- `db/init_mysql.sql` 同步新增配置项与 `staged_brand_logo` 表。
 
-### ä¿®å¤
-- åŽå°å¹¿å‘Šç®¡ç† checkbox æ¶ˆå¤±é—®é¢˜ï¼ˆè¯­è¨€åˆ‡æ¢é€»è¾‘è¦†ç›–äº† `<label>` å†…éƒ¨èŠ‚ç‚¹ï¼‰ã€‚
-- é¦–é¡µæ»šåŠ¨æ¡å¹¿å‘Šæ¢å¤ï¼ˆé€šè¿‡ `/api/ads/public` è¯»å–å¹¶æ¸²æŸ“ï¼‰ã€‚
-- é¡µè„šé»˜è®¤é“¾æŽ¥æ”¹ä¸ºå¯è®¿é—®çš„ `.html` é¡µé¢ã€‚
-
-
-
-
+### 修复
+- 后台广告管理 checkbox 消失问题（语言切换逻辑覆盖了 `<label>` 内部节点）。
+- 首页滚动条广告恢复（通过 `/api/ads/public` 读取并渲染）。
+- 页脚默认链接改为可访问的 `.html` 页面。
