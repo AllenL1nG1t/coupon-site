@@ -18,6 +18,7 @@ const crawlerSiteLogoEnabled = document.getElementById("crawlerSiteLogoEnabled")
 const saveCrawlerSiteBtn = document.getElementById("saveCrawlerSiteBtn");
 const crawlerSiteTable = document.getElementById("crawlerSiteTable");
 const logPanel = document.getElementById("logPanel");
+const logLang = document.getElementById("logLang");
 const couponTable = document.getElementById("couponTable");
 const blogTable = document.getElementById("blogTable");
 const brandTable = document.getElementById("brandTable");
@@ -108,6 +109,7 @@ let cachedCoupons = [];
 let cachedBlogs = [];
 let cachedBrands = [];
 let cachedCrawlerSites = [];
+let cachedCrawlerLogs = [];
 const sortState = {
   coupons: { key: "id", dir: "asc" },
   brands: { key: "id", dir: "asc" },
@@ -247,14 +249,71 @@ async function loadCrawler() {
   couponCrawlerIntervalMinutes.value = Math.max(1, Number(settings.couponCrawlerIntervalMinutes || 30));
   brandCrawlerIntervalMinutes.value = Math.max(1, Number(settings.brandCrawlerIntervalMinutes || 30));
   brandLogoCrawlerIntervalMinutes.value = Math.max(1, Number(settings.brandLogoCrawlerIntervalMinutes || 30));
-  const logs = await (await adminFetch("/api/admin/logs")).json();
-  logPanel.textContent = (logs || []).map(log => `[${log.createdAt}] [${log.level}] ${log.message}`).join("\n") || "No logs yet";
+  cachedCrawlerLogs = await (await adminFetch("/api/admin/logs")).json();
+  renderCrawlerLogs();
   statCrawler.textContent = [
     `C:${couponCrawlerEnabled.checked ? "on" : "off"}(${couponCrawlerIntervalMinutes.value}m)`,
     `B:${brandCrawlerEnabled.checked ? "on" : "off"}(${brandCrawlerIntervalMinutes.value}m)`,
     `L:${brandLogoCrawlerEnabled.checked ? "on" : "off"}(${brandLogoCrawlerIntervalMinutes.value}m)`
   ].join(" ");
   await loadCrawlerSites();
+}
+
+function translateLogMessage(message) {
+  const map = [
+    ["[source=retailmenot]", "[数据源=RetailMeNot]"],
+    ["[source=simplycodes]", "[数据源=SimplyCodes]"],
+    ["[source=brand-profile]", "[数据源=品牌资料]"],
+    ["[source=brand-logo]", "[数据源=品牌Logo]"],
+    ["[source=custom-coupon]", "[数据源=自定义优惠券站点]"],
+    ["[source=custom-brand]", "[数据源=自定义品牌站点]"],
+    ["[source=custom-logo]", "[数据源=自定义Logo站点]"],
+    ["Coupon crawler skipped by site switch.", "优惠券爬虫已按站点开关跳过。"],
+    ["Coupon crawler started.", "优惠券爬虫已启动。"],
+    ["Brand profile crawler started.", "品牌资料爬虫已启动。"],
+    ["Brand logo crawler started.", "品牌 Logo 爬虫已启动。"],
+    ["Brand profile crawler finished.", "品牌资料爬虫已完成。"],
+    ["Brand logo crawler finished.", "品牌 Logo 爬虫已完成。"],
+    ["Custom coupon crawler finished.", "自定义优惠券爬虫已完成。"],
+    ["Custom brand crawler finished.", "自定义品牌爬虫已完成。"],
+    ["Custom logo crawler finished.", "自定义 Logo 爬虫已完成。"],
+    ["Seed summary:", "种子汇总："],
+    ["blocked=", "被拦截="],
+    ["failed=", "失败原因="],
+    ["store=", "店铺="],
+    ["parsed=", "解析到="],
+    ["upserts=", "新增或更新="],
+    ["duplicates=", "重复="],
+    ["skippedDuplicates=", "跳过重复="],
+    ["scannedStores=", "扫描店铺数="],
+    ["scannedSites=", "扫描站点数="],
+    ["seedStores=", "种子店铺数="],
+    ["logosStored=", "存储Logo数="],
+    ["fallbackInserted=", "回退写入数="],
+    ["newFromCoupons=", "来自优惠券新增="],
+    ["popularSeeds=", "内置热门种子="],
+    ["discoveredFromSimplyCodes=", "从SimplyCodes发现="],
+    ["mergedUniqueStores=", "合并去重后店铺数="],
+    ["url=", "链接="],
+    ["fallbackUrl=", "回退链接="]
+  ];
+  let translated = message || "";
+  map.forEach(([from, to]) => {
+    translated = translated.split(from).join(to);
+  });
+  return translated;
+}
+
+function renderCrawlerLogs() {
+  const lang = logLang?.value || "en";
+  if (!cachedCrawlerLogs.length) {
+    logPanel.textContent = lang === "zh" ? "暂无日志" : "No logs yet";
+    return;
+  }
+  logPanel.textContent = cachedCrawlerLogs.map(log => {
+    const message = lang === "zh" ? translateLogMessage(log.message) : log.message;
+    return `[${log.createdAt}] [${log.level}] ${message}`;
+  }).join("\n");
 }
 
 function clearCrawlerSiteForm() {
@@ -855,6 +914,9 @@ saveAllBlogsBtn.addEventListener("click", saveAllBlogs);
 uploadImageBtn.addEventListener("click", uploadBlogImage);
 saveAdsBtn.addEventListener("click", saveAds);
 logoutBtn.addEventListener("click", event => { event.preventDefault(); logout(); });
+if (logLang) {
+  logLang.addEventListener("change", renderCrawlerLogs);
+}
 
 contentHeroBgColorPicker.addEventListener("input", () => {
   contentHeroBgColor.value = contentHeroBgColorPicker.value;

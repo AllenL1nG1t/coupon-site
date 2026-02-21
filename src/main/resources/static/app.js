@@ -38,8 +38,7 @@ let activeFilter = "all";
 let searchTerm = "";
 let allCouponsCache = [];
 let displayedCouponCount = 0;
-const couponPageSize = 12;
-let couponObserver = null;
+const couponPageSize = 10;
 
 const categoryIcons = {
   electronics: "bi-phone",
@@ -272,50 +271,42 @@ function buildCouponNode(coupon) {
 }
 
 function renderMoreCoupons() {
+  const existingWrap = document.getElementById("couponListLoadMoreWrap");
+  if (existingWrap) {
+    existingWrap.remove();
+  }
   const next = allCouponsCache.slice(displayedCouponCount, displayedCouponCount + couponPageSize);
   next.forEach(coupon => couponList.appendChild(buildCouponNode(coupon)));
   displayedCouponCount += next.length;
-  const sentinel = document.getElementById("couponListSentinel");
-  if (sentinel) {
-    sentinel.classList.toggle("hidden", displayedCouponCount >= allCouponsCache.length);
+
+  if (displayedCouponCount < allCouponsCache.length) {
+    const wrap = document.createElement("div");
+    wrap.id = "couponListLoadMoreWrap";
+    wrap.className = "coupon-load-more-wrap";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.id = "couponListLoadMoreBtn";
+    button.className = "home-btn home-btn-primary";
+    button.textContent = "Load More Deals";
+    button.addEventListener("click", renderMoreCoupons);
+    wrap.appendChild(button);
+    couponList.appendChild(wrap);
   }
 }
 
-function setupCouponInfiniteScroll() {
-  if (couponObserver) {
-    couponObserver.disconnect();
-    couponObserver = null;
-  }
-  let sentinel = document.getElementById("couponListSentinel");
-  if (!sentinel) {
-    sentinel = document.createElement("div");
-    sentinel.id = "couponListSentinel";
-    sentinel.className = "coupon-sentinel";
-    sentinel.textContent = "Loading more deals...";
-    couponList.appendChild(sentinel);
-  }
-  couponObserver = new IntersectionObserver(entries => {
-    const first = entries[0];
-    if (!first || !first.isIntersecting) return;
-    renderMoreCoupons();
-  }, { rootMargin: "260px 0px" });
-  couponObserver.observe(sentinel);
+function setupCouponLoadMoreButton() {
   renderMoreCoupons();
 }
 
 function renderCoupons(coupons) {
   couponList.innerHTML = "";
-  if (couponObserver) {
-    couponObserver.disconnect();
-    couponObserver = null;
-  }
   if (!coupons.length) {
     couponList.innerHTML = `<article class="home-coupon-card"><p>No coupons match your search.</p></article>`;
     return;
   }
   allCouponsCache = sortDeals(coupons);
   displayedCouponCount = 0;
-  setupCouponInfiniteScroll();
+  setupCouponLoadMoreButton();
 }
 
 function renderBlogs(blogs) {

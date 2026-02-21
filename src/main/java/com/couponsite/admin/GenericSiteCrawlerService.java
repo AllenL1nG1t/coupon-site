@@ -79,6 +79,7 @@ public class GenericSiteCrawlerService {
     @Transactional
     public int crawlCouponsFromEnabledSites() {
         int upserts = 0;
+        int scannedSites = 0;
         for (CrawlerSite site : crawlerSiteService.listEntities()) {
             if (!site.isActive() || !site.isCouponEnabled()) {
                 continue;
@@ -87,6 +88,7 @@ public class GenericSiteCrawlerService {
             if (isBuiltinSite(key)) {
                 continue;
             }
+            scannedSites++;
             try {
                 String store = deriveStoreName(site);
                 String title = deriveTitle(site);
@@ -104,18 +106,17 @@ public class GenericSiteCrawlerService {
                     upserts++;
                 }
             } catch (Exception ex) {
-                crawlerLogService.warn("Custom coupon crawl failed for " + safe(site.getBaseUrl()) + ": " + ex.getClass().getSimpleName());
+                crawlerLogService.warn("[source=custom-coupon] site=" + key + " failed=" + ex.getClass().getSimpleName() + " url=" + safe(site.getBaseUrl()));
             }
         }
-        if (upserts > 0) {
-            crawlerLogService.info("Custom coupon crawler finished. upserts=" + upserts);
-        }
+        crawlerLogService.info("[source=custom-coupon] Custom coupon crawler finished. scannedSites=" + scannedSites + ", upserts=" + upserts);
         return upserts;
     }
 
     @Transactional
     public int crawlBrandsFromEnabledSites() {
         int upserts = 0;
+        int scannedSites = 0;
         for (CrawlerSite site : crawlerSiteService.listEntities()) {
             if (!site.isActive() || !site.isBrandEnabled()) {
                 continue;
@@ -123,6 +124,7 @@ public class GenericSiteCrawlerService {
             if (isBuiltinSite(site.getSiteKey())) {
                 continue;
             }
+            scannedSites++;
             try {
                 String store = deriveStoreName(site);
                 BrandProfile profile = brandProfileService.findEntityByStore(store).orElseGet(BrandProfile::new);
@@ -168,18 +170,17 @@ public class GenericSiteCrawlerService {
                     upserts++;
                 }
             } catch (Exception ex) {
-                crawlerLogService.warn("Custom brand crawl failed for " + safe(site.getBaseUrl()) + ": " + ex.getClass().getSimpleName());
+                crawlerLogService.warn("[source=custom-brand] site=" + safe(site.getSiteKey()) + " failed=" + ex.getClass().getSimpleName() + " url=" + safe(site.getBaseUrl()));
             }
         }
-        if (upserts > 0) {
-            crawlerLogService.info("Custom brand crawler finished. upserts=" + upserts);
-        }
+        crawlerLogService.info("[source=custom-brand] Custom brand crawler finished. scannedSites=" + scannedSites + ", upserts=" + upserts);
         return upserts;
     }
 
     @Transactional
     public int crawlLogosFromEnabledSites() {
         int upserts = 0;
+        int scannedSites = 0;
         for (CrawlerSite site : crawlerSiteService.listEntities()) {
             if (!site.isActive() || !site.isLogoEnabled()) {
                 continue;
@@ -187,6 +188,7 @@ public class GenericSiteCrawlerService {
             if (isBuiltinSite(site.getSiteKey())) {
                 continue;
             }
+            scannedSites++;
             try {
                 String store = deriveStoreName(site);
                 BrandProfile profile = brandProfileService.findEntityByStore(store).orElseGet(BrandProfile::new);
@@ -218,12 +220,10 @@ public class GenericSiteCrawlerService {
                     upserts++;
                 }
             } catch (Exception ex) {
-                crawlerLogService.warn("Custom logo crawl failed for " + safe(site.getBaseUrl()) + ": " + ex.getClass().getSimpleName());
+                crawlerLogService.warn("[source=custom-logo] site=" + safe(site.getSiteKey()) + " failed=" + ex.getClass().getSimpleName() + " url=" + safe(site.getBaseUrl()));
             }
         }
-        if (upserts > 0) {
-            crawlerLogService.info("Custom logo crawler finished. logosStored=" + upserts);
-        }
+        crawlerLogService.info("[source=custom-logo] Custom logo crawler finished. scannedSites=" + scannedSites + ", logosStored=" + upserts);
         return upserts;
     }
 

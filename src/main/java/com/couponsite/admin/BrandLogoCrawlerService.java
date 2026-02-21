@@ -58,20 +58,22 @@ public class BrandLogoCrawlerService {
     }
 
     public synchronized int crawlLatest() {
-        crawlerLogService.info("Brand logo crawler started.");
+        crawlerLogService.info("[source=brand-logo] Brand logo crawler started.");
         int updated = 0;
+        int scannedStores = 0;
 
         for (BrandProfile profile : brandProfileService.findAllEntities()) {
+            scannedStores++;
             try {
                 if (crawlSingle(profile)) {
                     updated++;
                 }
             } catch (Exception ex) {
-                crawlerLogService.warn("Brand logo crawl failed for " + safe(profile.getStoreName()) + ": " + ex.getClass().getSimpleName());
+                crawlerLogService.warn("[source=brand-logo] store=" + safe(profile.getStoreName()) + " failed=" + ex.getClass().getSimpleName());
             }
         }
 
-        crawlerLogService.info("Brand logo crawler finished. logosStored=" + updated);
+        crawlerLogService.info("[source=brand-logo] Brand logo crawler finished. scannedStores=" + scannedStores + ", logosStored=" + updated);
         return updated;
     }
 

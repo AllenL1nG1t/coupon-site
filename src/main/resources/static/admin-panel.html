@@ -249,6 +249,15 @@
             <button id="saveCrawlerSiteBtn" class="primary-btn">Add Crawler Site</button>
             <span class="muted-inline">Built-in: RetailMeNot / SimplyCodes can be toggled below too</span>
         </div>
+        <div class="admin-row" style="justify-content:flex-end;">
+            <label style="display:flex;gap:8px;align-items:center;font-weight:600;color:#395378;">
+                Log Language
+                <select id="logLang" style="width:140px;">
+                    <option value="en">English</option>
+                    <option value="zh">中文</option>
+                </select>
+            </label>
+        </div>
         <div class="table-wrap"><table class="admin-table" id="crawlerSiteTable"></table></div>
         <pre id="logPanel" class="logs-panel"></pre>
     </section>

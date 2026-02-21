@@ -103,7 +103,7 @@ public class BrandCrawlerService {
     }
 
     public synchronized int crawlLatest() {
-        crawlerLogService.info("Brand profile crawler started.");
+        crawlerLogService.info("[source=brand-profile] Brand profile crawler started.");
         Map<String, BrandSeed> seeds = buildSeeds();
         int upserts = 0;
 
@@ -117,25 +117,28 @@ public class BrandCrawlerService {
                     upserts++;
                 }
             } catch (Exception ex) {
-                crawlerLogService.warn("Brand profile crawl failed for " + seed.store() + ": " + ex.getClass().getSimpleName());
+                crawlerLogService.warn("[source=brand-profile] store=" + seed.store() + " failed=" + ex.getClass().getSimpleName());
             }
         }
 
-        crawlerLogService.info("Brand profile crawler finished. upserts=" + upserts + ", scannedStores=" + seeds.size());
+        crawlerLogService.info("[source=brand-profile] Brand profile crawler finished. upserts=" + upserts + ", scannedStores=" + seeds.size());
         return upserts;
     }
 
     private Map<String, BrandSeed> buildSeeds() {
         Map<String, BrandSeed> seeds = new LinkedHashMap<>();
+        int popularSeedCount = POPULAR_BRAND_SEEDS.size();
 
         for (BrandSeed seed : POPULAR_BRAND_SEEDS) {
             seeds.put(seed.store().toLowerCase(Locale.ROOT), seed);
         }
 
-        for (BrandSeed seed : discoverSimplyCodesSeeds()) {
+        List<BrandSeed> simplyCodesSeeds = discoverSimplyCodesSeeds();
+        for (BrandSeed seed : simplyCodesSeeds) {
             seeds.put(seed.store().toLowerCase(Locale.ROOT), seed);
         }
 
+        int couponDerivedNew = 0;
         for (Coupon coupon : couponRepository.findAllByOrderByCreatedAtDesc()) {
             String store = clean(coupon.getStore());
             if (store.isBlank()) {
@@ -143,11 +146,21 @@ public class BrandCrawlerService {
             }
             String key = store.toLowerCase(Locale.ROOT);
             BrandSeed current = seeds.get(key);
+            if (current == null) {
+                couponDerivedNew++;
+            }
             String logoUrl = preferLogoUrl(clean(coupon.getLogoUrl()), current == null ? "" : current.logoUrl());
             String officialUrl = chooseOfficialUrl(clean(coupon.getAffiliateUrl()), current == null ? "" : current.officialUrl());
             String affiliateUrl = chooseAffiliateUrl(clean(coupon.getAffiliateUrl()), current == null ? "" : current.affiliateUrl(), officialUrl);
             seeds.put(key, new BrandSeed(store, logoUrl, officialUrl, affiliateUrl));
         }
+
+        crawlerLogService.info(
+            "[source=brand-profile] Seed summary: popularSeeds=" + popularSeedCount
+                + ", discoveredFromSimplyCodes=" + simplyCodesSeeds.size()
+                + ", newFromCoupons=" + couponDerivedNew
+                + ", mergedUniqueStores=" + seeds.size()
+        );
 
         return seeds;
     }
@@ -185,7 +198,7 @@ public class BrandCrawlerService {
                 }
             }
         } catch (IOException ex) {
-            crawlerLogService.warn("Brand seed discovery from simplycodes failed: " + ex.getClass().getSimpleName());
+            crawlerLogService.warn("[source=brand-profile] Brand seed discovery from simplycodes failed: " + ex.getClass().getSimpleName());
         }
         return discovered;
     }

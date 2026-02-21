@@ -72,15 +72,17 @@ public class RetailMeNotCrawlerService {
 
     public synchronized int crawlLatest() {
         if (!crawlerSiteService.isEnabled("retailmenot", CrawlerSiteService.DataType.COUPON)) {
-            crawlerLogService.info("RetailMeNot crawler skipped by site switch.");
+            crawlerLogService.info("[source=retailmenot] Coupon crawler skipped by site switch.");
             return 0;
         }
-        crawlerLogService.info("RetailMeNot crawler started.");
+        crawlerLogService.info("[source=retailmenot] Coupon crawler started. seedStores=" + STORE_SEEDS.size());
         int upserts = 0;
         int duplicates = 0;
+        int scannedStores = 0;
 
         for (StoreSeed seed : STORE_SEEDS) {
             String url = "https://www.retailmenot.com/view/" + seed.path();
+            scannedStores++;
             try {
                 Document document = Jsoup.connect(url)
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
@@ -92,26 +94,41 @@ public class RetailMeNotCrawlerService {
 
                 List<Coupon> parsedCoupons = parseCoupons(document, seed);
                 if (parsedCoupons.isEmpty()) {
-                    crawlerLogService.warn("No coupons parsed from " + url + ", fallback applied.");
-                    upserts += applyFallbackCoupons(seed);
+                    int fallbackInserted = applyFallbackCoupons(seed);
+                    upserts += fallbackInserted;
+                    crawlerLogService.warn("[source=retailmenot] store=" + seed.storeName() + " parsed=0 fallbackInserted=" + fallbackInserted + " url=" + url);
                 } else {
+                    int storeUpserts = 0;
+                    int storeDuplicates = 0;
                     for (Coupon coupon : parsedCoupons) {
                         if (couponService.upsert(coupon)) {
                             upserts++;
+                            storeUpserts++;
                         } else {
                             duplicates++;
+                            storeDuplicates++;
                         }
                     }
-                    crawlerLogService.info("Parsed " + parsedCoupons.size() + " coupons from " + seed.storeName());
+                    crawlerLogService.info(
+                        "[source=retailmenot] store=" + seed.storeName()
+                            + " parsed=" + parsedCoupons.size()
+                            + " upserts=" + storeUpserts
+                            + " duplicates=" + storeDuplicates
+                    );
                 }
             } catch (IOException ex) {
                 String reason = classifyError(ex);
-                crawlerLogService.warn("Crawler blocked for " + url + " (" + reason + "), fallback applied.");
-                upserts += applyFallbackCoupons(seed);
+                int fallbackInserted = applyFallbackCoupons(seed);
+                upserts += fallbackInserted;
+                crawlerLogService.warn("[source=retailmenot] store=" + seed.storeName() + " blocked=" + reason + " fallbackInserted=" + fallbackInserted + " url=" + url);
             }
         }
 
-        crawlerLogService.info("RetailMeNot crawler finished. upserts=" + upserts + ", skippedDuplicates=" + duplicates);
+        crawlerLogService.info(
+            "[source=retailmenot] Coupon crawler finished. scannedStores=" + scannedStores
+                + ", upserts=" + upserts
+                + ", skippedDuplicates=" + duplicates
+        );
         return upserts;
     }
 

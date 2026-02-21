@@ -119,44 +119,72 @@ public class AdminController {
 
     @PostMapping("/crawler/run")
     public ResponseEntity<String> runCrawler() {
-        int couponCount = runCouponCrawlerInternal();
-        int brandCount = brandCrawlerService.crawlLatest() + genericSiteCrawlerService.crawlBrandsFromEnabledSites();
-        int logoCount = brandLogoCrawlerService.crawlLatest() + genericSiteCrawlerService.crawlLogosFromEnabledSites();
+        CouponRunResult couponResult = runCouponCrawlerInternal();
+        int brandSeedCount = brandCrawlerService.crawlLatest();
+        int brandCustomCount = genericSiteCrawlerService.crawlBrandsFromEnabledSites();
+        int brandCount = brandSeedCount + brandCustomCount;
+        int logoBrandCount = brandLogoCrawlerService.crawlLatest();
+        int logoCustomCount = genericSiteCrawlerService.crawlLogosFromEnabledSites();
+        int logoCount = logoBrandCount + logoCustomCount;
+        int couponCount = couponResult.total();
         int total = couponCount + brandCount + logoCount;
         long brandProfilesTotal = brandProfileService.count();
         return ResponseEntity.ok(
             "Crawler done, coupons=" + couponCount
+                + " (retailmenot=" + couponResult.retailMeNot() + ", simplycodes=" + couponResult.simplyCodes() + ", custom=" + couponResult.custom() + ")"
                 + ", brandUpserts=" + brandCount
+                + " (brandSeeds=" + brandSeedCount + ", custom=" + brandCustomCount + ")"
                 + ", brandProfilesTotal=" + brandProfilesTotal
                 + ", brandLogos=" + logoCount
+                + " (brandProfiles=" + logoBrandCount + ", custom=" + logoCustomCount + ")"
                 + ", totalUpserts=" + total
         );
     }
 
     @PostMapping("/crawler/run-coupons")
     public ResponseEntity<String> runCouponCrawler() {
-        int couponCount = runCouponCrawlerInternal();
-        return ResponseEntity.ok("Coupon crawler done, total=" + couponCount);
+        CouponRunResult couponResult = runCouponCrawlerInternal();
+        return ResponseEntity.ok(
+            "Coupon crawler done, total=" + couponResult.total()
+                + ", retailmenot=" + couponResult.retailMeNot()
+                + ", simplycodes=" + couponResult.simplyCodes()
+                + ", custom=" + couponResult.custom()
+        );
     }
 
     @PostMapping("/crawler/run-brands")
     public ResponseEntity<String> runBrandCrawler() {
-        int brandCount = brandCrawlerService.crawlLatest() + genericSiteCrawlerService.crawlBrandsFromEnabledSites();
+        int brandSeedCount = brandCrawlerService.crawlLatest();
+        int brandCustomCount = genericSiteCrawlerService.crawlBrandsFromEnabledSites();
+        int brandCount = brandSeedCount + brandCustomCount;
         long brandProfilesTotal = brandProfileService.count();
-        return ResponseEntity.ok("Brand crawler done, upserts=" + brandCount + ", brandProfilesTotal=" + brandProfilesTotal);
+        return ResponseEntity.ok(
+            "Brand crawler done, upserts=" + brandCount
+                + ", brandSeeds=" + brandSeedCount
+                + ", custom=" + brandCustomCount
+                + ", brandProfilesTotal=" + brandProfilesTotal
+        );
     }
 
     @PostMapping("/crawler/run-brand-logos")
     public ResponseEntity<String> runBrandLogoCrawler() {
-        int logoCount = brandLogoCrawlerService.crawlLatest() + genericSiteCrawlerService.crawlLogosFromEnabledSites();
-        return ResponseEntity.ok("Brand logo crawler done, total=" + logoCount);
+        int brandCount = brandLogoCrawlerService.crawlLatest();
+        int customCount = genericSiteCrawlerService.crawlLogosFromEnabledSites();
+        int logoCount = brandCount + customCount;
+        return ResponseEntity.ok("Brand logo crawler done, total=" + logoCount + ", brandProfiles=" + brandCount + ", custom=" + customCount);
     }
 
-    private int runCouponCrawlerInternal() {
+    private CouponRunResult runCouponCrawlerInternal() {
         int retailCount = retailMeNotCrawlerService.crawlLatest();
         int simplyCodesCount = simplyCodesCrawlerService.crawlLatest();
         int customCount = genericSiteCrawlerService.crawlCouponsFromEnabledSites();
-        return retailCount + simplyCodesCount + customCount;
+        return new CouponRunResult(retailCount, simplyCodesCount, customCount);
+    }
+
+    private record CouponRunResult(int retailMeNot, int simplyCodes, int custom) {
+        int total() {
+            return retailMeNot + simplyCodes + custom;
+        }
     }
 
     @GetMapping("/crawler/sites")

@@ -75,41 +75,59 @@ public class SimplyCodesCrawlerService {
 
     public synchronized int crawlLatest() {
         if (!crawlerSiteService.isEnabled("simplycodes", CrawlerSiteService.DataType.COUPON)) {
-            crawlerLogService.info("SimplyCodes crawler skipped by site switch.");
+            crawlerLogService.info("[source=simplycodes] Coupon crawler skipped by site switch.");
             return 0;
         }
-        crawlerLogService.info("SimplyCodes crawler started.");
+        crawlerLogService.info("[source=simplycodes] Coupon crawler started. seedStores=" + STORE_SEEDS.size());
         int upserts = 0;
         int duplicates = 0;
+        int scannedStores = 0;
 
         for (StoreSeed seed : STORE_SEEDS) {
+            scannedStores++;
             try {
                 CrawlTarget crawlTarget = resolveTarget(seed);
                 Document document = crawlTarget.document();
 
                 List<Coupon> parsedCoupons = parseCoupons(document, seed);
                 if (parsedCoupons.isEmpty()) {
-                    crawlerLogService.warn("No coupons parsed from " + crawlTarget.url() + ", fallback applied.");
-                    upserts += applyFallbackCoupons(seed, crawlTarget.url());
+                    int fallbackInserted = applyFallbackCoupons(seed, crawlTarget.url());
+                    upserts += fallbackInserted;
+                    crawlerLogService.warn("[source=simplycodes] store=" + seed.storeName() + " parsed=0 fallbackInserted=" + fallbackInserted + " url=" + crawlTarget.url());
                 } else {
+                    int storeUpserts = 0;
+                    int storeDuplicates = 0;
                     for (Coupon coupon : parsedCoupons) {
                         if (couponService.upsert(coupon)) {
                             upserts++;
+                            storeUpserts++;
                         } else {
                             duplicates++;
+                            storeDuplicates++;
                         }
                     }
-                    crawlerLogService.info("Parsed " + parsedCoupons.size() + " coupons from " + seed.storeName());
+                    crawlerLogService.info(
+                        "[source=simplycodes] store=" + seed.storeName()
+                            + " parsed=" + parsedCoupons.size()
+                            + " upserts=" + storeUpserts
+                            + " duplicates=" + storeDuplicates
+                            + " url=" + crawlTarget.url()
+                    );
                 }
             } catch (IOException ex) {
                 String reason = classifyError(ex);
                 String fallbackUrl = "https://simplycodes.com/search?q=" + URLEncoder.encode(seed.storeName(), StandardCharsets.UTF_8);
-                crawlerLogService.warn("Crawler blocked for " + seed.storeName() + " (" + reason + "), fallback applied.");
-                upserts += applyFallbackCoupons(seed, fallbackUrl);
+                int fallbackInserted = applyFallbackCoupons(seed, fallbackUrl);
+                upserts += fallbackInserted;
+                crawlerLogService.warn("[source=simplycodes] store=" + seed.storeName() + " blocked=" + reason + " fallbackInserted=" + fallbackInserted + " fallbackUrl=" + fallbackUrl);
             }
         }
 
-        crawlerLogService.info("SimplyCodes crawler finished. upserts=" + upserts + ", skippedDuplicates=" + duplicates);
+        crawlerLogService.info(
+            "[source=simplycodes] Coupon crawler finished. scannedStores=" + scannedStores
+                + ", upserts=" + upserts
+                + ", skippedDuplicates=" + duplicates
+        );
         return upserts;
     }
 
