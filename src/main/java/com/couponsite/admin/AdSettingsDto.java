@@ -12,8 +12,11 @@ public record AdSettingsDto(
     boolean blogTopEnabled,
     boolean blogInlineEnabled,
     boolean blogBottomEnabled,
+    boolean codeTopEnabled,
+    boolean codeBottomEnabled,
     String adsenseClientId,
     String homeAdsenseSlot,
-    String blogAdsenseSlot
+    String blogAdsenseSlot,
+    String codeAdsenseSlot
 ) {
 }

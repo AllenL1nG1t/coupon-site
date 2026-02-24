@@ -1,5 +1,6 @@
 -- Dotiki Coupon MySQL initialization script
 -- Keep this file in sync with JPA entities when schema changes.
+-- Last Updated: 2026-02-24 13:05:00 -05:00
 
 CREATE DATABASE IF NOT EXISTS coupon_site
   CHARACTER SET utf8mb4
@@ -36,6 +37,7 @@ CREATE TABLE IF NOT EXISTS brand_profile (
   logo_image_content_type VARCHAR(255),
   official_url VARCHAR(255) NOT NULL,
   affiliate_url VARCHAR(1200),
+  auto_post_coupons BIT(1) NOT NULL DEFAULT b'0',
   slug VARCHAR(255) NOT NULL,
   store_name VARCHAR(255) NOT NULL,
   summary VARCHAR(1000) NOT NULL,
@@ -45,6 +47,24 @@ CREATE TABLE IF NOT EXISTS brand_profile (
   UNIQUE KEY uk_brand_profile_slug (slug),
   UNIQUE KEY uk_brand_profile_store_name (store_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+SET @brand_auto_post_col_exists := (
+  SELECT COUNT(1)
+  FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'brand_profile'
+    AND COLUMN_NAME = 'auto_post_coupons'
+);
+
+SET @brand_auto_post_col_sql := IF(
+  @brand_auto_post_col_exists = 0,
+  'ALTER TABLE brand_profile ADD COLUMN auto_post_coupons BIT(1) NOT NULL DEFAULT b''0''',
+  'SELECT 1'
+);
+
+PREPARE brand_auto_post_col_stmt FROM @brand_auto_post_col_sql;
+EXECUTE brand_auto_post_col_stmt;
+DEALLOCATE PREPARE brand_auto_post_col_stmt;
 
 CREATE TABLE IF NOT EXISTS coupon (
   id BIGINT NOT NULL AUTO_INCREMENT,
@@ -141,11 +161,11 @@ SELECT 'crawler.coupon.enabled', 'false', NOW(6)
 WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'crawler.coupon.enabled');
 
 INSERT INTO app_setting (setting_key, setting_value, updated_at)
-SELECT 'crawler.brand.enabled', 'true', NOW(6)
+SELECT 'crawler.brand.enabled', 'false', NOW(6)
 WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'crawler.brand.enabled');
 
 INSERT INTO app_setting (setting_key, setting_value, updated_at)
-SELECT 'crawler.brand-logo.enabled', 'true', NOW(6)
+SELECT 'crawler.brand-logo.enabled', 'false', NOW(6)
 WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'crawler.brand-logo.enabled');
 
 INSERT INTO app_setting (setting_key, setting_value, updated_at)
@@ -159,6 +179,30 @@ WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'crawler.brand.i
 INSERT INTO app_setting (setting_key, setting_value, updated_at)
 SELECT 'crawler.brand-logo.interval-ms', '1800000', NOW(6)
 WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'crawler.brand-logo.interval-ms');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'crawler.coupon.run-at', '00:00', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'crawler.coupon.run-at');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'crawler.brand.run-at', '00:00', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'crawler.brand.run-at');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'crawler.brand-logo.run-at', '00:00', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'crawler.brand-logo.run-at');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'crawler.coupon.last-run-at', '', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'crawler.coupon.last-run-at');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'crawler.brand.last-run-at', '', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'crawler.brand.last-run-at');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'crawler.brand-logo.last-run-at', '', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'crawler.brand-logo.last-run-at');
 
 INSERT INTO app_setting (setting_key, setting_value, updated_at)
 SELECT 'content.footer.tagline', 'Deals are user-submitted and manually reviewed.', NOW(6)
@@ -309,6 +353,14 @@ SELECT 'ads.blog.bottom.enabled', 'false', NOW(6)
 WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'ads.blog.bottom.enabled');
 
 INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'ads.code.top.enabled', 'false', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'ads.code.top.enabled');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'ads.code.bottom.enabled', 'false', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'ads.code.bottom.enabled');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
 SELECT 'ads.adsense.clientId', '', NOW(6)
 WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'ads.adsense.clientId');
 
@@ -319,6 +371,10 @@ WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'ads.adsense.hom
 INSERT INTO app_setting (setting_key, setting_value, updated_at)
 SELECT 'ads.adsense.blog.slot', '', NOW(6)
 WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'ads.adsense.blog.slot');
+
+INSERT INTO app_setting (setting_key, setting_value, updated_at)
+SELECT 'ads.adsense.code.slot', '', NOW(6)
+WHERE NOT EXISTS (SELECT 1 FROM app_setting WHERE setting_key = 'ads.adsense.code.slot');
 
 INSERT INTO crawler_site (site_key, site_name, base_url, active, coupon_enabled, brand_enabled, logo_enabled, created_at, updated_at)
 SELECT 'retailmenot', 'RetailMeNot', 'https://www.retailmenot.com/', b'1', b'1', b'0', b'0', NOW(6), NOW(6)

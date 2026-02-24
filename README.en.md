@@ -1,14 +1,15 @@
-﻿# Dotiki Coupon
+# Dotiki Coupon
 
 Dotiki Coupon site built with Java + Spring Boot + Maven.
 
-- Version: 0.0.3
+- Version: 0.0.4
 - Changelog:
   - English: `CHANGELOG.md`
   - Chinese: `CHANGELOG.zh-CN.md`
 - Workflow rule:
   - Every feature/fix/refactor must append entries to both changelog files in the same commit.
   - Every successful local startup must use `scripts/start-and-sync.ps1` so latest code is auto-synced to GitHub.
+  - Every database schema change must update `db/init_mysql.sql` in the same commit and refresh its `Last Updated` timestamp line.
 
 ## Tech Stack
 - Java 17
@@ -73,7 +74,7 @@ Notes:
 - Configure DB host/port/name/user/password directly in `application.properties`, or override with env vars (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`)
 - Default admin account is seeded from `admin.default.username` and `admin.default.password` into DB table `admin_user` when no admin exists.
 - MySQL initialization script is provided at `db/init_mysql.sql`.
-- When database schema changes, update `db/init_mysql.sql` in the same commit.
+- When database schema changes, update `db/init_mysql.sql` in the same commit and refresh the `Last Updated` timestamp at the top of that file.
 - Uploaded images are stored under `./data/uploads`
 
 ## Admin Features
@@ -177,4 +178,5 @@ Notes:
 
 ## Known Limitation
 - RetailMeNot can return `403` due to anti-bot protection. Fallback coupon seeding is used when crawling is blocked.
+
 

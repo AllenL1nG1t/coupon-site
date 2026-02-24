@@ -61,6 +61,12 @@ public class SimplyCodesCrawlerService {
         if (!appSettingService.isCouponCrawlerEnabled()) {
             return;
         }
+        if (!appSettingService.isRunWindowOpen(
+            appSettingService.getCouponCrawlerRunAt(),
+            appSettingService.getCouponCrawlerLastRunAt()
+        )) {
+            return;
+        }
         long now = System.currentTimeMillis();
         long intervalMs = appSettingService.getCouponCrawlerIntervalMs();
         long lastRun = lastScheduledRunAt.get();
@@ -128,6 +134,7 @@ public class SimplyCodesCrawlerService {
                 + ", upserts=" + upserts
                 + ", skippedDuplicates=" + duplicates
         );
+        appSettingService.markCouponCrawlerLastRunNow();
         return upserts;
     }
 

@@ -1,5 +1,7 @@
 package com.couponsite.coupon;
 
+import java.time.LocalDateTime;
+
 public record CouponSummaryDto(
     Long id,
     String store,
@@ -8,7 +10,9 @@ public record CouponSummaryDto(
     String expires,
     boolean expired,
     String logoUrl,
-    int clickCount
+    int clickCount,
+    LocalDateTime createdAt,
+    LocalDateTime updatedAt
 ) {
 }
 

@@ -10,6 +10,7 @@ public record BrandProfileUpsertRequest(
     String heroImageUrl,
     String logoUrl,
     String officialUrl,
-    String affiliateUrl
+    String affiliateUrl,
+    Boolean autoPostCoupons
 ) {
 }

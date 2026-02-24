@@ -58,6 +58,12 @@ public class RetailMeNotCrawlerService {
         if (!appSettingService.isCouponCrawlerEnabled()) {
             return;
         }
+        if (!appSettingService.isRunWindowOpen(
+            appSettingService.getCouponCrawlerRunAt(),
+            appSettingService.getCouponCrawlerLastRunAt()
+        )) {
+            return;
+        }
         long now = System.currentTimeMillis();
         long intervalMs = appSettingService.getCouponCrawlerIntervalMs();
         long lastRun = lastScheduledRunAt.get();
@@ -129,6 +135,7 @@ public class RetailMeNotCrawlerService {
                 + ", upserts=" + upserts
                 + ", skippedDuplicates=" + duplicates
         );
+        appSettingService.markCouponCrawlerLastRunNow();
         return upserts;
     }
 

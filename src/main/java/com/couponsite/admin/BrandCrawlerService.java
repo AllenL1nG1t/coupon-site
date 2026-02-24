@@ -90,6 +90,12 @@ public class BrandCrawlerService {
         if (!appSettingService.isBrandCrawlerEnabled()) {
             return;
         }
+        if (!appSettingService.isRunWindowOpen(
+            appSettingService.getBrandCrawlerRunAt(),
+            appSettingService.getBrandCrawlerLastRunAt()
+        )) {
+            return;
+        }
         long now = System.currentTimeMillis();
         long intervalMs = appSettingService.getBrandCrawlerIntervalMs();
         long lastRun = lastScheduledRunAt.get();
@@ -122,6 +128,7 @@ public class BrandCrawlerService {
         }
 
         crawlerLogService.info("[source=brand-profile] Brand profile crawler finished. upserts=" + upserts + ", scannedStores=" + seeds.size());
+        appSettingService.markBrandCrawlerLastRunNow();
         return upserts;
     }
 

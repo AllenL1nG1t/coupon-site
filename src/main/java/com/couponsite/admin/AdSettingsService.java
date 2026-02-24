@@ -19,10 +19,13 @@ public class AdSettingsService {
     private static final String BLOG_TOP_ENABLED = "ads.blog.top.enabled";
     private static final String BLOG_INLINE_ENABLED = "ads.blog.inline.enabled";
     private static final String BLOG_BOTTOM_ENABLED = "ads.blog.bottom.enabled";
+    private static final String CODE_TOP_ENABLED = "ads.code.top.enabled";
+    private static final String CODE_BOTTOM_ENABLED = "ads.code.bottom.enabled";
 
     private static final String ADSENSE_CLIENT_ID = "ads.adsense.clientId";
     private static final String ADSENSE_HOME_SLOT = "ads.adsense.home.slot";
     private static final String ADSENSE_BLOG_SLOT = "ads.adsense.blog.slot";
+    private static final String ADSENSE_CODE_SLOT = "ads.adsense.code.slot";
 
     private final AppSettingService appSettingService;
 
@@ -43,9 +46,12 @@ public class AdSettingsService {
             appSettingService.getBoolean(BLOG_TOP_ENABLED, false),
             appSettingService.getBoolean(BLOG_INLINE_ENABLED, true),
             appSettingService.getBoolean(BLOG_BOTTOM_ENABLED, false),
+            appSettingService.getBoolean(CODE_TOP_ENABLED, false),
+            appSettingService.getBoolean(CODE_BOTTOM_ENABLED, false),
             appSettingService.getString(ADSENSE_CLIENT_ID, ""),
             appSettingService.getString(ADSENSE_HOME_SLOT, ""),
-            appSettingService.getString(ADSENSE_BLOG_SLOT, "")
+            appSettingService.getString(ADSENSE_BLOG_SLOT, ""),
+            appSettingService.getString(ADSENSE_CODE_SLOT, "")
         );
     }
 
@@ -64,10 +70,13 @@ public class AdSettingsService {
         appSettingService.setBoolean(BLOG_TOP_ENABLED, request.blogTopEnabled());
         appSettingService.setBoolean(BLOG_INLINE_ENABLED, request.blogInlineEnabled());
         appSettingService.setBoolean(BLOG_BOTTOM_ENABLED, request.blogBottomEnabled());
+        appSettingService.setBoolean(CODE_TOP_ENABLED, request.codeTopEnabled());
+        appSettingService.setBoolean(CODE_BOTTOM_ENABLED, request.codeBottomEnabled());
 
         appSettingService.setString(ADSENSE_CLIENT_ID, request.adsenseClientId());
         appSettingService.setString(ADSENSE_HOME_SLOT, request.homeAdsenseSlot());
         appSettingService.setString(ADSENSE_BLOG_SLOT, request.blogAdsenseSlot());
+        appSettingService.setString(ADSENSE_CODE_SLOT, request.codeAdsenseSlot());
 
         return get();
     }

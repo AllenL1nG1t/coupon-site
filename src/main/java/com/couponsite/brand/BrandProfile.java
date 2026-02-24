@@ -52,6 +52,9 @@ public class BrandProfile {
     private String affiliateUrl;
 
     @Column(nullable = false)
+    private boolean autoPostCoupons;
+
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
@@ -93,6 +96,8 @@ public class BrandProfile {
     public void setOfficialUrl(String officialUrl) { this.officialUrl = officialUrl; }
     public String getAffiliateUrl() { return affiliateUrl; }
     public void setAffiliateUrl(String affiliateUrl) { this.affiliateUrl = affiliateUrl; }
+    public boolean isAutoPostCoupons() { return autoPostCoupons; }
+    public void setAutoPostCoupons(boolean autoPostCoupons) { this.autoPostCoupons = autoPostCoupons; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

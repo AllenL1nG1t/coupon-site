@@ -13,6 +13,7 @@ public record BrandProfileDto(
     String logoUrl,
     String officialUrl,
     String affiliateUrl,
+    boolean autoPostCoupons,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {

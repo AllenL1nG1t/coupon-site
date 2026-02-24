@@ -87,6 +87,12 @@ public class GenericSiteCrawlerService {
         if (!appSettingService.isCouponCrawlerEnabled()) {
             return;
         }
+        if (!appSettingService.isRunWindowOpen(
+            appSettingService.getCouponCrawlerRunAt(),
+            appSettingService.getCouponCrawlerLastRunAt()
+        )) {
+            return;
+        }
         if (!tryAcquire(lastCouponRunAt, appSettingService.getCouponCrawlerIntervalMs())) {
             return;
         }
@@ -96,6 +102,12 @@ public class GenericSiteCrawlerService {
     @Scheduled(fixedDelay = 30_000)
     public void scheduledBrandRun() {
         if (!appSettingService.isBrandCrawlerEnabled()) {
+            return;
+        }
+        if (!appSettingService.isRunWindowOpen(
+            appSettingService.getBrandCrawlerRunAt(),
+            appSettingService.getBrandCrawlerLastRunAt()
+        )) {
             return;
         }
         if (!tryAcquire(lastBrandRunAt, appSettingService.getBrandCrawlerIntervalMs())) {
@@ -109,6 +121,12 @@ public class GenericSiteCrawlerService {
         if (!appSettingService.isBrandLogoCrawlerEnabled()) {
             return;
         }
+        if (!appSettingService.isRunWindowOpen(
+            appSettingService.getBrandLogoCrawlerRunAt(),
+            appSettingService.getBrandLogoCrawlerLastRunAt()
+        )) {
+            return;
+        }
         if (!tryAcquire(lastLogoRunAt, appSettingService.getBrandLogoCrawlerIntervalMs())) {
             return;
         }
@@ -117,9 +135,15 @@ public class GenericSiteCrawlerService {
 
     @Transactional
     public int crawlCouponsFromEnabledSites() {
+        return crawlCouponsFromEnabledSitesWithBreakdown().totalUpserts();
+    }
+
+    @Transactional
+    public CouponCrawlBreakdown crawlCouponsFromEnabledSitesWithBreakdown() {
         int inserted = 0;
         int duplicates = 0;
         int scannedSites = 0;
+        List<SiteCouponUpsert> siteBreakdown = new ArrayList<>();
 
         for (CrawlerSite site : crawlerSiteService.listEntities()) {
             if (!site.isActive() || !site.isCouponEnabled()) {
@@ -146,9 +170,10 @@ public class GenericSiteCrawlerService {
                         siteDuplicates++;
                     }
                 }
+                siteBreakdown.add(new SiteCouponUpsert(displaySiteName(site), siteInserted));
 
                 crawlerLogService.info(
-                    "[source=custom-coupon] site=" + siteKey
+                    "[source=site-coupon] site=" + displaySiteName(site)
                         + " pages=" + pages.size()
                         + " parsed=" + parsedCoupons.size()
                         + " upserts=" + siteInserted
@@ -157,7 +182,7 @@ public class GenericSiteCrawlerService {
                 );
             } catch (Exception ex) {
                 crawlerLogService.warn(
-                    "[source=custom-coupon] site=" + siteKey
+                    "[source=site-coupon] site=" + displaySiteName(site)
                         + " failed=" + ex.getClass().getSimpleName()
                         + " baseUrl=" + safe(site.getBaseUrl())
                 );
@@ -165,11 +190,12 @@ public class GenericSiteCrawlerService {
         }
 
         crawlerLogService.info(
-            "[source=custom-coupon] Custom coupon crawler finished. scannedSites=" + scannedSites
+            "[source=site-coupon] Site coupon crawler finished. scannedSites=" + scannedSites
                 + ", upserts=" + inserted
                 + ", skippedDuplicates=" + duplicates
         );
-        return inserted;
+        appSettingService.markCouponCrawlerLastRunNow();
+        return new CouponCrawlBreakdown(inserted, siteBreakdown);
     }
 
     @Transactional
@@ -200,7 +226,7 @@ public class GenericSiteCrawlerService {
                 }
 
                 crawlerLogService.info(
-                    "[source=custom-brand] site=" + siteKey
+                    "[source=site-brand] site=" + displaySiteName(site)
                         + " pages=" + pages.size()
                         + " brandsFound=" + storeNames.size()
                         + " upserts=" + siteUpserts
@@ -208,14 +234,15 @@ public class GenericSiteCrawlerService {
                 );
             } catch (Exception ex) {
                 crawlerLogService.warn(
-                    "[source=custom-brand] site=" + siteKey
+                    "[source=site-brand] site=" + displaySiteName(site)
                         + " failed=" + ex.getClass().getSimpleName()
                         + " baseUrl=" + safe(site.getBaseUrl())
                 );
             }
         }
 
-        crawlerLogService.info("[source=custom-brand] Custom brand crawler finished. scannedSites=" + scannedSites + ", upserts=" + upserts);
+        crawlerLogService.info("[source=site-brand] Site brand crawler finished. scannedSites=" + scannedSites + ", upserts=" + upserts);
+        appSettingService.markBrandCrawlerLastRunNow();
         return upserts;
     }
 
@@ -248,7 +275,7 @@ public class GenericSiteCrawlerService {
                 }
 
                 crawlerLogService.info(
-                    "[source=custom-logo] site=" + siteKey
+                    "[source=site-logo] site=" + displaySiteName(site)
                         + " pages=" + pages.size()
                         + " brandsFound=" + storeNames.size()
                         + " logosStored=" + siteLogos
@@ -256,14 +283,15 @@ public class GenericSiteCrawlerService {
                 );
             } catch (Exception ex) {
                 crawlerLogService.warn(
-                    "[source=custom-logo] site=" + siteKey
+                    "[source=site-logo] site=" + displaySiteName(site)
                         + " failed=" + ex.getClass().getSimpleName()
                         + " baseUrl=" + safe(site.getBaseUrl())
                 );
             }
         }
 
-        crawlerLogService.info("[source=custom-logo] Custom logo crawler finished. scannedSites=" + scannedSites + ", logosStored=" + logosStored);
+        crawlerLogService.info("[source=site-logo] Site logo crawler finished. scannedSites=" + scannedSites + ", logosStored=" + logosStored);
+        appSettingService.markBrandLogoCrawlerLastRunNow();
         return logosStored;
     }
 
@@ -313,7 +341,7 @@ public class GenericSiteCrawlerService {
             Document doc = connect(normalized);
             pages.put(normalized, doc);
         } catch (Exception ex) {
-            crawlerLogService.warn("[source=custom-discovery] fetch_failed url=" + normalized + " reason=" + ex.getClass().getSimpleName());
+            crawlerLogService.warn("[source=site-discovery] fetch_failed url=" + normalized + " reason=" + ex.getClass().getSimpleName());
         }
     }
 
@@ -741,6 +769,18 @@ public class GenericSiteCrawlerService {
         }
     }
 
+    private String displaySiteName(CrawlerSite site) {
+        String name = safe(site.getSiteName());
+        if (!name.isBlank()) {
+            return name;
+        }
+        String key = safe(site.getSiteKey());
+        if (!key.isBlank()) {
+            return key;
+        }
+        return deriveStoreName(site);
+    }
+
     private String resolveUrl(String baseUrl, String maybeRelative) {
         String base = normalizeUrl(baseUrl);
         String target = safe(maybeRelative);
@@ -933,5 +973,11 @@ public class GenericSiteCrawlerService {
     }
 
     private record BrandUpsertResult(BrandProfile profile, boolean changed) {
+    }
+
+    public record SiteCouponUpsert(String siteName, int upserts) {
+    }
+
+    public record CouponCrawlBreakdown(int totalUpserts, List<SiteCouponUpsert> perSite) {
     }
 }

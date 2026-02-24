@@ -75,6 +75,11 @@ public class BrandProfileService {
         profile.setLogoUrl(nonBlankOrDefault(request.logoUrl(), "/logos/default.svg"));
         profile.setOfficialUrl(nonBlankOrDefault(request.officialUrl(), "https://example.com"));
         profile.setAffiliateUrl(nonBlankOrDefault(request.affiliateUrl(), profile.getOfficialUrl()));
+        if (request.autoPostCoupons() != null) {
+            profile.setAutoPostCoupons(request.autoPostCoupons());
+        } else if (request.id() == null) {
+            profile.setAutoPostCoupons(false);
+        }
 
         return toDto(brandProfileRepository.save(profile));
     }
@@ -95,6 +100,25 @@ public class BrandProfileService {
 
     public Optional<BrandProfile> findEntityByStore(String store) {
         return brandProfileRepository.findByStoreNameIgnoreCase(store);
+    }
+
+    public boolean isCouponAutoPostEnabledForStore(String store) {
+        if (isBlank(store)) {
+            return false;
+        }
+        return brandProfileRepository.findByStoreNameIgnoreCase(store.trim())
+            .map(BrandProfile::isAutoPostCoupons)
+            .orElseGet(() -> {
+                String normalizedStore = normalizeStoreKey(store);
+                if (normalizedStore.isBlank()) {
+                    return false;
+                }
+                return brandProfileRepository.findAll().stream()
+                    .filter(profile -> normalizeStoreKey(profile.getStoreName()).equals(normalizedStore))
+                    .findFirst()
+                    .map(BrandProfile::isAutoPostCoupons)
+                    .orElse(false);
+            });
     }
 
     public List<BrandProfile> findAllEntities() {
@@ -123,6 +147,7 @@ public class BrandProfileService {
             logoUrl,
             profile.getOfficialUrl(),
             nonBlankOrDefault(profile.getAffiliateUrl(), profile.getOfficialUrl()),
+            profile.isAutoPostCoupons(),
             profile.getCreatedAt(),
             profile.getUpdatedAt()
         );
@@ -149,6 +174,10 @@ public class BrandProfileService {
 
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
+    }
+
+    private String normalizeStoreKey(String raw) {
+        return raw == null ? "" : raw.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
     }
 
     public record BrandLogoPayload(byte[] bytes, String contentType) {

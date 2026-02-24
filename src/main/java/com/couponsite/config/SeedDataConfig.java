@@ -101,7 +101,8 @@ public class SeedDataConfig {
             "/logos/default.svg",
             LogoCatalog.forStore(store),
             officialUrl,
-            officialUrl
+            officialUrl,
+            false
         ));
     }
 

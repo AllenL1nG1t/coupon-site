@@ -1,6 +1,8 @@
 package com.couponsite.coupon;
 
 import com.couponsite.admin.AdminStagedCouponDto;
+import com.couponsite.admin.CrawlerLogService;
+import com.couponsite.brand.BrandProfileService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,10 +14,19 @@ public class StagedCouponService {
 
     private final StagedCouponRepository stagedCouponRepository;
     private final CouponService couponService;
+    private final BrandProfileService brandProfileService;
+    private final CrawlerLogService crawlerLogService;
 
-    public StagedCouponService(StagedCouponRepository stagedCouponRepository, CouponService couponService) {
+    public StagedCouponService(
+        StagedCouponRepository stagedCouponRepository,
+        CouponService couponService,
+        BrandProfileService brandProfileService,
+        CrawlerLogService crawlerLogService
+    ) {
         this.stagedCouponRepository = stagedCouponRepository;
         this.couponService = couponService;
+        this.brandProfileService = brandProfileService;
+        this.crawlerLogService = crawlerLogService;
     }
 
     @Transactional
@@ -26,14 +37,16 @@ public class StagedCouponService {
         return stagedCouponRepository.findFirstByStoreIgnoreCaseAndCouponCodeIgnoreCase(normalizedStore, normalizedCode)
             .map(existing -> {
                 copyCouponFields(existing, incoming, normalizedStore, normalizedCode);
-                stagedCouponRepository.save(existing);
+                StagedCoupon saved = stagedCouponRepository.save(existing);
+                autoPostIfBrandEnabled(saved);
                 return false;
             })
             .orElseGet(() -> {
                 StagedCoupon staged = new StagedCoupon();
                 copyCouponFields(staged, incoming, normalizedStore, normalizedCode);
                 staged.setPosted(false);
-                stagedCouponRepository.save(staged);
+                StagedCoupon saved = stagedCouponRepository.save(staged);
+                autoPostIfBrandEnabled(saved);
                 return true;
             });
     }
@@ -49,6 +62,25 @@ public class StagedCouponService {
         StagedCoupon staged = stagedCouponRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Staged coupon not found: " + id));
 
+        return toDto(postStagedCoupon(staged));
+    }
+
+    private void autoPostIfBrandEnabled(StagedCoupon staged) {
+        if (!brandProfileService.isCouponAutoPostEnabledForStore(staged.getStore())) {
+            return;
+        }
+        try {
+            postStagedCoupon(staged);
+        } catch (RuntimeException ex) {
+            crawlerLogService.warn(
+                "[source=staged-auto-post] store=" + nonBlankOrDefault(staged.getStore(), "Unknown Store")
+                    + " code=" + nonBlankOrDefault(staged.getCouponCode(), "SEEDEAL")
+                    + " failed=" + ex.getClass().getSimpleName()
+            );
+        }
+    }
+
+    private StagedCoupon postStagedCoupon(StagedCoupon staged) {
         Coupon coupon = new Coupon();
         coupon.setStore(nonBlankOrDefault(staged.getStore(), "Unknown Store"));
         coupon.setTitle(nonBlankOrDefault(staged.getTitle(), "Untitled Offer"));
@@ -63,8 +95,7 @@ public class StagedCouponService {
         staged.setPosted(true);
         staged.setPostedAt(LocalDateTime.now());
         staged.setPostedCouponId(result.couponId());
-
-        return toDto(stagedCouponRepository.save(staged));
+        return stagedCouponRepository.save(staged);
     }
 
     @Transactional
@@ -81,6 +112,23 @@ public class StagedCouponService {
             posted++;
         }
         return posted;
+    }
+
+    @Transactional
+    public int deleteFromStaging(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return 0;
+        }
+        List<Long> validIds = ids.stream()
+            .filter(id -> id != null && id > 0)
+            .distinct()
+            .toList();
+        if (validIds.isEmpty()) {
+            return 0;
+        }
+        int before = stagedCouponRepository.findAllById(validIds).size();
+        stagedCouponRepository.deleteAllByIdInBatch(validIds);
+        return before;
     }
 
     private void copyCouponFields(StagedCoupon target, Coupon source, String store, String code) {

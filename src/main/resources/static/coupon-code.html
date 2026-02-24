@@ -18,13 +18,24 @@
 
 <main class="code-wrap">
     <section class="code-card">
-        <p class="eyebrow">YOUR COUPON CODE</p>
-        <h1 id="codeStore">Brand</h1>
+        <div id="codeTopAdWrap" class="ad-section hidden">
+            <div id="codeTopAd" class="ad-box"></div>
+        </div>
+        <div class="code-brand-head">
+            <img id="codeBrandLogo" class="coupon-code-brand-logo" src="/logos/default.svg" alt="brand logo">
+            <div>
+                <p class="eyebrow">YOUR COUPON CODE</p>
+                <h1 id="codeStore">Brand</h1>
+            </div>
+        </div>
         <p id="codeTitle" class="subtitle"></p>
         <p class="coupon-code-large" id="couponCode">-</p>
         <div class="admin-row">
             <button id="copyCodeBtn" class="primary-btn">Copy Code</button>
             <a href="/" class="admin-mini-btn" style="text-decoration:none;">Back to Home</a>
+        </div>
+        <div id="codeBottomAdWrap" class="ad-section hidden">
+            <div id="codeBottomAd" class="ad-box"></div>
         </div>
     </section>
 </main>

@@ -4,6 +4,12 @@ const brandLogoCrawlerEnabled = document.getElementById("brandLogoCrawlerEnabled
 const couponCrawlerIntervalMinutes = document.getElementById("couponCrawlerIntervalMinutes");
 const brandCrawlerIntervalMinutes = document.getElementById("brandCrawlerIntervalMinutes");
 const brandLogoCrawlerIntervalMinutes = document.getElementById("brandLogoCrawlerIntervalMinutes");
+const couponCrawlerRunAt = document.getElementById("couponCrawlerRunAt");
+const brandCrawlerRunAt = document.getElementById("brandCrawlerRunAt");
+const brandLogoCrawlerRunAt = document.getElementById("brandLogoCrawlerRunAt");
+const couponCrawlerLastRunAt = document.getElementById("couponCrawlerLastRunAt");
+const brandCrawlerLastRunAt = document.getElementById("brandCrawlerLastRunAt");
+const brandLogoCrawlerLastRunAt = document.getElementById("brandLogoCrawlerLastRunAt");
 const saveCrawlerBtn = document.getElementById("saveCrawlerBtn");
 const runCouponCrawlerBtn = document.getElementById("runCouponCrawlerBtn");
 const runBrandCrawlerBtn = document.getElementById("runBrandCrawlerBtn");
@@ -16,11 +22,15 @@ const crawlerSiteCouponEnabled = document.getElementById("crawlerSiteCouponEnabl
 const crawlerSiteBrandEnabled = document.getElementById("crawlerSiteBrandEnabled");
 const crawlerSiteLogoEnabled = document.getElementById("crawlerSiteLogoEnabled");
 const saveCrawlerSiteBtn = document.getElementById("saveCrawlerSiteBtn");
+const refreshCrawlerSiteListBtn = document.getElementById("refreshCrawlerSiteListBtn");
 const crawlerSiteTable = document.getElementById("crawlerSiteTable");
 const stagedCouponTable = document.getElementById("stagedCouponTable");
 const postSelectedStagedBtn = document.getElementById("postSelectedStagedBtn");
+const deleteSelectedStagedBtn = document.getElementById("deleteSelectedStagedBtn");
+const refreshStagedCouponListBtn = document.getElementById("refreshStagedCouponListBtn");
 const logPanel = document.getElementById("logPanel");
 const logLang = document.getElementById("logLang");
+const refreshCrawlerLogListBtn = document.getElementById("refreshCrawlerLogListBtn");
 const crawlerReportTable = document.getElementById("crawlerReportTable");
 const stagedBrandLogoTable = document.getElementById("stagedBrandLogoTable");
 const adminLang = document.getElementById("adminLang");
@@ -37,6 +47,7 @@ const statBlogs = document.getElementById("statBlogs");
 const statBrands = document.getElementById("statBrands");
 const statCrawler = document.getElementById("statCrawler");
 const brandCouponStatTable = document.getElementById("brandCouponStatTable");
+const refreshDashboardListBtn = document.getElementById("refreshDashboardListBtn");
 
 const contentHeroEyebrow = document.getElementById("contentHeroEyebrow");
 const contentHeroTitle = document.getElementById("contentHeroTitle");
@@ -79,6 +90,7 @@ const couponLogo = document.getElementById("couponLogo");
 const saveCouponBtn = document.getElementById("saveCouponBtn");
 const clearCouponBtn = document.getElementById("clearCouponBtn");
 const saveAllCouponsBtn = document.getElementById("saveAllCouponsBtn");
+const refreshCouponListBtn = document.getElementById("refreshCouponListBtn");
 
 const brandStoreName = document.getElementById("brandStoreName");
 const brandSlug = document.getElementById("brandSlug");
@@ -86,12 +98,14 @@ const brandTitle = document.getElementById("brandTitle");
 const brandSummary = document.getElementById("brandSummary");
 const brandOfficialUrl = document.getElementById("brandOfficialUrl");
 const brandAffiliateUrl = document.getElementById("brandAffiliateUrl");
+const brandAutoPostCoupons = document.getElementById("brandAutoPostCoupons");
 const brandLogoUrl = document.getElementById("brandLogoUrl");
 const brandHeroImageUrl = document.getElementById("brandHeroImageUrl");
 const brandDescription = document.getElementById("brandDescription");
 const saveBrandBtn = document.getElementById("saveBrandBtn");
 const clearBrandBtn = document.getElementById("clearBrandBtn");
 const saveAllBrandsBtn = document.getElementById("saveAllBrandsBtn");
+const refreshBrandListBtn = document.getElementById("refreshBrandListBtn");
 
 const blogTitle = document.getElementById("blogTitle");
 const blogSummary = document.getElementById("blogSummary");
@@ -101,6 +115,7 @@ const blogContent = document.getElementById("blogContent");
 const saveBlogBtn = document.getElementById("saveBlogBtn");
 const clearBlogBtn = document.getElementById("clearBlogBtn");
 const saveAllBlogsBtn = document.getElementById("saveAllBlogsBtn");
+const refreshBlogListBtn = document.getElementById("refreshBlogListBtn");
 const blogImageFile = document.getElementById("blogImageFile");
 const uploadImageBtn = document.getElementById("uploadImageBtn");
 const blogStatus = document.getElementById("blogStatus");
@@ -126,9 +141,12 @@ const adsHomeBottomEnabled = document.getElementById("adsHomeBottomEnabled");
 const adsBlogTopEnabled = document.getElementById("adsBlogTopEnabled");
 const adsBlogInlineEnabled = document.getElementById("adsBlogInlineEnabled");
 const adsBlogBottomEnabled = document.getElementById("adsBlogBottomEnabled");
+const adsCodeTopEnabled = document.getElementById("adsCodeTopEnabled");
+const adsCodeBottomEnabled = document.getElementById("adsCodeBottomEnabled");
 const adsenseClientId = document.getElementById("adsenseClientId");
 const adsenseHomeSlot = document.getElementById("adsenseHomeSlot");
 const adsenseBlogSlot = document.getElementById("adsenseBlogSlot");
+const adsenseCodeSlot = document.getElementById("adsenseCodeSlot");
 const saveAdsBtn = document.getElementById("saveAdsBtn");
 const adsStatus = document.getElementById("adsStatus");
 
@@ -174,6 +192,7 @@ const I18N = {
     adsCardStripTitle: "Scrolling Strip",
     adsCardHomeTitle: "Homepage Placements",
     adsCardBlogTitle: "Blog Placements",
+    adsCardCodeTitle: "Coupon Code Placements",
     adsCardSenseTitle: "Google AdSense",
     crawlerSectionDesc: "Coupon / Brand / Logo crawler split controls",
     crawlerSitesDesc: "Add websites and control coupon/brand/logo crawling per site",
@@ -183,6 +202,9 @@ const I18N = {
     stagedCouponsDesc: "Crawler data is stored here first. Select and post to main site manually.",
     stagedCouponsHint: "Rows already posted are marked.",
     postSelectedStagedBtn: "Post Selected to Main Site",
+    deleteSelectedStagedBtn: "Delete Selected",
+    stagedNoSelection: "Please select staged rows first",
+    stagedDeleteConfirm: "Delete selected staged rows? This cannot be undone.",
     logLanguage: "Log Language",
     adsStripEnabledLabel: "Enable scrolling strip ad",
     adsHomeTopEnabledLabel: "Home top ad",
@@ -193,6 +215,17 @@ const I18N = {
     adsBlogTopEnabledLabel: "Blog top ad",
     adsBlogInlineEnabledLabel: "Blog inline ad",
     adsBlogBottomEnabledLabel: "Blog bottom ad",
+    adsCodeTopEnabledLabel: "Code page top ad",
+    adsCodeBottomEnabledLabel: "Code page bottom ad",
+    crawlerScheduleTaskHeader: "Task",
+    crawlerScheduleEnabledHeader: "Enabled",
+    crawlerScheduleIntervalHeader: "Interval (minutes)",
+    crawlerScheduleRunAtHeader: "Run At (HH:mm)",
+    crawlerScheduleLastRunHeader: "Last Run",
+    crawlerScheduleActionHeader: "Action",
+    couponCrawlerTaskName: "Coupon Crawler",
+    brandCrawlerTaskName: "Brand Crawler",
+    brandLogoCrawlerTaskName: "Brand Logo Crawler",
     couponCrawlerEnabledLabel: "Enable scheduled coupon crawler",
     couponCrawlerIntervalLabel: "Coupon interval (minutes)",
     brandCrawlerEnabledLabel: "Enable scheduled brand crawler",
@@ -222,6 +255,7 @@ const I18N = {
     saveAllCoupons: "Save All Edited Coupons",
     saveAllBrands: "Save All Edited Brands",
     saveAllBlogs: "Save All Edited Blogs",
+    refresh: "Refresh",
     crawlerSites: "Crawler Sites",
     crawler: "Crawler",
     couponMgmt: "Coupon Management",
@@ -236,9 +270,9 @@ const I18N = {
     stagedRepost: "Repost",
     stagedPosted: "Posted",
     stagedPending: "Pending",
-    stagedHeaders: ["Select", "ID", "Status", "Store", "Title", "Code", "Source", "Updated", "Posted At", "Main ID", "Actions"],
+    stagedHeaders: ["Select", "ID", "Status", "Store", "Title", "Code", "Expires", "Source", "Updated", "Posted At", "Main ID", "Actions"],
     couponHeaders: ["ID", "Store", "Title", "Category", "Expires", "Code", "Clicks", "Created", "Updated", "Affiliate URL", "Logo", "Actions"],
-    brandHeaders: ["ID", "Store", "Slug", "Title", "Created", "Updated", "Summary", "Official URL", "Affiliate URL", "Logo", "Hero Image", "Description", "Actions"],
+    brandHeaders: ["ID", "Store", "Slug", "Title", "Created", "Updated", "Summary", "Official URL", "Affiliate URL", "Auto Post", "Logo Preview", "Logo URL", "Hero Preview", "Hero URL", "Description", "Actions"],
     blogHeaders: ["ID", "Title", "Created", "Updated", "Summary", "Content", "Cover", "Published", "Actions"]
   },
   zh: {
@@ -273,6 +307,7 @@ const I18N = {
     adsCardStripTitle: "滚动条广告",
     adsCardHomeTitle: "首页广告位",
     adsCardBlogTitle: "博客广告位",
+    adsCardCodeTitle: "优惠码页广告位",
     adsCardSenseTitle: "Google AdSense",
     crawlerSectionDesc: "优惠券 / 品牌 / Logo 爬虫分模块控制",
     crawlerSitesDesc: "添加站点并按站点控制 coupon/brand/logo 抓取",
@@ -282,6 +317,9 @@ const I18N = {
     stagedCouponsDesc: "爬虫数据先写入这里，再由你手动发布到主站。",
     stagedCouponsHint: "已发布数据会有标记。",
     postSelectedStagedBtn: "发布选中项到主站",
+    deleteSelectedStagedBtn: "删除选中项",
+    stagedNoSelection: "请先选择中间表数据",
+    stagedDeleteConfirm: "确认删除选中的中间表数据？该操作不可撤销。",
     logLanguage: "日志语言",
     adsStripEnabledLabel: "启用滚动条广告",
     adsHomeTopEnabledLabel: "首页顶部广告",
@@ -292,6 +330,17 @@ const I18N = {
     adsBlogTopEnabledLabel: "博客顶部广告",
     adsBlogInlineEnabledLabel: "博客文中广告",
     adsBlogBottomEnabledLabel: "博客底部广告",
+    adsCodeTopEnabledLabel: "优惠码页顶部广告",
+    adsCodeBottomEnabledLabel: "优惠码页底部广告",
+    crawlerScheduleTaskHeader: "任务",
+    crawlerScheduleEnabledHeader: "启用",
+    crawlerScheduleIntervalHeader: "间隔（分钟）",
+    crawlerScheduleRunAtHeader: "执行时间（HH:mm）",
+    crawlerScheduleLastRunHeader: "最后运行时间",
+    crawlerScheduleActionHeader: "操作",
+    couponCrawlerTaskName: "优惠券爬虫",
+    brandCrawlerTaskName: "品牌爬虫",
+    brandLogoCrawlerTaskName: "品牌 Logo 爬虫",
     couponCrawlerEnabledLabel: "启用定时优惠券爬虫",
     couponCrawlerIntervalLabel: "优惠券间隔（分钟）",
     brandCrawlerEnabledLabel: "启用定时品牌爬虫",
@@ -321,6 +370,7 @@ const I18N = {
     saveAllCoupons: "保存所有已编辑优惠券",
     saveAllBrands: "保存所有已编辑品牌",
     saveAllBlogs: "保存所有已编辑博客",
+    refresh: "刷新",
     crawlerSites: "爬虫站点",
     crawler: "爬虫",
     couponMgmt: "优惠券管理",
@@ -335,9 +385,9 @@ const I18N = {
     stagedRepost: "重新发布",
     stagedPosted: "已发布",
     stagedPending: "未发布",
-    stagedHeaders: ["选择", "ID", "状态", "店铺", "标题", "优惠码", "来源", "更新时间", "发布时间", "主站ID", "操作"],
+    stagedHeaders: ["选择", "ID", "状态", "店铺", "标题", "优惠码", "有效期", "来源", "更新时间", "发布时间", "主站ID", "操作"],
     couponHeaders: ["ID", "店铺", "标题", "分类", "有效期", "优惠码", "点击", "创建时间", "更新时间", "联盟链接", "Logo", "操作"],
-    brandHeaders: ["ID", "店铺", "Slug", "标题", "创建时间", "更新时间", "摘要", "官网链接", "联盟链接", "Logo", "主图", "描述", "操作"],
+    brandHeaders: ["ID", "店铺", "Slug", "标题", "创建时间", "更新时间", "摘要", "官网链接", "联盟链接", "自动推送", "Logo预览", "Logo地址", "主图预览", "主图地址", "描述", "操作"],
     blogHeaders: ["ID", "标题", "创建时间", "更新时间", "摘要", "内容", "封面", "发布", "操作"]
   }
 };
@@ -397,6 +447,7 @@ function applyAdminLanguage() {
   set("adsCardStripTitle", t("adsCardStripTitle"));
   set("adsCardHomeTitle", t("adsCardHomeTitle"));
   set("adsCardBlogTitle", t("adsCardBlogTitle"));
+  set("adsCardCodeTitle", t("adsCardCodeTitle"));
   set("adsCardSenseTitle", t("adsCardSenseTitle"));
   set("crawlerSectionDesc", t("crawlerSectionDesc"));
   set("crawlerLogsTitle", t("crawlerLogsTitle"));
@@ -414,12 +465,17 @@ function applyAdminLanguage() {
   setCheckboxLabel("adsBlogTopEnabledLabel", t("adsBlogTopEnabledLabel"));
   setCheckboxLabel("adsBlogInlineEnabledLabel", t("adsBlogInlineEnabledLabel"));
   setCheckboxLabel("adsBlogBottomEnabledLabel", t("adsBlogBottomEnabledLabel"));
-  setCheckboxLabel("couponCrawlerEnabledLabel", t("couponCrawlerEnabledLabel"));
-  set("couponCrawlerIntervalLabel", t("couponCrawlerIntervalLabel"));
-  setCheckboxLabel("brandCrawlerEnabledLabel", t("brandCrawlerEnabledLabel"));
-  set("brandCrawlerIntervalLabel", t("brandCrawlerIntervalLabel"));
-  setCheckboxLabel("brandLogoCrawlerEnabledLabel", t("brandLogoCrawlerEnabledLabel"));
-  set("brandLogoCrawlerIntervalLabel", t("brandLogoCrawlerIntervalLabel"));
+  setCheckboxLabel("adsCodeTopEnabledLabel", t("adsCodeTopEnabledLabel"));
+  setCheckboxLabel("adsCodeBottomEnabledLabel", t("adsCodeBottomEnabledLabel"));
+  set("crawlerScheduleTaskHeader", t("crawlerScheduleTaskHeader"));
+  set("crawlerScheduleEnabledHeader", t("crawlerScheduleEnabledHeader"));
+  set("crawlerScheduleIntervalHeader", t("crawlerScheduleIntervalHeader"));
+  set("crawlerScheduleRunAtHeader", t("crawlerScheduleRunAtHeader"));
+  set("crawlerScheduleLastRunHeader", t("crawlerScheduleLastRunHeader"));
+  set("crawlerScheduleActionHeader", t("crawlerScheduleActionHeader"));
+  set("couponCrawlerTaskName", t("couponCrawlerTaskName"));
+  set("brandCrawlerTaskName", t("brandCrawlerTaskName"));
+  set("brandLogoCrawlerTaskName", t("brandLogoCrawlerTaskName"));
   const couponTitleEl = document.querySelector('[data-section="coupons"] .section-head-admin h3');
   if (couponTitleEl) couponTitleEl.textContent = t("couponMgmt");
   const brandTitleEl = document.querySelector('[data-section="brands"] .section-head-admin h3');
@@ -439,6 +495,7 @@ function applyAdminLanguage() {
   if (runBrandCrawlerBtn) runBrandCrawlerBtn.textContent = currentLang === "zh" ? "运行品牌爬虫" : "Run Brand Crawler";
   if (runBrandLogoCrawlerBtn) runBrandLogoCrawlerBtn.textContent = currentLang === "zh" ? "运行品牌 Logo 爬虫" : "Run Brand Logo Crawler";
   if (postSelectedStagedBtn) postSelectedStagedBtn.textContent = t("postSelectedStagedBtn");
+  if (deleteSelectedStagedBtn) deleteSelectedStagedBtn.textContent = t("deleteSelectedStagedBtn");
   if (saveCrawlerSiteBtn && !saveCrawlerSiteBtn.dataset.editId) saveCrawlerSiteBtn.textContent = t("addCrawlerSite");
   if (saveCouponBtn && !saveCouponBtn.dataset.editId) saveCouponBtn.textContent = t("addCoupon");
   if (saveBrandBtn && !saveBrandBtn.dataset.editId) saveBrandBtn.textContent = t("addBrand");
@@ -449,6 +506,13 @@ function applyAdminLanguage() {
   if (saveAllCouponsBtn) saveAllCouponsBtn.textContent = t("saveAllCoupons");
   if (saveAllBrandsBtn) saveAllBrandsBtn.textContent = t("saveAllBrands");
   if (saveAllBlogsBtn) saveAllBlogsBtn.textContent = t("saveAllBlogs");
+  if (refreshCouponListBtn) refreshCouponListBtn.textContent = t("refresh");
+  if (refreshBrandListBtn) refreshBrandListBtn.textContent = t("refresh");
+  if (refreshBlogListBtn) refreshBlogListBtn.textContent = t("refresh");
+  if (refreshCrawlerSiteListBtn) refreshCrawlerSiteListBtn.textContent = t("refresh");
+  if (refreshStagedCouponListBtn) refreshStagedCouponListBtn.textContent = t("refresh");
+  if (refreshCrawlerLogListBtn) refreshCrawlerLogListBtn.textContent = t("refresh");
+  if (refreshDashboardListBtn) refreshDashboardListBtn.textContent = t("refresh");
   if (logoutBtn) logoutBtn.textContent = currentLang === "zh" ? "退出登录" : "Logout";
   if (contentThemePreset && contentThemePreset.options.length >= 3) {
     contentThemePreset.options[0].text = currentLang === "zh" ? "方案 A - 信任蓝（推荐）" : "Scheme A - Trust Blue (Recommended)";
@@ -476,7 +540,7 @@ const tableViewState = {
   brands: { page: 1, size: 50, q: "", from: "", to: "", extra: "all" },
   blogs: { page: 1, size: 50, q: "", from: "", to: "", extra: "all" },
   crawlerSites: { page: 1, size: 50, q: "", from: "", to: "", extra: "all" },
-  stagedCoupons: { page: 1, size: 50, q: "", from: "", to: "", extra: "all" }
+  stagedCoupons: { page: 1, size: 50, q: "", from: "", to: "", extra: "all", source: "all", link: "all" }
 };
 
 function formatDateInput(value) {
@@ -523,14 +587,26 @@ function ensureTableControls(tableId, state, options = {}) {
     wrap.parentNode.insertBefore(controls, wrap);
   }
   const extraOptions = options.extraOptions || [];
+  const extraFilters = options.extraFilters || [];
+  const active = document.activeElement;
+  const focusSnapshot = active && controls.contains(active) && active.dataset?.key
+    ? { key: active.dataset.key, start: active.selectionStart, end: active.selectionEnd }
+    : null;
   const extraHtml = extraOptions.length
     ? `<select data-key="extra">${extraOptions.map(item => `<option value="${item.value}" ${state.extra === item.value ? "selected" : ""}>${item.label}</option>`).join("")}</select>`
     : "";
+  const extraFilterHtml = extraFilters.map(filter => {
+    const current = state[filter.key] ?? "all";
+    return `<select data-key="${filter.key}">${(filter.options || []).map(item =>
+      `<option value="${item.value}" ${current === item.value ? "selected" : ""}>${item.label}</option>`
+    ).join("")}</select>`;
+  }).join("");
   controls.innerHTML = `
     <input type="text" placeholder="${options.searchPlaceholder || "Search"}" value="${state.q || ""}" data-key="q">
     <label>From <input type="date" value="${state.from || ""}" data-key="from"></label>
     <label>To <input type="date" value="${state.to || ""}" data-key="to"></label>
     ${extraHtml}
+    ${extraFilterHtml}
     <select data-key="size">
       <option value="50" ${state.size === 50 ? "selected" : ""}>50 / page</option>
       <option value="100" ${state.size === 100 ? "selected" : ""}>100 / page</option>
@@ -540,6 +616,15 @@ function ensureTableControls(tableId, state, options = {}) {
     <span data-key="pageInfo"></span>
     <button class="admin-mini-btn" type="button" data-key="next">Next</button>
   `;
+  if (focusSnapshot) {
+    const toFocus = controls.querySelector(`[data-key="${focusSnapshot.key}"]`);
+    if (toFocus) {
+      toFocus.focus();
+      if (typeof toFocus.setSelectionRange === "function" && focusSnapshot.start != null && focusSnapshot.end != null) {
+        toFocus.setSelectionRange(focusSnapshot.start, focusSnapshot.end);
+      }
+    }
+  }
   return controls;
 }
 
@@ -583,7 +668,7 @@ document.addEventListener("change", event => {
   if (key === "size") {
     state.size = Number(target.value || 50);
     state.page = 1;
-  } else if (key === "from" || key === "to" || key === "extra") {
+  } else if (key === "from" || key === "to" || key === "extra" || key in state) {
     state[key] = target.value || "";
     state.page = 1;
   }
@@ -730,6 +815,28 @@ function formatDateTime(value) {
   return d.toLocaleString();
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll("\"", "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function renderImagePreview(url, alt) {
+  const src = (url || "").trim();
+  if (!src) {
+    return `<span class="image-preview-empty">-</span>`;
+  }
+  const safeSrc = escapeHtml(src);
+  const safeAlt = escapeHtml(alt || "preview");
+  return `<a class="admin-thumb-link" href="${safeSrc}" target="_blank" rel="noreferrer">
+    <img class="admin-thumb" src="${safeSrc}" alt="${safeAlt}" loading="lazy"
+      onerror="this.closest('.admin-thumb-link')?.classList.add('broken');this.remove();">
+  </a>`;
+}
+
 function sortedCopy(list, state, comparators = {}) {
   const arr = [...(list || [])];
   const { key, dir } = state;
@@ -756,18 +863,24 @@ function sortLabel(base, state, key) {
 async function loadCrawler() {
   const settings = await (await adminFetch("/api/admin/settings")).json();
   couponCrawlerEnabled.checked = settings.couponCrawlerEnabled ?? false;
-  brandCrawlerEnabled.checked = settings.brandCrawlerEnabled ?? true;
-  brandLogoCrawlerEnabled.checked = settings.brandLogoCrawlerEnabled ?? true;
+  brandCrawlerEnabled.checked = settings.brandCrawlerEnabled ?? false;
+  brandLogoCrawlerEnabled.checked = settings.brandLogoCrawlerEnabled ?? false;
   couponCrawlerIntervalMinutes.value = Math.max(1, Number(settings.couponCrawlerIntervalMinutes || 30));
   brandCrawlerIntervalMinutes.value = Math.max(1, Number(settings.brandCrawlerIntervalMinutes || 30));
   brandLogoCrawlerIntervalMinutes.value = Math.max(1, Number(settings.brandLogoCrawlerIntervalMinutes || 30));
+  if (couponCrawlerRunAt) couponCrawlerRunAt.value = (settings.couponCrawlerRunAt || "00:00").slice(0, 5);
+  if (brandCrawlerRunAt) brandCrawlerRunAt.value = (settings.brandCrawlerRunAt || "00:00").slice(0, 5);
+  if (brandLogoCrawlerRunAt) brandLogoCrawlerRunAt.value = (settings.brandLogoCrawlerRunAt || "00:00").slice(0, 5);
+  if (couponCrawlerLastRunAt) couponCrawlerLastRunAt.textContent = formatDateTime(settings.couponCrawlerLastRunAt);
+  if (brandCrawlerLastRunAt) brandCrawlerLastRunAt.textContent = formatDateTime(settings.brandCrawlerLastRunAt);
+  if (brandLogoCrawlerLastRunAt) brandLogoCrawlerLastRunAt.textContent = formatDateTime(settings.brandLogoCrawlerLastRunAt);
   cachedCrawlerLogs = await (await adminFetch("/api/admin/logs")).json();
   renderCrawlerLogs();
   await loadCrawlerReport();
   statCrawler.textContent = [
-    `Coupon crawler: ${couponCrawlerEnabled.checked ? "enabled" : "disabled"} (every ${couponCrawlerIntervalMinutes.value} min)`,
-    `Brand crawler: ${brandCrawlerEnabled.checked ? "enabled" : "disabled"} (every ${brandCrawlerIntervalMinutes.value} min)`,
-    `Logo crawler: ${brandLogoCrawlerEnabled.checked ? "enabled" : "disabled"} (every ${brandLogoCrawlerIntervalMinutes.value} min)`
+    `Coupon crawler: ${couponCrawlerEnabled.checked ? "enabled" : "disabled"} (${couponCrawlerIntervalMinutes.value}m @ ${couponCrawlerRunAt?.value || "00:00"})`,
+    `Brand crawler: ${brandCrawlerEnabled.checked ? "enabled" : "disabled"} (${brandCrawlerIntervalMinutes.value}m @ ${brandCrawlerRunAt?.value || "00:00"})`,
+    `Logo crawler: ${brandLogoCrawlerEnabled.checked ? "enabled" : "disabled"} (${brandLogoCrawlerIntervalMinutes.value}m @ ${brandLogoCrawlerRunAt?.value || "00:00"})`
   ].join(" | ");
   await Promise.all([loadCrawlerSites(), loadStagedCoupons()]);
 }
@@ -806,18 +919,25 @@ function translateLogMessage(message) {
     ["[source=simplycodes]", "[数据源=SimplyCodes]"],
     ["[source=brand-profile]", "[数据源=品牌资料]"],
     ["[source=brand-logo]", "[数据源=品牌Logo]"],
-    ["[source=custom-coupon]", "[数据源=自定义优惠券站点]"],
-    ["[source=custom-brand]", "[数据源=自定义品牌站点]"],
-    ["[source=custom-logo]", "[数据源=自定义Logo站点]"],
+    ["[source=site-coupon]", "[数据源=站点优惠券]"],
+    ["[source=site-brand]", "[数据源=站点品牌]"],
+    ["[source=site-logo]", "[数据源=站点Logo]"],
+    ["[source=site-discovery]", "[数据源=站点发现]"],
+    ["[source=custom-coupon]", "[数据源=站点优惠券]"],
+    ["[source=custom-brand]", "[数据源=站点品牌]"],
+    ["[source=custom-logo]", "[数据源=站点Logo]"],
     ["Coupon crawler skipped by site switch.", "优惠券爬虫已按站点开关跳过。"],
     ["Coupon crawler started.", "优惠券爬虫已启动。"],
     ["Brand profile crawler started.", "品牌资料爬虫已启动。"],
     ["Brand logo crawler started.", "品牌 Logo 爬虫已启动。"],
     ["Brand profile crawler finished.", "品牌资料爬虫已完成。"],
     ["Brand logo crawler finished.", "品牌 Logo 爬虫已完成。"],
-    ["Custom coupon crawler finished.", "自定义优惠券爬虫已完成。"],
-    ["Custom brand crawler finished.", "自定义品牌爬虫已完成。"],
-    ["Custom logo crawler finished.", "自定义 Logo 爬虫已完成。"],
+    ["Site coupon crawler finished.", "站点优惠券爬虫已完成。"],
+    ["Site brand crawler finished.", "站点品牌爬虫已完成。"],
+    ["Site logo crawler finished.", "站点 Logo 爬虫已完成。"],
+    ["Custom coupon crawler finished.", "站点优惠券爬虫已完成。"],
+    ["Custom brand crawler finished.", "站点品牌爬虫已完成。"],
+    ["Custom logo crawler finished.", "站点 Logo 爬虫已完成。"],
     ["Seed summary:", "种子汇总："],
     ["blocked=", "被拦截="],
     ["failed=", "失败原因="],
@@ -908,30 +1028,98 @@ async function loadCrawlerSites() {
   renderCrawlerSites(cachedCrawlerSites);
 }
 
+function sourceKeyFromRaw(source) {
+  const raw = (source || "").trim().toLowerCase();
+  if (!raw) return "unknown";
+  if (raw.includes("retailmenot")) return "retailmenot";
+  if (raw.includes("simplycodes")) return "simplycodes";
+  if (raw.startsWith("custom-")) {
+    return raw.replace(/^custom-/, "").replace(/-fallback$/, "");
+  }
+  if (raw.startsWith("site-")) {
+    return raw.replace(/^site-/, "").replace(/-fallback$/, "");
+  }
+  return raw.replace(/-fallback$/, "");
+}
+
+function titleCaseWords(value) {
+  return (value || "")
+    .split(/[\s_-]+/)
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function sourceLabelFromRaw(source) {
+  const key = sourceKeyFromRaw(source);
+  if (key === "retailmenot") return "RetailMeNot";
+  if (key === "simplycodes") return "SimplyCodes";
+  const matched = (cachedCrawlerSites || []).find(site => (site.siteKey || "").toLowerCase() === key);
+  if (matched && matched.siteName) return matched.siteName;
+  return titleCaseWords(key);
+}
+
+function buildStagedSourceFilterOptions(rows) {
+  const options = [{ value: "all", label: "All sources" }];
+  const seen = new Set(["all"]);
+  (rows || []).forEach(item => {
+    const key = sourceKeyFromRaw(item?.source);
+    if (seen.has(key)) {
+      return;
+    }
+    seen.add(key);
+    options.push({ value: key, label: sourceLabelFromRaw(item?.source) });
+  });
+  return options;
+}
+
 function renderStagedCouponRows(rows) {
   if (!stagedCouponTable) return;
   const stateView = tableViewState.stagedCoupons;
+  const sourceOptions = buildStagedSourceFilterOptions(rows);
+  const validSourceValues = new Set(sourceOptions.map(option => option.value));
+  if (!validSourceValues.has(stateView.source || "all")) {
+    stateView.source = "all";
+  }
   const controls = ensureTableControls("stagedCouponTable", stateView, {
     searchPlaceholder: "Search store/title/code/source",
     extraOptions: [
       { value: "all", label: "All statuses" },
       { value: "posted", label: "Posted" },
       { value: "pending", label: "Pending" }
+    ],
+    extraFilters: [
+      {
+        key: "source",
+        options: sourceOptions
+      },
+      {
+        key: "link",
+        options: [
+          { value: "all", label: "Main link: all" },
+          { value: "linked", label: "Main link: linked" },
+          { value: "unlinked", label: "Main link: unlinked" }
+        ]
+      }
     ]
   });
   const filteredRows = (rows || []).filter(c => {
     if (!inDateRange(c.updatedAt, stateView.from, stateView.to)) return false;
     if (stateView.extra === "posted" && !c.posted) return false;
     if (stateView.extra === "pending" && c.posted) return false;
+    if (stateView.source !== "all" && sourceKeyFromRaw(c.source) !== stateView.source) return false;
+    const linked = !!c.postedCouponId;
+    if (stateView.link === "linked" && !linked) return false;
+    if (stateView.link === "unlinked" && linked) return false;
     const q = (stateView.q || "").trim().toLowerCase();
     if (!q) return true;
-    const merged = `${c.store || ""} ${c.title || ""} ${c.couponCode || ""} ${c.source || ""}`.toLowerCase();
+    const merged = `${c.store || ""} ${c.title || ""} ${c.couponCode || ""} ${c.expires || ""} ${sourceLabelFromRaw(c.source) || ""}`.toLowerCase();
     return merged.includes(q);
   });
   const page = paginateRows(filteredRows, stateView);
   const headers = t("stagedHeaders");
   stagedCouponTable.innerHTML = `<thead><tr>
-    <th><input type="checkbox" id="selectAllStaged"></th><th>${headers[1]}</th><th>${headers[2]}</th><th>${headers[3]}</th><th>${headers[4]}</th><th>${headers[5]}</th><th>${headers[6]}</th><th>${headers[7]}</th><th>${headers[8]}</th><th>${headers[9]}</th><th>${headers[10]}</th>
+    <th><input type="checkbox" id="selectAllStaged"></th><th>${headers[1]}</th><th>${headers[2]}</th><th>${headers[3]}</th><th>${headers[4]}</th><th>${headers[5]}</th><th>${headers[6]}</th><th>${headers[7]}</th><th>${headers[8]}</th><th>${headers[9]}</th><th>${headers[10]}</th><th>${headers[11]}</th>
   </tr></thead><tbody>${page.rows.map(c => {
     const checked = selectedStagedCouponIds.has(c.id) ? "checked" : "";
     const statusText = c.posted ? t("stagedPosted") : t("stagedPending");
@@ -943,7 +1131,8 @@ function renderStagedCouponRows(rows) {
       <td>${c.store || ""}</td>
       <td>${c.title || ""}</td>
       <td>${c.couponCode || ""}</td>
-      <td>${c.source || ""}</td>
+      <td>${c.expires || ""}</td>
+      <td>${sourceLabelFromRaw(c.source)}</td>
       <td>${formatDateTime(c.updatedAt)}</td>
       <td>${formatDateTime(c.postedAt)}</td>
       <td>${c.postedCouponId || ""}</td>
@@ -981,7 +1170,7 @@ async function loadStagedCoupons() {
 
 async function postSelectedStagedCoupons() {
   if (!selectedStagedCouponIds.size) {
-    crawlerStatus.textContent = currentLang === "zh" ? "请先选择要发布的数据" : "Please select staged rows first";
+    crawlerStatus.textContent = t("stagedNoSelection");
     return;
   }
   const response = await adminFetch("/api/admin/staged-coupons/post-batch", {
@@ -991,6 +1180,24 @@ async function postSelectedStagedCoupons() {
   });
   crawlerStatus.textContent = await response.text();
   await Promise.all([loadStagedCoupons(), loadCoupons()]);
+}
+
+async function deleteSelectedStagedCoupons() {
+  if (!selectedStagedCouponIds.size) {
+    crawlerStatus.textContent = t("stagedNoSelection");
+    return;
+  }
+  if (!window.confirm(t("stagedDeleteConfirm"))) {
+    return;
+  }
+  const response = await adminFetch("/api/admin/staged-coupons/delete-batch", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ids: Array.from(selectedStagedCouponIds) })
+  });
+  crawlerStatus.textContent = await response.text();
+  selectedStagedCouponIds.clear();
+  await loadStagedCoupons();
 }
 
 async function saveCrawlerSite() {
@@ -1133,7 +1340,10 @@ async function saveCrawler() {
       brandLogoCrawlerEnabled: brandLogoCrawlerEnabled.checked,
       couponCrawlerIntervalMinutes: couponMinutes,
       brandCrawlerIntervalMinutes: brandMinutes,
-      brandLogoCrawlerIntervalMinutes: logoMinutes
+      brandLogoCrawlerIntervalMinutes: logoMinutes,
+      couponCrawlerRunAt: (couponCrawlerRunAt?.value || "00:00"),
+      brandCrawlerRunAt: (brandCrawlerRunAt?.value || "00:00"),
+      brandLogoCrawlerRunAt: (brandLogoCrawlerRunAt?.value || "00:00")
     })
   });
   crawlerStatus.textContent = response.ok ? t("save") : t("saveFailed");
@@ -1257,6 +1467,9 @@ function clearBrandForm() {
   saveBrandBtn.dataset.editId = "";
   saveBrandBtn.textContent = t("addBrand");
   [brandStoreName, brandSlug, brandTitle, brandSummary, brandOfficialUrl, brandAffiliateUrl, brandLogoUrl, brandHeroImageUrl, brandDescription].forEach(el => el.value = "");
+  if (brandAutoPostCoupons) {
+    brandAutoPostCoupons.checked = false;
+  }
 }
 
 async function saveBrandRowById(id) {
@@ -1267,6 +1480,8 @@ async function saveBrandRowById(id) {
     { name: "officialUrl" }, { name: "affiliateUrl" }, { name: "logoUrl" }, { name: "heroImageUrl" }, { name: "description" }
   ];
   const payload = { id, ...readRowData(row, fields) };
+  const autoPostInput = row.querySelector("input[data-field='autoPostCoupons']");
+  payload.autoPostCoupons = !!autoPostInput?.checked;
   await adminFetch("/api/admin/brands", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -1296,6 +1511,7 @@ function renderBrandRows(brands) {
     updatedAt: (a, b) => toTimestamp(a.updatedAt) - toTimestamp(b.updatedAt)
   });
   const page = paginateRows(rows, stateView);
+  const txt = value => escapeHtml(value || "");
   brandTable.innerHTML = `<thead><tr>
     <th data-sort="id">${sortLabel(headers[0], state, "id")}</th>
     <th data-sort="storeName">${sortLabel(headers[1], state, "storeName")}</th>
@@ -1303,21 +1519,24 @@ function renderBrandRows(brands) {
     <th data-sort="title">${sortLabel(headers[3], state, "title")}</th>
     <th data-sort="createdAt">${sortLabel(headers[4], state, "createdAt")}</th>
     <th data-sort="updatedAt">${sortLabel(headers[5], state, "updatedAt")}</th>
-    <th>${headers[6]}</th><th>${headers[7]}</th><th>${headers[8]}</th><th>${headers[9]}</th><th>${headers[10]}</th><th>${headers[11]}</th><th>${headers[12]}</th>
+    <th>${headers[6]}</th><th>${headers[7]}</th><th>${headers[8]}</th><th>${headers[9]}</th><th>${headers[10]}</th><th>${headers[11]}</th><th>${headers[12]}</th><th>${headers[13]}</th><th>${headers[14]}</th><th>${headers[15]}</th>
   </tr></thead><tbody>${page.rows.map(b => `
     <tr data-id='${b.id}'>
       <td>${b.id}</td>
-      <td class='editable-cell' data-field='storeName'>${b.storeName || ""}</td>
-      <td class='editable-cell' data-field='slug'>${b.slug || ""}</td>
-      <td class='editable-cell' data-field='title'>${b.title || ""}</td>
+      <td class='editable-cell' data-field='storeName'>${txt(b.storeName)}</td>
+      <td class='editable-cell' data-field='slug'>${txt(b.slug)}</td>
+      <td class='editable-cell' data-field='title'>${txt(b.title)}</td>
       <td>${formatDateTime(b.createdAt)}</td>
       <td>${formatDateTime(b.updatedAt)}</td>
-      <td class='editable-cell' data-field='summary'>${b.summary || ""}</td>
-      <td class='editable-cell cut-cell' data-field='officialUrl'>${b.officialUrl || ""}</td>
-      <td class='editable-cell cut-cell' data-field='affiliateUrl'>${b.affiliateUrl || ""}</td>
-      <td class='editable-cell cut-cell' data-field='logoUrl'>${b.logoUrl || ""}</td>
-      <td class='editable-cell cut-cell' data-field='heroImageUrl'>${b.heroImageUrl || ""}</td>
-      <td class='editable-cell cut-cell' data-field='description'>${b.description || ""}</td>
+      <td class='editable-cell' data-field='summary'>${txt(b.summary)}</td>
+      <td class='editable-cell cut-cell' data-field='officialUrl'>${txt(b.officialUrl)}</td>
+      <td class='editable-cell cut-cell' data-field='affiliateUrl'>${txt(b.affiliateUrl)}</td>
+      <td><input type='checkbox' data-field='autoPostCoupons' ${b.autoPostCoupons ? "checked" : ""}></td>
+      <td>${renderImagePreview(b.logoUrl, "brand logo")}</td>
+      <td class='editable-cell cut-cell' data-field='logoUrl'>${txt(b.logoUrl)}</td>
+      <td>${renderImagePreview(b.heroImageUrl, "brand hero image")}</td>
+      <td class='editable-cell cut-cell' data-field='heroImageUrl'>${txt(b.heroImageUrl)}</td>
+      <td class='editable-cell cut-cell' data-field='description'>${txt(b.description)}</td>
       <td><button class='admin-mini-btn' data-save-brand='${b.id}'>${t("tableSave")}</button> <button class='admin-mini-btn' data-del-brand='${b.id}'>${t("tableDelete")}</button></td>
   </tr>`).join("")}</tbody>`;
   if (controls) {
@@ -1343,7 +1562,8 @@ async function saveBrand() {
     heroImageUrl: brandHeroImageUrl.value,
     logoUrl: brandLogoUrl.value,
     officialUrl: brandOfficialUrl.value,
-    affiliateUrl: brandAffiliateUrl.value
+    affiliateUrl: brandAffiliateUrl.value,
+    autoPostCoupons: !!brandAutoPostCoupons?.checked
   };
   await adminFetch("/api/admin/brands", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   clearBrandForm();
@@ -1515,9 +1735,12 @@ async function loadAds() {
   adsBlogTopEnabled.checked = data.blogTopEnabled;
   adsBlogInlineEnabled.checked = data.blogInlineEnabled;
   adsBlogBottomEnabled.checked = data.blogBottomEnabled;
+  adsCodeTopEnabled.checked = data.codeTopEnabled;
+  adsCodeBottomEnabled.checked = data.codeBottomEnabled;
   adsenseClientId.value = data.adsenseClientId || "";
   adsenseHomeSlot.value = data.homeAdsenseSlot || "";
   adsenseBlogSlot.value = data.blogAdsenseSlot || "";
+  adsenseCodeSlot.value = data.codeAdsenseSlot || "";
 }
 
 async function saveAds() {
@@ -1534,9 +1757,12 @@ async function saveAds() {
     blogTopEnabled: adsBlogTopEnabled.checked,
     blogInlineEnabled: adsBlogInlineEnabled.checked,
     blogBottomEnabled: adsBlogBottomEnabled.checked,
+    codeTopEnabled: adsCodeTopEnabled.checked,
+    codeBottomEnabled: adsCodeBottomEnabled.checked,
     adsenseClientId: adsenseClientId.value,
     homeAdsenseSlot: adsenseHomeSlot.value,
-    blogAdsenseSlot: adsenseBlogSlot.value
+    blogAdsenseSlot: adsenseBlogSlot.value,
+    codeAdsenseSlot: adsenseCodeSlot.value
   };
   const response = await adminFetch("/api/admin/ads", {
     method: "PUT",
@@ -1581,6 +1807,12 @@ async function loadDashboard() {
   brandCouponStatTable.innerHTML = `<thead><tr><th>Brand</th><th>Coupons</th></tr></thead><tbody>${
     rows.map(row => `<tr><td>${row.storeName || ""}</td><td>${row.couponCount ?? 0}</td></tr>`).join("")
   }</tbody>`;
+}
+
+async function refreshCrawlerLogLists() {
+  cachedCrawlerLogs = await (await adminFetch("/api/admin/logs")).json();
+  renderCrawlerLogs();
+  await loadCrawlerReport();
 }
 
 async function saveTheme() {
@@ -1773,19 +2005,29 @@ runBrandLogoCrawlerBtn.addEventListener("click", () => runCrawler("/api/admin/cr
 if (postSelectedStagedBtn) {
   postSelectedStagedBtn.addEventListener("click", postSelectedStagedCoupons);
 }
+if (deleteSelectedStagedBtn) {
+  deleteSelectedStagedBtn.addEventListener("click", deleteSelectedStagedCoupons);
+}
 saveContentBtn.addEventListener("click", saveContent);
 uploadHeroImageBtn.addEventListener("click", uploadHeroImage);
 saveCouponBtn.addEventListener("click", saveCoupon);
 clearCouponBtn.addEventListener("click", clearCouponForm);
 saveAllCouponsBtn.addEventListener("click", saveAllCoupons);
+if (refreshCouponListBtn) refreshCouponListBtn.addEventListener("click", loadCoupons);
 saveBrandBtn.addEventListener("click", saveBrand);
 clearBrandBtn.addEventListener("click", clearBrandForm);
 saveAllBrandsBtn.addEventListener("click", saveAllBrands);
+if (refreshBrandListBtn) refreshBrandListBtn.addEventListener("click", loadBrands);
 saveBlogBtn.addEventListener("click", saveBlog);
 clearBlogBtn.addEventListener("click", clearBlogForm);
 saveAllBlogsBtn.addEventListener("click", saveAllBlogs);
+if (refreshBlogListBtn) refreshBlogListBtn.addEventListener("click", loadBlogs);
 uploadImageBtn.addEventListener("click", uploadBlogImage);
 saveAdsBtn.addEventListener("click", saveAds);
+if (refreshCrawlerSiteListBtn) refreshCrawlerSiteListBtn.addEventListener("click", loadCrawlerSites);
+if (refreshStagedCouponListBtn) refreshStagedCouponListBtn.addEventListener("click", loadStagedCoupons);
+if (refreshCrawlerLogListBtn) refreshCrawlerLogListBtn.addEventListener("click", refreshCrawlerLogLists);
+if (refreshDashboardListBtn) refreshDashboardListBtn.addEventListener("click", loadDashboard);
 if (saveThemeBtn) saveThemeBtn.addEventListener("click", saveTheme);
 if (uploadSiteLogoBtn) uploadSiteLogoBtn.addEventListener("click", uploadSiteLogo);
 if (saveSeoBtn) saveSeoBtn.addEventListener("click", saveSeo);

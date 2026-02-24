@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.springframework.http.CacheControl;
@@ -114,7 +115,13 @@ public class AdminController {
             appSettingService.isBrandLogoCrawlerEnabled(),
             Math.max(1, appSettingService.getCouponCrawlerIntervalMs() / 60_000),
             Math.max(1, appSettingService.getBrandCrawlerIntervalMs() / 60_000),
-            Math.max(1, appSettingService.getBrandLogoCrawlerIntervalMs() / 60_000)
+            Math.max(1, appSettingService.getBrandLogoCrawlerIntervalMs() / 60_000),
+            appSettingService.getCouponCrawlerRunAt(),
+            appSettingService.getBrandCrawlerRunAt(),
+            appSettingService.getBrandLogoCrawlerRunAt(),
+            appSettingService.getCouponCrawlerLastRunAt(),
+            appSettingService.getBrandCrawlerLastRunAt(),
+            appSettingService.getBrandLogoCrawlerLastRunAt()
         );
     }
 
@@ -129,6 +136,9 @@ public class AdminController {
         long couponIntervalMs = appSettingService.setCouponCrawlerIntervalMs(couponMinutes * 60_000);
         long brandIntervalMs = appSettingService.setBrandCrawlerIntervalMs(brandMinutes * 60_000);
         long logoIntervalMs = appSettingService.setBrandLogoCrawlerIntervalMs(logoMinutes * 60_000);
+        String couponRunAt = appSettingService.setCouponCrawlerRunAt(body.couponCrawlerRunAt());
+        String brandRunAt = appSettingService.setBrandCrawlerRunAt(body.brandCrawlerRunAt());
+        String logoRunAt = appSettingService.setBrandLogoCrawlerRunAt(body.brandLogoCrawlerRunAt());
 
         return new CrawlerSettingsDto(
             couponCrawlerEnabled,
@@ -136,7 +146,13 @@ public class AdminController {
             brandLogoCrawlerEnabled,
             Math.max(1, couponIntervalMs / 60_000),
             Math.max(1, brandIntervalMs / 60_000),
-            Math.max(1, logoIntervalMs / 60_000)
+            Math.max(1, logoIntervalMs / 60_000),
+            couponRunAt,
+            brandRunAt,
+            logoRunAt,
+            appSettingService.getCouponCrawlerLastRunAt(),
+            appSettingService.getBrandCrawlerLastRunAt(),
+            appSettingService.getBrandLogoCrawlerLastRunAt()
         );
     }
 
@@ -164,12 +180,15 @@ public class AdminController {
         long brandProfilesTotal = brandProfileService.count();
         return ResponseEntity.ok(
             "Crawler done, stagedCoupons=" + couponCount
-                + " (retailmenot=" + couponResult.retailMeNot() + ", simplycodes=" + couponResult.simplyCodes() + ", custom=" + couponResult.custom() + ")"
+                + " (retailmenot=" + couponResult.retailMeNot()
+                + ", simplycodes=" + couponResult.simplyCodes()
+                + ", siteCrawler=" + couponResult.siteCrawler()
+                + ", sites=[" + formatSiteBreakdown(couponResult) + "])"
                 + ", brandUpserts=" + brandCount
-                + " (brandSeeds=" + brandSeedCount + ", custom=" + brandCustomCount + ")"
+                + " (brandSeeds=" + brandSeedCount + ", siteCrawler=" + brandCustomCount + ")"
                 + ", brandProfilesTotal=" + brandProfilesTotal
                 + ", brandLogos=" + logoCount
-                + " (brandProfiles=" + logoBrandCount + ", custom=" + logoCustomCount + ")"
+                + " (brandProfiles=" + logoBrandCount + ", siteCrawler=" + logoCustomCount + ")"
                 + ", totalUpserts=" + total
         );
     }
@@ -181,7 +200,8 @@ public class AdminController {
             "Coupon crawler done, stagedTotal=" + couponResult.total()
                 + ", retailmenot=" + couponResult.retailMeNot()
                 + ", simplycodes=" + couponResult.simplyCodes()
-                + ", custom=" + couponResult.custom()
+                + ", siteCrawler=" + couponResult.siteCrawler()
+                + ", sites=[" + formatSiteBreakdown(couponResult) + "]"
         );
     }
 
@@ -194,7 +214,7 @@ public class AdminController {
         return ResponseEntity.ok(
             "Brand crawler done, upserts=" + brandCount
                 + ", brandSeeds=" + brandSeedCount
-                + ", custom=" + brandCustomCount
+                + ", siteCrawler=" + brandCustomCount
                 + ", brandProfilesTotal=" + brandProfilesTotal
         );
     }
@@ -202,21 +222,37 @@ public class AdminController {
     @PostMapping("/crawler/run-brand-logos")
     public ResponseEntity<String> runBrandLogoCrawler() {
         int brandCount = brandLogoCrawlerService.crawlLatest();
-        int customCount = genericSiteCrawlerService.crawlLogosFromEnabledSites();
-        int logoCount = brandCount + customCount;
-        return ResponseEntity.ok("Brand logo crawler done, total=" + logoCount + ", brandProfiles=" + brandCount + ", custom=" + customCount);
+        int siteCrawlerCount = genericSiteCrawlerService.crawlLogosFromEnabledSites();
+        int logoCount = brandCount + siteCrawlerCount;
+        return ResponseEntity.ok("Brand logo crawler done, total=" + logoCount + ", brandProfiles=" + brandCount + ", siteCrawler=" + siteCrawlerCount);
     }
 
     private CouponRunResult runCouponCrawlerInternal() {
         int retailCount = retailMeNotCrawlerService.crawlLatest();
         int simplyCodesCount = simplyCodesCrawlerService.crawlLatest();
-        int customCount = genericSiteCrawlerService.crawlCouponsFromEnabledSites();
-        return new CouponRunResult(retailCount, simplyCodesCount, customCount);
+        GenericSiteCrawlerService.CouponCrawlBreakdown customBreakdown = genericSiteCrawlerService.crawlCouponsFromEnabledSitesWithBreakdown();
+        return new CouponRunResult(retailCount, simplyCodesCount, customBreakdown.totalUpserts(), customBreakdown.perSite());
     }
 
-    private record CouponRunResult(int retailMeNot, int simplyCodes, int custom) {
+    private String formatSiteBreakdown(CouponRunResult result) {
+        if (result.siteBreakdown() == null || result.siteBreakdown().isEmpty()) {
+            return "none";
+        }
+        String summary = result.siteBreakdown().stream()
+            .filter(item -> item != null && item.upserts() > 0)
+            .map(item -> item.siteName() + "=" + item.upserts())
+            .collect(Collectors.joining(", "));
+        return summary.isBlank() ? "none" : summary;
+    }
+
+    private record CouponRunResult(
+        int retailMeNot,
+        int simplyCodes,
+        int siteCrawler,
+        List<GenericSiteCrawlerService.SiteCouponUpsert> siteBreakdown
+    ) {
         int total() {
-            return retailMeNot + simplyCodes + custom;
+            return retailMeNot + simplyCodes + siteCrawler;
         }
     }
 
@@ -274,6 +310,12 @@ public class AdminController {
     public ResponseEntity<String> postStagedCoupons(@RequestBody StagedCouponPostRequest request) {
         int posted = stagedCouponService.postToMain(request == null ? List.of() : request.ids());
         return ResponseEntity.ok("Posted to main site: " + posted);
+    }
+
+    @PostMapping("/staged-coupons/delete-batch")
+    public ResponseEntity<String> deleteStagedCoupons(@RequestBody StagedCouponPostRequest request) {
+        int deleted = stagedCouponService.deleteFromStaging(request == null ? List.of() : request.ids());
+        return ResponseEntity.ok("Deleted from staging: " + deleted);
     }
 
     @PutMapping("/coupons")

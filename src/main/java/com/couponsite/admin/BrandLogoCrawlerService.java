@@ -48,6 +48,12 @@ public class BrandLogoCrawlerService {
         if (!appSettingService.isBrandLogoCrawlerEnabled()) {
             return;
         }
+        if (!appSettingService.isRunWindowOpen(
+            appSettingService.getBrandLogoCrawlerRunAt(),
+            appSettingService.getBrandLogoCrawlerLastRunAt()
+        )) {
+            return;
+        }
         long now = System.currentTimeMillis();
         long intervalMs = appSettingService.getBrandLogoCrawlerIntervalMs();
         long lastRun = lastScheduledRunAt.get();
@@ -77,6 +83,7 @@ public class BrandLogoCrawlerService {
         }
 
         crawlerLogService.info("[source=brand-logo] Brand logo crawler finished. scannedStores=" + scannedStores + ", logosStored=" + updated);
+        appSettingService.markBrandLogoCrawlerLastRunNow();
         return updated;
     }
 

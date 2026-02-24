@@ -14,6 +14,9 @@ const heroSection = document.getElementById("heroSection");
 const heroEyebrow = document.getElementById("heroEyebrow");
 const heroTitle = document.getElementById("heroTitle");
 const heroSubtitle = document.getElementById("heroSubtitle");
+const heroTicketLabel = document.getElementById("heroTicketLabel");
+const heroTicketCount = document.getElementById("heroTicketCount");
+const heroTicketMeta = document.getElementById("heroTicketMeta");
 const adStrip = document.getElementById("adStrip");
 const adStripLink = document.getElementById("adStripLink");
 const adStripText = document.getElementById("adStripText");
@@ -107,6 +110,13 @@ async function fetchCoupons() {
   const params = new URLSearchParams({ category: activeFilter, q: searchTerm });
   const response = await fetch(`/api/coupons?${params.toString()}`);
   if (!response.ok) throw new Error("Failed to fetch coupons");
+  return response.json();
+}
+
+async function fetchAllCouponsForStats() {
+  const params = new URLSearchParams({ category: "all", q: "" });
+  const response = await fetch(`/api/coupons?${params.toString()}`);
+  if (!response.ok) throw new Error("Failed to fetch coupon stats");
   return response.json();
 }
 
@@ -414,6 +424,26 @@ function renderBlogs(blogs) {
   });
 }
 
+function isTodayDateTime(value) {
+  if (!value) return false;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return false;
+  const now = new Date();
+  return d.getFullYear() === now.getFullYear()
+    && d.getMonth() === now.getMonth()
+    && d.getDate() === now.getDate();
+}
+
+function renderHeroTicketStats(coupons) {
+  if (!heroTicketLabel || !heroTicketCount || !heroTicketMeta) return;
+  const all = Array.isArray(coupons) ? coupons : [];
+  const workingCodes = all.filter(coupon => !coupon.expired).length;
+  const updatedToday = all.filter(coupon => isTodayDateTime(coupon.updatedAt || coupon.createdAt)).length;
+  heroTicketLabel.textContent = "Verified Today";
+  heroTicketCount.textContent = `${workingCodes} Working Codes`;
+  heroTicketMeta.textContent = `${updatedToday} coupons updated today from live database.`;
+}
+
 async function refreshCoupons() {
   try {
     const coupons = await fetchCoupons();
@@ -432,6 +462,17 @@ async function refreshBlogs() {
     renderBlogs(blogs);
   } catch (_) {
     blogList.innerHTML = `<article class="home-blog-card"><div class="blog-content"><h3>Unable to load guides right now.</h3></div></article>`;
+  }
+}
+
+async function refreshHeroStats() {
+  try {
+    const coupons = await fetchAllCouponsForStats();
+    renderHeroTicketStats(coupons);
+  } catch (_) {
+    if (heroTicketLabel) heroTicketLabel.textContent = "Live Data";
+    if (heroTicketCount) heroTicketCount.textContent = "Working Codes Unavailable";
+    if (heroTicketMeta) heroTicketMeta.textContent = "Unable to load live coupon stats right now.";
   }
 }
 
@@ -457,5 +498,5 @@ searchForm.addEventListener("submit", event => {
   } catch (_) {
     document.body.dataset.theme = "scheme-a";
   }
-  await Promise.all([refreshCoupons(), refreshBlogs()]);
+  await Promise.all([refreshCoupons(), refreshBlogs(), refreshHeroStats()]);
 })();

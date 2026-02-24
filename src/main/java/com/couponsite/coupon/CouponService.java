@@ -233,7 +233,9 @@ public class CouponService {
             coupon.getExpires(),
             expired,
             logoUrl,
-            coupon.getClickCount()
+            coupon.getClickCount(),
+            coupon.getCreatedAt(),
+            coupon.getUpdatedAt()
         );
     }
 

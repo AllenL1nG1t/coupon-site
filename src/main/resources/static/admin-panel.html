@@ -61,6 +61,9 @@
             <h3 id="brandCouponStatsTitle">Brand Coupon Counts</h3>
             <span id="brandCouponStatsDesc">Coupons grouped by brand/store</span>
         </div>
+        <div class="admin-row">
+            <button id="refreshDashboardListBtn" class="admin-mini-btn">Refresh</button>
+        </div>
         <div class="table-wrap"><table class="admin-table" id="brandCouponStatTable"></table></div>
     </section>
 
@@ -164,6 +167,7 @@
             <button id="saveCouponBtn" class="primary-btn">Add Coupon</button>
             <button id="clearCouponBtn" class="admin-mini-btn">Clear Form</button>
             <button id="saveAllCouponsBtn" class="admin-mini-btn">Save All Edited Coupons</button>
+            <button id="refreshCouponListBtn" class="admin-mini-btn">Refresh</button>
             <span class="muted-inline">Double-click table cells to edit inline</span>
         </div>
         <div class="table-wrap"><table class="admin-table" id="couponTable"></table></div>
@@ -181,6 +185,7 @@
             <input id="brandSummary" placeholder="Summary">
             <input id="brandOfficialUrl" placeholder="Official URL">
             <input id="brandAffiliateUrl" placeholder="Affiliate URL (Store-level)">
+            <label><input id="brandAutoPostCoupons" type="checkbox"> Auto-post staged coupons for this brand</label>
             <input id="brandLogoUrl" placeholder="Logo URL">
             <input id="brandHeroImageUrl" placeholder="Hero Image URL">
             <textarea id="brandDescription" rows="6" placeholder="Description"></textarea>
@@ -189,6 +194,7 @@
             <button id="saveBrandBtn" class="primary-btn">Add Brand</button>
             <button id="clearBrandBtn" class="admin-mini-btn">Clear Form</button>
             <button id="saveAllBrandsBtn" class="admin-mini-btn">Save All Edited Brands</button>
+            <button id="refreshBrandListBtn" class="admin-mini-btn">Refresh</button>
             <span class="muted-inline">Double-click table cells to edit inline</span>
         </div>
         <div class="table-wrap"><table class="admin-table" id="brandTable"></table></div>
@@ -223,6 +229,7 @@
             <button id="saveBlogBtn" class="primary-btn">Add Blog</button>
             <button id="clearBlogBtn" class="admin-mini-btn">Clear Form</button>
             <button id="saveAllBlogsBtn" class="admin-mini-btn">Save All Edited Blogs</button>
+            <button id="refreshBlogListBtn" class="admin-mini-btn">Refresh</button>
             <span id="blogStatus"></span>
         </div>
         <div class="table-wrap"><table class="admin-table" id="blogTable"></table></div>
@@ -265,11 +272,20 @@
             </article>
 
             <article class="admin-subcard">
+                <h4 id="adsCardCodeTitle">Coupon Code Page Placements</h4>
+                <div class="admin-grid">
+                    <label id="adsCodeTopEnabledLabel"><input type="checkbox" id="adsCodeTopEnabled"> Code page top ad</label>
+                    <label id="adsCodeBottomEnabledLabel"><input type="checkbox" id="adsCodeBottomEnabled"> Code page bottom ad</label>
+                </div>
+            </article>
+
+            <article class="admin-subcard">
                 <h4 id="adsCardSenseTitle">Google AdSense</h4>
                 <div class="admin-grid">
                     <input id="adsenseClientId" placeholder="Google AdSense Client ID (ca-pub-xxxx)">
                     <input id="adsenseHomeSlot" placeholder="Home AdSense Slot ID">
                     <input id="adsenseBlogSlot" placeholder="Blog AdSense Slot ID">
+                    <input id="adsenseCodeSlot" placeholder="Coupon Code AdSense Slot ID">
                 </div>
             </article>
         </div>
@@ -292,27 +308,48 @@
             <button class="admin-subtab" data-crawler-tab="logs" id="crawlerSubtabLogs">Logs</button>
         </div>
         <div class="admin-subsection" data-crawler-section="schedule">
-            <div class="admin-row">
-                <label id="couponCrawlerEnabledLabel"><input type="checkbox" id="couponCrawlerEnabled"> Enable scheduled coupon crawler</label>
-                <label id="couponCrawlerIntervalLabel">Coupon interval (minutes)
-                    <input id="couponCrawlerIntervalMinutes" type="number" min="1" step="1" value="30" style="width:90px;">
-                </label>
-                <button id="runCouponCrawlerBtn" class="primary-btn">Run Coupon Crawler</button>
+            <div class="table-wrap">
+                <table class="admin-table" id="crawlerScheduleTable">
+                    <thead>
+                    <tr>
+                        <th id="crawlerScheduleTaskHeader">Task</th>
+                        <th id="crawlerScheduleEnabledHeader">Enabled</th>
+                        <th id="crawlerScheduleIntervalHeader">Interval (minutes)</th>
+                        <th id="crawlerScheduleRunAtHeader">Run At (HH:mm)</th>
+                        <th id="crawlerScheduleLastRunHeader">Last Run</th>
+                        <th id="crawlerScheduleActionHeader">Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td id="couponCrawlerTaskName">Coupon Crawler</td>
+                        <td><label id="couponCrawlerEnabledLabel"><input type="checkbox" id="couponCrawlerEnabled"></label></td>
+                        <td><input id="couponCrawlerIntervalMinutes" type="number" min="1" step="1" value="30" style="width:100px;"></td>
+                        <td><input id="couponCrawlerRunAt" type="time" value="00:00" style="width:120px;"></td>
+                        <td><span id="couponCrawlerLastRunAt">-</span></td>
+                        <td><button id="runCouponCrawlerBtn" class="primary-btn">Run Coupon Crawler</button></td>
+                    </tr>
+                    <tr>
+                        <td id="brandCrawlerTaskName">Brand Crawler</td>
+                        <td><label id="brandCrawlerEnabledLabel"><input type="checkbox" id="brandCrawlerEnabled"></label></td>
+                        <td><input id="brandCrawlerIntervalMinutes" type="number" min="1" step="1" value="30" style="width:100px;"></td>
+                        <td><input id="brandCrawlerRunAt" type="time" value="00:00" style="width:120px;"></td>
+                        <td><span id="brandCrawlerLastRunAt">-</span></td>
+                        <td><button id="runBrandCrawlerBtn" class="primary-btn">Run Brand Crawler</button></td>
+                    </tr>
+                    <tr>
+                        <td id="brandLogoCrawlerTaskName">Brand Logo Crawler</td>
+                        <td><label id="brandLogoCrawlerEnabledLabel"><input type="checkbox" id="brandLogoCrawlerEnabled"></label></td>
+                        <td><input id="brandLogoCrawlerIntervalMinutes" type="number" min="1" step="1" value="30" style="width:100px;"></td>
+                        <td><input id="brandLogoCrawlerRunAt" type="time" value="00:00" style="width:120px;"></td>
+                        <td><span id="brandLogoCrawlerLastRunAt">-</span></td>
+                        <td><button id="runBrandLogoCrawlerBtn" class="primary-btn">Run Brand Logo Crawler</button></td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
             <div class="admin-row">
-                <label id="brandCrawlerEnabledLabel"><input type="checkbox" id="brandCrawlerEnabled"> Enable scheduled brand crawler</label>
-                <label id="brandCrawlerIntervalLabel">Brand interval (minutes)
-                    <input id="brandCrawlerIntervalMinutes" type="number" min="1" step="1" value="30" style="width:90px;">
-                </label>
-                <button id="runBrandCrawlerBtn" class="primary-btn">Run Brand Crawler</button>
-            </div>
-            <div class="admin-row">
-                <label id="brandLogoCrawlerEnabledLabel"><input type="checkbox" id="brandLogoCrawlerEnabled"> Enable scheduled brand logo crawler</label>
-                <label id="brandLogoCrawlerIntervalLabel">Logo interval (minutes)
-                    <input id="brandLogoCrawlerIntervalMinutes" type="number" min="1" step="1" value="30" style="width:90px;">
-                </label>
                 <button id="saveCrawlerBtn" class="primary-btn">Save</button>
-                <button id="runBrandLogoCrawlerBtn" class="primary-btn">Run Brand Logo Crawler</button>
                 <span id="crawlerStatus"></span>
             </div>
         </div>
@@ -331,6 +368,7 @@
             </div>
             <div class="admin-row">
                 <button id="saveCrawlerSiteBtn" class="primary-btn">Add Crawler Site</button>
+                <button id="refreshCrawlerSiteListBtn" class="admin-mini-btn">Refresh</button>
                 <span class="muted-inline" id="crawlerBuiltinHint">Built-in: RetailMeNot / SimplyCodes can be toggled below too</span>
             </div>
             <div class="table-wrap"><table class="admin-table" id="crawlerSiteTable"></table></div>
@@ -342,12 +380,15 @@
             </div>
             <div class="admin-row">
                 <button id="postSelectedStagedBtn" class="primary-btn">Post Selected to Main Site</button>
+                <button id="deleteSelectedStagedBtn" class="admin-mini-btn">Delete Selected</button>
+                <button id="refreshStagedCouponListBtn" class="admin-mini-btn">Refresh</button>
                 <span class="muted-inline" id="stagedCouponsHint">Rows already posted are marked.</span>
             </div>
             <div class="table-wrap"><table class="admin-table" id="stagedCouponTable"></table></div>
         </div>
         <div class="admin-subsection hidden" data-crawler-section="logs">
             <div class="admin-row" style="justify-content:flex-end;">
+                <button id="refreshCrawlerLogListBtn" class="admin-mini-btn">Refresh</button>
                 <label style="display:flex;gap:8px;align-items:center;font-weight:600;color:#395378;">
                     <span id="adminLogLangLabel">Log Language</span>
                     <select id="logLang" style="width:140px;">
